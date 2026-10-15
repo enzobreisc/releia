@@ -1,18 +1,32 @@
-import { Head } from '@inertiajs/react';
+import { ComingSoon } from '@/components/coming-soon';
+import { PageHeader } from '@/components/page-header';
+
+function greeting(hour: number): string {
+    if (hour >= 5 && hour < 12) {
+        return 'Bom dia';
+    }
+
+    return hour >= 12 && hour < 18 ? 'Boa tarde' : 'Boa noite';
+}
 
 export default function Inicio() {
     return (
         <>
-            <Head title="Início" />
-            <div className="flex min-h-screen flex-col">
-                <div className="h-10 shrink-0 app-drag" />
-                <main className="flex flex-1 flex-col items-center justify-center gap-3">
-                    <h1 className="font-mono text-3xl font-bold">releia</h1>
-                    <p className="font-mono text-sm text-muted">
-                        ## fase 0 · fundação
-                    </p>
-                </main>
-            </div>
+            <PageHeader
+                title={greeting(new Date().getHours())}
+                headTitle="Início"
+                crumb="início"
+                description="Um resumo rápido da sua leitura"
+            />
+            <ComingSoon
+                phase={2}
+                items={[
+                    'Lendo agora, com progresso e botão para registrar leitura',
+                    'Meta do ano e previsão no ritmo atual',
+                    'Sugestão do dia, com o motivo',
+                    'Últimos livros terminados',
+                ]}
+            />
         </>
     );
 }
