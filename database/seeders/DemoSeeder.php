@@ -34,7 +34,7 @@ class DemoSeeder extends Seeder
         ['Refactoring', ['Martin Fowler'], 448, 'Tecnologia', 'lendo', '2026-09-01', null, null],
         ['Memórias Póstumas de Brás Cubas', ['Machado de Assis'], 262, 'Ficção', 'lendo', '2026-10-01', null, null],
         ['Ensaio sobre a cegueira', ['José Saramago'], 310, 'Ficção', 'abandonado', '2026-02-10', '2026-02-20', null],
-        ['Duna', ['Frank Herbert'], 688, 'Ficção', 'quero_ler', '2026-01-01', null, null],
+        ['Duna', ['Frank Herbert'], 688, 'Ficção', 'quero_ler', null, null, null],
     ];
 
     public function run(): void
