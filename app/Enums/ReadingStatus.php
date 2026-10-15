@@ -5,18 +5,18 @@ namespace App\Enums;
 /** Estante em que o livro está, pela leitura mais recente. */
 enum ReadingStatus: string
 {
-    case QueroLer = 'quero_ler';
-    case Lendo = 'lendo';
-    case Lido = 'lido';
-    case Abandonado = 'abandonado';
+    case WantToRead = 'want_to_read';
+    case Reading = 'reading';
+    case Read = 'read';
+    case Abandoned = 'abandoned';
 
     public function label(): string
     {
         return match ($this) {
-            self::QueroLer => 'Quero ler',
-            self::Lendo => 'Lendo',
-            self::Lido => 'Lido',
-            self::Abandonado => 'Abandonado',
+            self::WantToRead => 'Quero ler',
+            self::Reading => 'Lendo',
+            self::Read => 'Lido',
+            self::Abandoned => 'Abandonado',
         };
     }
 
@@ -24,10 +24,10 @@ enum ReadingStatus: string
     public function shelfLabel(): string
     {
         return match ($this) {
-            self::QueroLer => 'Quero ler',
-            self::Lendo => 'Lendo',
-            self::Lido => 'Lidos',
-            self::Abandonado => 'Abandonados',
+            self::WantToRead => 'Quero ler',
+            self::Reading => 'Lendo',
+            self::Read => 'Lidos',
+            self::Abandoned => 'Abandonados',
         };
     }
 

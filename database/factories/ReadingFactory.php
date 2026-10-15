@@ -17,7 +17,7 @@ class ReadingFactory extends Factory
     public function definition(): array
     {
         return [
-            'status' => ReadingStatus::QueroLer,
+            'status' => ReadingStatus::WantToRead,
         ];
     }
 }

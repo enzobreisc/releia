@@ -67,7 +67,7 @@ export default function Book({ book, slug, statuses }: BookProps) {
                     />
                     <Field label="Estante">
                         <Select
-                            value={reading?.status ?? 'quero_ler'}
+                            value={reading?.status ?? 'want_to_read'}
                             disabled={saving}
                             onChange={(event) =>
                                 update({ status: event.target.value })

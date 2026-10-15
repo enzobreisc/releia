@@ -19,7 +19,7 @@ class ReadingController extends Controller
         $reading = $book->currentReading;
 
         if ($reading === null) {
-            $reading = new Reading(['status' => ReadingStatus::QueroLer]);
+            $reading = new Reading(['status' => ReadingStatus::WantToRead]);
             $reading->book()->associate($book);
         }
 

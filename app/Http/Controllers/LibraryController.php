@@ -69,7 +69,7 @@ class LibraryController extends Controller
 
         $shelves = [['value' => null, 'label' => 'Todos', 'count' => Book::count()]];
 
-        foreach ([ReadingStatus::Lendo, ReadingStatus::QueroLer, ReadingStatus::Lido, ReadingStatus::Abandonado] as $status) {
+        foreach ([ReadingStatus::Reading, ReadingStatus::WantToRead, ReadingStatus::Read, ReadingStatus::Abandoned] as $status) {
             $shelves[] = [
                 'value' => $status->value,
                 'label' => $status->shelfLabel(),

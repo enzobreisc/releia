@@ -22,23 +22,23 @@ class ReadingService
         $reading->status = $status;
 
         switch ($status) {
-            case ReadingStatus::QueroLer:
+            case ReadingStatus::WantToRead:
                 $reading->started_at = null;
                 $reading->finished_at = null;
                 break;
 
-            case ReadingStatus::Lendo:
+            case ReadingStatus::Reading:
                 $reading->started_at ??= $today;
                 $reading->finished_at = null;
                 break;
 
-            case ReadingStatus::Lido:
+            case ReadingStatus::Read:
                 $reading->started_at ??= $today;
                 $reading->finished_at = $today;
                 $reading->current_page = max($reading->current_page, $reading->book->pages ?? 0);
                 break;
 
-            case ReadingStatus::Abandonado:
+            case ReadingStatus::Abandoned:
                 $reading->started_at ??= $today;
                 $reading->finished_at = $today;
                 break;

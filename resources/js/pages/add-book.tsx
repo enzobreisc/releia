@@ -45,7 +45,7 @@ const emptyForm: BookForm = {
     description: '',
     cover_url: '',
     source: 'manual',
-    status: 'quero_ler',
+    status: 'want_to_read',
 };
 
 function toForm(candidate: Candidate): Omit<BookForm, 'status'> {

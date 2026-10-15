@@ -38,7 +38,7 @@ class LibraryService
             $book->syncAuthors($data['authors'] ?? []);
             $book->refreshSearchText();
 
-            $reading = new Reading(['status' => ReadingStatus::QueroLer]);
+            $reading = new Reading(['status' => ReadingStatus::WantToRead]);
             $reading->book()->associate($book);
             $this->readings->changeStatus($reading, ReadingStatus::from($data['status']));
 

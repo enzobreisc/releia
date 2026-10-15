@@ -26,7 +26,7 @@ function bookPayload(array $overrides = []): array
         'pages' => '280',
         'genre' => 'Romance',
         'source' => 'open_library',
-        'status' => 'quero_ler',
+        'status' => 'want_to_read',
         ...$overrides,
     ];
 }
@@ -44,7 +44,7 @@ test('cadastra um livro com autores, leitura e capa', function () {
     expect($book->isbn_13)->toBe('9786580309313')
         ->and($book->isbn_10)->toBe('6580309318')
         ->and($book->authors->pluck('name')->all())->toBe(['Fulana', 'Beltrano'])
-        ->and($book->currentReading?->status)->toBe(ReadingStatus::QueroLer)
+        ->and($book->currentReading?->status)->toBe(ReadingStatus::WantToRead)
         ->and($book->cover_path)->toBe('covers/1.jpg');
 
     Storage::disk('local')->assertExists('covers/1.jpg');
@@ -61,7 +61,7 @@ test('o cadastro não falha quando a capa não baixa', function () {
 });
 
 test('livro adicionado como lido ganha datas de início e fim', function () {
-    $this->post(route('books.store'), bookPayload(['status' => 'lido']))->assertRedirect();
+    $this->post(route('books.store'), bookPayload(['status' => 'read']))->assertRedirect();
 
     $reading = Reading::sole();
 
@@ -81,7 +81,7 @@ test('recusa ISBN repetido e ISBN inválido', function () {
 });
 
 test('cadastro manual aceita livro sem ISBN', function () {
-    $this->post(route('books.store'), ['title' => 'Caderno de receitas da vó', 'status' => 'lendo'])
+    $this->post(route('books.store'), ['title' => 'Caderno de receitas da vó', 'status' => 'reading'])
         ->assertRedirect();
 
     expect(Book::sole()->source->value)->toBe('manual');
@@ -99,23 +99,23 @@ test('a busca ignora acentos e procura em título, autor e ISBN', function (stri
 
 test('estante e contagens usam só a leitura mais recente', function () {
     $reread = Book::factory()->create(['title' => 'Relido']);
-    $reread->readings()->create(['status' => ReadingStatus::Lido]);
-    $reread->readings()->create(['status' => ReadingStatus::Lendo]);
-    Book::factory()->onShelf(ReadingStatus::Lido)->create(['title' => 'Só lido']);
+    $reread->readings()->create(['status' => ReadingStatus::Read]);
+    $reread->readings()->create(['status' => ReadingStatus::Reading]);
+    Book::factory()->onShelf(ReadingStatus::Read)->create(['title' => 'Só lido']);
 
-    $this->get(route('library.index', ['shelf' => 'lido']))
+    $this->get(route('library.index', ['shelf' => 'read']))
         ->assertInertia(fn (Assert $page) => $page
             ->has('books', 1)
             ->where('books.0.title', 'Só lido')
             ->where('shelves.0.count', 2)
-            ->where('shelves.1', ['value' => 'lendo', 'label' => 'Lendo', 'count' => 1])
-            ->where('shelves.3', ['value' => 'lido', 'label' => 'Lidos', 'count' => 1]));
+            ->where('shelves.1', ['value' => 'reading', 'label' => 'Lendo', 'count' => 1])
+            ->where('shelves.3', ['value' => 'read', 'label' => 'Lidos', 'count' => 1]));
 });
 
 test('filtra por gênero e ordena por nota', function () {
-    Book::factory()->create(['title' => 'Sem nota', 'genre' => 'Romance'])->readings()->create(['status' => ReadingStatus::Lido]);
-    Book::factory()->create(['title' => 'Nota 3', 'genre' => 'Romance'])->readings()->create(['status' => ReadingStatus::Lido, 'rating' => 3]);
-    Book::factory()->create(['title' => 'Nota 5', 'genre' => 'Romance'])->readings()->create(['status' => ReadingStatus::Lido, 'rating' => 5]);
+    Book::factory()->create(['title' => 'Sem nota', 'genre' => 'Romance'])->readings()->create(['status' => ReadingStatus::Read]);
+    Book::factory()->create(['title' => 'Nota 3', 'genre' => 'Romance'])->readings()->create(['status' => ReadingStatus::Read, 'rating' => 3]);
+    Book::factory()->create(['title' => 'Nota 5', 'genre' => 'Romance'])->readings()->create(['status' => ReadingStatus::Read, 'rating' => 5]);
     Book::factory()->create(['title' => 'Outro gênero', 'genre' => 'História']);
 
     $this->get(route('library.index', ['genre' => 'Romance', 'sort' => 'rating']))
@@ -127,13 +127,13 @@ test('filtra por gênero e ordena por nota', function () {
 });
 
 test('mudar de estante atualiza as datas da leitura', function () {
-    $book = Book::factory()->onShelf(ReadingStatus::QueroLer)->create();
+    $book = Book::factory()->onShelf(ReadingStatus::WantToRead)->create();
 
-    $this->patch(route('books.reading', $book), ['status' => 'lendo'])->assertRedirect();
+    $this->patch(route('books.reading', $book), ['status' => 'reading'])->assertRedirect();
     expect($book->currentReading()->first()?->started_at?->toDateString())->toBe('2026-10-14');
 
     Carbon::setTestNow('2026-10-20 08:00:00');
-    $this->patch(route('books.reading', $book), ['status' => 'lido']);
+    $this->patch(route('books.reading', $book), ['status' => 'read']);
 
     $reading = $book->currentReading()->first();
     expect($reading?->started_at?->toDateString())->toBe('2026-10-14')
@@ -141,7 +141,7 @@ test('mudar de estante atualiza as datas da leitura', function () {
 });
 
 test('salva nota e resenha sem mexer na estante', function () {
-    $book = Book::factory()->onShelf(ReadingStatus::Lido)->create();
+    $book = Book::factory()->onShelf(ReadingStatus::Read)->create();
 
     $this->patch(route('books.reading', $book), ['rating' => 4])->assertRedirect();
     $this->patch(route('books.reading', $book), ['review' => '  Muito bom.  ']);
@@ -149,7 +149,7 @@ test('salva nota e resenha sem mexer na estante', function () {
     $reading = $book->currentReading()->first();
     expect($reading?->rating)->toBe(4)
         ->and($reading?->review)->toBe('Muito bom.')
-        ->and($reading?->status)->toBe(ReadingStatus::Lido);
+        ->and($reading?->status)->toBe(ReadingStatus::Read);
 
     $this->patch(route('books.reading', $book), ['rating' => 9])->assertSessionHasErrors('rating');
 });
@@ -170,7 +170,7 @@ test('detalhe mostra o livro e a capa é servida do disco local', function () {
 });
 
 test('remover apaga o livro, as leituras e a capa', function () {
-    $book = Book::factory()->onShelf(ReadingStatus::Lido)->create(['cover_path' => 'covers/1.jpg']);
+    $book = Book::factory()->onShelf(ReadingStatus::Read)->create(['cover_path' => 'covers/1.jpg']);
     Storage::disk('local')->put('covers/1.jpg', 'imagem');
 
     $this->delete(route('books.destroy', $book))->assertRedirect(route('library.index'));
