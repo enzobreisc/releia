@@ -103,7 +103,7 @@ test('estante e contagens usam só a leitura mais recente', function () {
     $reread->readings()->create(['status' => ReadingStatus::Lendo]);
     Book::factory()->onShelf(ReadingStatus::Lido)->create(['title' => 'Só lido']);
 
-    $this->get(route('library.index', ['estante' => 'lido']))
+    $this->get(route('library.index', ['shelf' => 'lido']))
         ->assertInertia(fn (Assert $page) => $page
             ->has('books', 1)
             ->where('books.0.title', 'Só lido')
@@ -118,7 +118,7 @@ test('filtra por gênero e ordena por nota', function () {
     Book::factory()->create(['title' => 'Nota 5', 'genre' => 'Romance'])->readings()->create(['status' => ReadingStatus::Lido, 'rating' => 5]);
     Book::factory()->create(['title' => 'Outro gênero', 'genre' => 'História']);
 
-    $this->get(route('library.index', ['genero' => 'Romance', 'ordem' => 'nota']))
+    $this->get(route('library.index', ['genre' => 'Romance', 'sort' => 'rating']))
         ->assertInertia(fn (Assert $page) => $page
             ->where('books.0.title', 'Nota 5')
             ->where('books.1.title', 'Nota 3')
@@ -203,7 +203,7 @@ test('lista as edições de uma obra marcando as que já estão na biblioteca', 
     ]);
     $book = Book::factory()->create(['isbn_13' => '9788582850350']);
 
-    $this->get(route('books.create', ['q' => 'dom casmurro', 'obra' => 'OL1003040W', 'editora' => 'penguin']))
+    $this->get(route('books.create', ['q' => 'dom casmurro', 'work' => 'OL1003040W', 'publisher' => 'penguin']))
         ->assertInertia(fn (Assert $page) => $page
             ->where('editions.work_key', 'OL1003040W')
             ->where('editions.items', fn ($items) => collect($items)->contains(

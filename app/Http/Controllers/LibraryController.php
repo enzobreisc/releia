@@ -14,14 +14,14 @@ use Inertia\Response;
 
 class LibraryController extends Controller
 {
-    private const SORTS = ['recentes', 'titulo', 'nota'];
+    private const SORTS = ['recent', 'title', 'rating'];
 
     public function index(Request $request): Response
     {
         $search = Book::normalizeSearch((string) $request->string('q'));
-        $genre = $request->string('genero')->toString();
-        $shelf = ReadingStatus::tryFrom($request->string('estante')->toString());
-        $sort = in_array($request->input('ordem'), self::SORTS, true) ? $request->input('ordem') : 'recentes';
+        $genre = $request->string('genre')->toString();
+        $shelf = ReadingStatus::tryFrom($request->string('shelf')->toString());
+        $sort = in_array($request->input('sort'), self::SORTS, true) ? $request->input('sort') : 'recent';
 
         $books = Book::query()
             ->with(['authors', 'currentReading'])
@@ -36,8 +36,8 @@ class LibraryController extends Controller
                 'books.id',
                 $this->latestReadings()->where('status', $shelf->value)->select('book_id'),
             ))
-            ->when($sort === 'titulo', fn (Builder $query) => $query->orderByRaw('title COLLATE NOCASE'))
-            ->when($sort === 'nota', fn (Builder $query) => $query->orderByRaw('current_rating IS NULL, current_rating DESC'))
+            ->when($sort === 'title', fn (Builder $query) => $query->orderByRaw('title COLLATE NOCASE'))
+            ->when($sort === 'rating', fn (Builder $query) => $query->orderByRaw('current_rating IS NULL, current_rating DESC'))
             ->latest('id')
             ->get();
 
@@ -47,9 +47,9 @@ class LibraryController extends Controller
             'genres' => Book::query()->whereNotNull('genre')->distinct()->orderBy('genre')->pluck('genre'),
             'filters' => [
                 'q' => (string) $request->string('q'),
-                'genero' => $genre,
-                'estante' => $shelf?->value,
-                'ordem' => $sort,
+                'genre' => $genre,
+                'shelf' => $shelf?->value,
+                'sort' => $sort,
             ],
         ]);
     }

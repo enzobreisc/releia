@@ -26,14 +26,14 @@ class BookController extends Controller
 
     /**
      * Adicionar livro. `q` (e `publisher`, opcional) busca nas fontes externas;
-     * `obra` lista as edições de uma obra e `isbn` carrega os detalhes de uma
+     * `work` lista as edições de uma obra e `isbn` carrega os detalhes de uma
      * edição para a prévia. Os dois últimos chegam por recarga parcial.
      */
     public function create(Request $request): Response
     {
         $query = trim((string) $request->string('q'));
-        $publisher = trim((string) $request->string('editora'));
-        $work = OpenLibraryProvider::workKey('/works/'.$request->string('obra'));
+        $publisher = trim((string) $request->string('publisher'));
+        $work = OpenLibraryProvider::workKey('/works/'.$request->string('work'));
         $isbn = Isbn::toIsbn13((string) $request->string('isbn'));
 
         return Inertia::render('add-book', [

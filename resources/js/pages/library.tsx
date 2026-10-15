@@ -12,9 +12,9 @@ import type { BookCard, Shelf } from '@/types';
 
 type Filters = {
     q: string;
-    genero: string;
-    estante: string | null;
-    ordem: string;
+    genre: string;
+    shelf: string | null;
+    sort: string;
 };
 
 type LibraryProps = {
@@ -25,9 +25,9 @@ type LibraryProps = {
 };
 
 const SORTS = [
-    { value: 'recentes', label: 'Adicionados recentemente' },
-    { value: 'titulo', label: 'Título' },
-    { value: 'nota', label: 'Nota' },
+    { value: 'recent', label: 'Adicionados recentemente' },
+    { value: 'title', label: 'Título' },
+    { value: 'rating', label: 'Nota' },
 ];
 
 export default function Library({
@@ -48,9 +48,9 @@ export default function Library({
             libraryIndex.url(),
             {
                 q: next.q || undefined,
-                genero: next.genero || undefined,
-                estante: next.estante || undefined,
-                ordem: next.ordem === 'recentes' ? undefined : next.ordem,
+                genre: next.genre || undefined,
+                shelf: next.shelf || undefined,
+                sort: next.sort === 'recent' ? undefined : next.sort,
             },
             { preserveState: true, preserveScroll: true, replace: true },
         );
@@ -108,9 +108,9 @@ export default function Library({
                 </Field>
                 <Field label="Gênero" className="flex-[1_1_150px]">
                     <Select
-                        value={filters.genero}
+                        value={filters.genre}
                         onChange={(event) =>
-                            apply({ genero: event.target.value })
+                            apply({ genre: event.target.value })
                         }
                     >
                         <option value="">Todos</option>
@@ -123,9 +123,9 @@ export default function Library({
                 </Field>
                 <Field label="Ordenar por" className="flex-[1_1_150px]">
                     <Select
-                        value={filters.ordem}
+                        value={filters.sort}
                         onChange={(event) =>
-                            apply({ ordem: event.target.value })
+                            apply({ sort: event.target.value })
                         }
                     >
                         {SORTS.map((sort) => (
@@ -143,7 +143,7 @@ export default function Library({
                 className="flex flex-wrap gap-2 border-b pb-3"
             >
                 {shelves.map((shelf) => {
-                    const selected = (filters.estante ?? null) === shelf.value;
+                    const selected = (filters.shelf ?? null) === shelf.value;
 
                     return (
                         <button
@@ -151,7 +151,7 @@ export default function Library({
                             type="button"
                             role="tab"
                             aria-selected={selected}
-                            onClick={() => apply({ estante: shelf.value })}
+                            onClick={() => apply({ shelf: shelf.value })}
                             className={cn(
                                 'rounded-sm px-4 py-3 text-sm',
                                 selected

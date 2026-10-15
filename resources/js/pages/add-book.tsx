@@ -124,7 +124,7 @@ export default function AddBook({
             addBook.url(),
             {
                 q: search.trim() || undefined,
-                editora: publisherFilter.trim() || undefined,
+                publisher: publisherFilter.trim() || undefined,
             },
             {
                 preserveState: true,
@@ -147,7 +147,7 @@ export default function AddBook({
         setOpenWork(workKey);
         router.reload({
             only: ['editions'],
-            data: { obra: workKey },
+            data: { work: workKey },
             replace: true,
         });
     }
