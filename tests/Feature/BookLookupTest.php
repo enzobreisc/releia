@@ -2,8 +2,10 @@
 
 use App\Enums\BookSource;
 use App\Services\BookLookupService;
+use App\Support\Isbn;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 /**
  * Volume do Google Books no formato documentado em
@@ -118,3 +120,61 @@ test('guarda resultados em cache, mas não falhas', function () {
     Http::assertSent(fn (Request $request) => $request->hasHeader('User-Agent')
         && str_contains($request->header('User-Agent')[0], 'releia'));
 });
+
+test('a busca por título traz a obra e o número de edições', function () {
+    Http::fake(['openlibrary.org/search.json*' => apiFixture('open-library/search-dom-casmurro.json')]);
+
+    $work = app(BookLookupService::class)->search('dom casmurro')[0];
+
+    expect($work->workKey)->toBe('OL1003040W')
+        ->and($work->editionCount)->toBe(90);
+});
+
+test('a busca repassa a editora para a Open Library', function () {
+    Http::fake(['openlibrary.org/search.json*' => apiFixture('open-library/search-dom-casmurro.json')]);
+
+    app(BookLookupService::class)->search('dom casmurro', 'Antofágica');
+
+    Http::assertSent(fn (Request $request) => $request['publisher'] === 'antofagica');
+});
+
+test('edições vêm sem repetidas, só com ISBN, brasileiras e com capa primeiro', function () {
+    Http::fake(['openlibrary.org/works/OL1003040W/editions.json*' => apiFixture('open-library/editions-OL1003040W.json')]);
+
+    $editions = app(BookLookupService::class)->editions('OL1003040W', ['Machado de Assis']);
+    $isbns = array_map(fn ($edition) => $edition->isbn13, $editions);
+
+    expect($isbns)->toBe(array_values(array_unique($isbns)))
+        ->and($isbns)->not->toContain(null)
+        ->and($editions[0]->isbn13)->toStartWith('978')
+        ->and(Isbn::isBrazilian((string) $editions[0]->isbn13))->toBeTrue()
+        ->and($editions[0]->coverUrl)->not->toBeNull()
+        ->and($editions[0]->authors)->toBe(['Machado de Assis'])
+        ->and($isbns)->toContain('9788582850350', '9786586490084', '9788594318602');
+
+    // Entre as brasileiras com capa, as mais recentes vêm antes.
+    $brazilianWithCover = array_values(array_filter(
+        $editions,
+        fn ($edition) => Isbn::isBrazilian((string) $edition->isbn13) && $edition->coverUrl !== null,
+    ));
+    $years = array_map(fn ($edition) => $edition->publishedYear ?? 0, $brazilianWithCover);
+    $sorted = $years;
+    rsort($sorted);
+
+    expect($years)->toBe($sorted);
+});
+
+test('filtra as edições pela editora sem ligar para acento ou caixa', function (string $publisher, string $expected) {
+    Http::fake(['openlibrary.org/works/OL1003040W/editions.json*' => apiFixture('open-library/editions-OL1003040W.json')]);
+
+    $editions = app(BookLookupService::class)->editions('OL1003040W', publisher: $publisher);
+
+    expect($editions)->not->toBeEmpty();
+
+    foreach ($editions as $edition) {
+        expect(Str::ascii(mb_strtolower((string) $edition->publisher)))->toContain($expected);
+    }
+})->with([
+    ['PENGUIN', 'penguin'],
+    ['antofagica', 'antofagica'],
+]);

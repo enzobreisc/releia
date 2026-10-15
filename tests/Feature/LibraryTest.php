@@ -195,3 +195,18 @@ test('a contagem de livros vai para a barra lateral', function () {
 
     $this->get(route('inicio'))->assertInertia(fn (Assert $page) => $page->where('counts.books', 3));
 });
+
+test('lista as edições de uma obra marcando as que já estão na biblioteca', function () {
+    Http::fake([
+        'openlibrary.org/search.json*' => apiFixture('open-library/search-dom-casmurro.json'),
+        'openlibrary.org/works/OL1003040W/editions.json*' => apiFixture('open-library/editions-OL1003040W.json'),
+    ]);
+    $book = Book::factory()->create(['isbn_13' => '9788582850350']);
+
+    $this->get(route('adicionar', ['q' => 'dom casmurro', 'obra' => 'OL1003040W', 'editora' => 'penguin']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('editions.work_key', 'OL1003040W')
+            ->where('editions.items', fn ($items) => collect($items)->contains(
+                fn ($item) => $item['isbn_13'] === '9788582850350' && $item['library_id'] === $book->id,
+            ) && collect($items)->every(fn ($item) => str_contains(strtolower((string) $item['publisher']), 'penguin'))));
+});

@@ -1,0 +1,3943 @@
+{
+    "links": {
+        "self": "/works/OL1003040W/editions.json?limit=100",
+        "work": "/works/OL1003040W"
+    },
+    "size": 90,
+    "entries": [
+        {
+            "works": [{ "key": "/works/OL1003040W" }],
+            "title": "Dom Casmurro",
+            "publishers": ["Projecto Adamastor"],
+            "publish_date": "2013",
+            "key": "/books/OL62363757M",
+            "type": { "key": "/type/edition" },
+            "identifiers": {},
+            "isbn_13": ["9789898698124"],
+            "languages": [{ "key": "/languages/por" }],
+            "description": {
+                "type": "/type/text",
+                "value": "> Tudo o que contei no fim do outro capítulo foi obra de um instante. O que se lhe seguiu foi ainda mais rápido. Dei um pulo, e antes que ela raspasse o muro, li estes dois nomes, abertos ao prego, e assim dispostos:\r\n>\r\n> BENTO\r\n>\r\n> CAPITOLINA\r\n>\r\n> Voltei-me para ela; Capitu tinha os olhos no chão. Ergueu-os logo, devagar, e ficámos a olhar um para o outro… Confissão de crianças, tu valias bem duas ou três páginas, mas quero ser poupado. Em verdade, não falámos nada; o muro falou por nós. Não nos movemos, as mãos é que se estenderam pouco a pouco, todas quatro, pegando-se, apertando-se, fundindo-se. Não marquei a hora exacta daquele gesto. Devia tê-la marcado; sinto a falta de uma nota escrita naquela mesma noite, e que eu poria aqui com os erros de ortografia que trouxesse, mas não traria nenhum, tal era a diferença entre o estudante e o adolescente. Conhecia as regras do escrever, sem suspeitar as do amar; tinha orgias de latim e era virgem de mulheres.\r\n>\r\n> Não soltámos as mãos, nem elas se deixaram cair de cansadas ou de esquecidas. Os olhos fitavam-se e desfitavam-se, e depois de vagarem ao perto, tornavam a meter-se uns pelos outros… Padre futuro, estava assim diante dela como de um altar, sendo uma das faces a Epístola e a outra o Evangelho. A boca podia ser o cálice, os lábios a patena. Faltava dizer a missa nova, por um latim que ninguém aprende, e é a língua católica dos homens. Não me tenhas por sacrílego, leitora minha devota; a limpeza da intenção lava o que puder haver menos curial no estilo. Estávamos ali com o céu em nós. As mãos, unindo os nervos, faziam das duas criaturas uma só, mas uma só criatura seráfica. Os olhos continuaram a dizer coisas infinitas, as palavras de boca é que nem tentavam sair, tornavam ao coração caladas como vinham…"
+            },
+            "physical_format": "eBook",
+            "covers": [15241023],
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2026-07-25T14:25:46.352918"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-07-25T14:28:12.343620"
+            }
+        },
+        {
+            "works": [{ "key": "/works/OL1003040W" }],
+            "title": "Dom Casmurro",
+            "publishers": ["Penguin-Companhia"],
+            "publish_date": "16/07/2016",
+            "key": "/books/OL61241820M",
+            "type": { "key": "/type/edition" },
+            "identifiers": {},
+            "covers": [15167286],
+            "isbn_13": ["9788582850350"],
+            "isbn_10": ["8582850352"],
+            "publish_places": ["Brazil"],
+            "languages": [{ "key": "/languages/por" }],
+            "description": {
+                "type": "/type/text",
+                "value": "Um dos melhores e mais perfeitos romances brasileiros, uma radiografia do ciúme com a ressonância dos clássicos. Leitura obrigatória do vestibular da Fuvest.\r\n\r\nPoucos romances examinam com tanta sutileza as artimanhas do ciúme como Dom Casmurro . Publicado em 1899, o livro permanece ainda hoje como um dos mais fascinantes estudos da traição. Aliás, como o leitor mais atento perceberá, são supostamente duas: a de Capitu, exposta pelo marido Bentinho, e a própria narrativa sobre como Bentinho modifica os fatos para corroborar suas suspeitas matrimoniais.\r\nTudo isso é narrado com graça e inteligência num romance que jamais parece esgotar suas possibilidades de leitura. Críticos como Roberto Schwarz e Susan Sontag consideram a obra de Machado como um dos momentos mais altos da prosa ocidental do final do século XIX."
+            },
+            "physical_format": "paperback",
+            "number_of_pages": 400,
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2026-02-04T18:53:40.972771"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-02-04T18:54:50.599932"
+            }
+        },
+        {
+            "works": [{ "key": "/works/OL1003040W" }],
+            "title": "Dom Casmurro",
+            "publishers": ["Principis"],
+            "publish_date": "02/05/2019",
+            "key": "/books/OL61030557M",
+            "type": { "key": "/type/edition" },
+            "identifiers": {},
+            "covers": [15156099],
+            "isbn_13": ["9788594318602"],
+            "languages": [{ "key": "/languages/por" }],
+            "number_of_pages": 208,
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2025-12-30T12:40:13.909066"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-12-30T12:40:45.776612"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "publish_date": "1960",
+            "publish_country": "nyu",
+            "languages": [{ "key": "/languages/eng" }],
+            "work_titles": ["Dom Casmurro"],
+            "title": "Dom Casmurro",
+            "subtitle": "a novel",
+            "by_statement": "Translated by Helen Caldwell, with an introduction by Waldo Frank",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "oclc_numbers": ["22985439"],
+            "series": ["Noonday paperbacks -- N205"],
+            "translated_from": [{ "key": "/languages/und" }],
+            "publishers": ["Noonday Press"],
+            "publish_places": ["New York]"],
+            "pagination": "283 pages",
+            "number_of_pages": 283,
+            "source_records": [
+                "marc:marc_columbia/Columbia-extract-20221130-003.mrc:11902271:939"
+            ],
+            "full_title": "Dom Casmurro a novel",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL52573289M",
+            "latest_revision": 1,
+            "revision": 1,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2024-07-17T11:53:16.288765"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2024-07-17T11:53:16.288765"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "publish_date": "1966",
+            "publish_country": "bl",
+            "languages": [{ "key": "/languages/por" }],
+            "title": "Dom Casmurro",
+            "by_statement": "Machado de Assis ; apuração do texto, revisão, introução e notas por Maximiano de Carvalho e Silva, com um prefácio de Gustavo Corção",
+            "lccn": ["67076436"],
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "oclc_numbers": ["11025660"],
+            "publishers": ["Edições Melhoramentos"],
+            "publish_places": ["São Paulo]"],
+            "pagination": "321 pages",
+            "number_of_pages": 321,
+            "source_records": [
+                "marc:marc_columbia/Columbia-extract-20221130-003.mrc:10228961:843"
+            ],
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL52569056M",
+            "latest_revision": 1,
+            "revision": 1,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2024-07-17T11:06:57.754981"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2024-07-17T11:06:57.754981"
+            }
+        },
+        {
+            "works": [{ "key": "/works/OL1003040W" }],
+            "title": "Dom Casmurro",
+            "publishers": ["Penguin-Companhia"],
+            "publish_date": "2016",
+            "key": "/books/OL51694392M",
+            "type": { "key": "/type/edition" },
+            "identifiers": {},
+            "isbn_13": ["9788543806631"],
+            "isbn_10": ["8543806631"],
+            "classifications": {},
+            "table_of_contents": [
+                {
+                    "level": 1,
+                    "label": "Introdução",
+                    "title": "Uma história inesgotável",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 1,
+                    "label": "",
+                    "title": "Nota sobre o estabelecimento de texto",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 1,
+                    "label": "",
+                    "title": "DOM CASMURRO",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "I",
+                    "title": "Do título",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "II",
+                    "title": "Do livro",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "III",
+                    "title": "A denúncia",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "IV",
+                    "title": "Um dever amaríssimo!",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "V",
+                    "title": "O agregado",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "VI",
+                    "title": "Tio Cosme",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "VII",
+                    "title": "Dona Glória",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "VIII",
+                    "title": "É tempo!",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "IX",
+                    "title": "A ópera",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "X",
+                    "title": "Aceito a teoria",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XI",
+                    "title": "A promessa",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XII",
+                    "title": "Na varanda",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XIII",
+                    "title": "Capitu",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XIV",
+                    "title": "A inscrição",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XV",
+                    "title": "Outra voz repentina",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XVI",
+                    "title": "O administrador interino",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XVII",
+                    "title": "Os vermes",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XVIII",
+                    "title": "Um plano",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XIX",
+                    "title": "Sem falta",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XX",
+                    "title": "Mil padre-nossos e mil ave-marias",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXI",
+                    "title": "Prima Justina",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXII",
+                    "title": "Sensações alheias",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXIII",
+                    "title": "Prazo dado",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXIV",
+                    "title": "De mãe e de servo",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXV",
+                    "title": "No Passeio Público",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXVI",
+                    "title": "As leis são belas",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXVII",
+                    "title": "Ao portão",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXVIII",
+                    "title": "Na rua",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXIX",
+                    "title": "O imperador",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXX",
+                    "title": "O Santíssimo",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXXI",
+                    "title": "As curiosidades de Capitu",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXXII",
+                    "title": "Olhos de ressaca",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXXIII",
+                    "title": "O penteado",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXXIV",
+                    "title": "Sou homem!",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXXV",
+                    "title": "O protonotário apostólico",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXXVI",
+                    "title": "Ideia sem pernas e ideia sem braços",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXXVII",
+                    "title": "A alma é cheia de mistérios",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXXVIII",
+                    "title": "Que susto, meu Deus!",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XXXIX",
+                    "title": "A vocação",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XL",
+                    "title": "Uma égua",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XLI",
+                    "title": "A audiência secreta",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XLII",
+                    "title": "Capitu refletindo",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XLIII",
+                    "title": "Você tem medo?",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XLIV",
+                    "title": "O primeiro filho",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XLV",
+                    "title": "Abane a cabeça, leitor",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XLVI",
+                    "title": "As pazes",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XLVII",
+                    "title": "“A senhora saiu”",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XLVIII",
+                    "title": "Juramento do poço",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XLIX",
+                    "title": "Uma vela aos sábados",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "L",
+                    "title": "Um meio-termo",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LI",
+                    "title": "Entre luz e fusco",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LII",
+                    "title": "O velho Pádua",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LIII",
+                    "title": "A caminho!",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LIV",
+                    "title": "Panegírico de Santa Mônica",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LV",
+                    "title": "Um soneto",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LVI",
+                    "title": "Um seminarista",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LVII",
+                    "title": "De preparação",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LVIII",
+                    "title": "O tratado",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LIX",
+                    "title": "Convivas de boa memória",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LX",
+                    "title": "Querido opúsculo!",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXI",
+                    "title": "A vaca de Homero",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXII",
+                    "title": "Uma ponta de Iago",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXIII",
+                    "title": "Metades de um sonho",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXIV",
+                    "title": "Uma ideia e um escrúpulo",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXV",
+                    "title": "A dissimulação",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXVI",
+                    "title": "Intimidade",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXVII",
+                    "title": "Um pecado",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXVIII",
+                    "title": "Adiemos a virtude",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXIX",
+                    "title": "A missa",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXX",
+                    "title": "Depois da missa",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXI",
+                    "title": "Visita de Escobar",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXII",
+                    "title": "Uma reforma dramática",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXIII",
+                    "title": "O contrarregra",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXIV",
+                    "title": "A presilha",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXV",
+                    "title": "O desespero",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXVI",
+                    "title": "Explicação",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXVII",
+                    "title": "Prazer das dores velhas",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXVIII",
+                    "title": "Segredo por segredo",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXIX",
+                    "title": "Vamos ao capítulo",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXX",
+                    "title": "Venhamos ao capítulo",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXXI",
+                    "title": "Uma palavra",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXXII",
+                    "title": "O canapé",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXXIII",
+                    "title": "O retrato",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXXIV",
+                    "title": "Chamado",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXXV",
+                    "title": "O defunto",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXXVI",
+                    "title": "Amai, rapazes!",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXXVII",
+                    "title": "A sege",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXXVIII",
+                    "title": "Um pretexto honesto",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "LXXXIX",
+                    "title": "A recusa",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XC",
+                    "title": "A polêmica",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XCI",
+                    "title": "Achado que consola",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XCII",
+                    "title": "O diabo não é tão feio como se pinta",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XCIII",
+                    "title": "Um amigo por um defunto",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XCIV",
+                    "title": "Ideias aritméticas",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XCV",
+                    "title": "O papa",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XCVI",
+                    "title": "Um substituto",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XCVII",
+                    "title": "A saída",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XCVIII",
+                    "title": "Cinco anos",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "XCIX",
+                    "title": "O filho é a cara do pai",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "C",
+                    "title": "“Tu será feliz, Bentinho!”",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CI",
+                    "title": "No céu",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CII",
+                    "title": "De casada",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CIII",
+                    "title": "A felicidade tem boa alma",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CIV",
+                    "title": "As pirâmides",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CV",
+                    "title": "Os braços",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CVI",
+                    "title": "Dez libras esterlinas",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CVII",
+                    "title": "Ciúmes do mar",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CVIII",
+                    "title": "Um filho",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CIX",
+                    "title": "Um filho único",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CX",
+                    "title": "Rasgos da infância",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXI",
+                    "title": "Contado depressa",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXII",
+                    "title": "As imitações de Ezequiel",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXIII",
+                    "title": "Embargos de terceiro",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXIV",
+                    "title": "Em que se explica o explicado",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXV",
+                    "title": "Dúvidas sobre dúvidas",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXVI",
+                    "title": "Filho do homem",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXVII",
+                    "title": "Amigos próximos",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXVIII",
+                    "title": "A mão de Sancha",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXIX",
+                    "title": "Não faça isso, querida",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXX",
+                    "title": "Os autos",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXI",
+                    "title": "A catástrofe",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXII",
+                    "title": "O enterro",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXIII",
+                    "title": "Olhos de ressaca",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXIV",
+                    "title": "O discurso",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXV",
+                    "title": "Uma comparação",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXVI",
+                    "title": "Cismando",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXVII",
+                    "title": "O barbeiro",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXVIII",
+                    "title": "Punhado de sucessos",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXIX",
+                    "title": "A dona Sancha",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXX",
+                    "title": "Um dia…",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXXI",
+                    "title": "Anterior ao anterior",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXXII",
+                    "title": "O debuxo e o colorido",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXXIII",
+                    "title": "Uma ideia",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXXIV",
+                    "title": "O dia de sábado",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXXV",
+                    "title": "Otelo",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXXVI",
+                    "title": "A xícara de café",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXXVII",
+                    "title": "Segundo impulso",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXXVIII",
+                    "title": "Capitu que entra",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXXXIX",
+                    "title": "A fotografia",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXL",
+                    "title": "Volta da igreja",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXLI",
+                    "title": "A solução",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXLII",
+                    "title": "Uma santa",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXLIII",
+                    "title": "O último superlativo",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXLIV",
+                    "title": "Uma pergunta tardia",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXLV",
+                    "title": "O regresso",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXLVI",
+                    "title": "Não houve lepra",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXLVII",
+                    "title": "A exposição retrospectiva",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 2,
+                    "label": "CXLVIII",
+                    "title": "É bem, e o resto?",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 1,
+                    "label": "",
+                    "title": "Cronologia",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                },
+                {
+                    "level": 1,
+                    "label": "",
+                    "title": "Outras leituras",
+                    "pagenum": "",
+                    "type": { "key": "/type/toc_item" }
+                }
+            ],
+            "publish_places": ["São Paulo, Brazil"],
+            "copyright_date": "2016",
+            "contributors": [
+                { "role": "Introduction", "name": "Luís Augusto Fischer" },
+                { "role": "Foreword", "name": "Manoel M. Santiago-Almeida" },
+                { "role": "Prepared by", "name": "Maria Fernanda Alvares" },
+                { "role": "Revised by", "name": "Carmen T. S. Costa" },
+                { "role": "Revised by", "name": "Jane Pessoa" },
+                { "role": "Graphic Layout", "name": "Raul Loureiro" },
+                { "role": "Graphic Layout", "name": "Claudia Warrak" }
+            ],
+            "languages": [{ "key": "/languages/por" }],
+            "physical_format": "Ebook",
+            "number_of_pages": 400,
+            "first_sentence": {
+                "type": "/type/text",
+                "value": "Em Dom Casmurro convivem duas histórias."
+            },
+            "covers": [14625893],
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2024-05-14T01:07:31.224150"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2024-05-14T01:12:50.993413"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [
+                { "key": "/authors/OL12424309A" },
+                { "key": "/authors/OL2629730A" }
+            ],
+            "isbn_13": ["9781324095149"],
+            "languages": [{ "key": "/languages/eng" }],
+            "pagination": "288",
+            "publish_date": "2024",
+            "publishers": ["Liveright Publishing Corporation"],
+            "source_records": ["bwb:9781324095149"],
+            "title": "Dom Casmurro",
+            "weight": "0.369",
+            "subtitle": "A Novel",
+            "full_title": "Dom Casmurro A Novel",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL50642391M",
+            "latest_revision": 1,
+            "revision": 1,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2024-01-31T00:50:02.493047"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2024-01-31T00:50:02.493047"
+            }
+        },
+        {
+            "identifiers": {
+                "librarything": ["8979119"],
+                "goodreads": ["82889"]
+            },
+            "title": "Dom Casmurro et les yeux de ressac",
+            "authors": [
+                { "key": "/authors/OL93286A" },
+                { "key": "/authors/OL3163652A" }
+            ],
+            "publish_date": "January 23, 2002",
+            "publishers": ["Métailié"],
+            "weight": "1.5 pounds",
+            "physical_format": "Mass Market Paperback",
+            "covers": [3150035],
+            "type": { "key": "/type/edition" },
+            "physical_dimensions": "7.2 x 4.9 x 0.7 inches",
+            "isbn_10": ["2864244128"],
+            "isbn_13": ["9782864244127"],
+            "oclc_numbers": ["50235854"],
+            "languages": [{ "key": "/languages/fre" }],
+            "source_records": ["amazon:2864244128"],
+            "key": "/books/OL12634777M",
+            "number_of_pages": 334,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 10,
+            "revision": 10,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-30T20:50:18.033121"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-01-05T03:52:20.400811"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "title": "Dom Casmurro - Colecao Literatura Brasileira",
+            "authors": [
+                { "key": "/authors/OL93286A" },
+                { "key": "/authors/OL7473530A" }
+            ],
+            "publish_date": "Dec 05, 2009",
+            "source_records": [
+                "amazon:8538003658",
+                "promise:bwb_daily_pallets_2024-09-02:W9-CGP-160"
+            ],
+            "publishers": ["CIRANDA CULTURAL"],
+            "isbn_10": ["8538003658"],
+            "isbn_13": ["9788538003656"],
+            "physical_format": "paperback",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL43435035M",
+            "local_id": ["urn:bwbsku:W9-CGP-160"],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-12-08T20:43:09.104553"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2024-09-04T01:24:01.299224"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9798654846945"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "133",
+            "publish_date": "2020",
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9798654846945"],
+            "title": "Dom Casmurro",
+            "weight": "0.255",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL42281132M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-12-01T06:39:01.591280"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9781796747522"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "276",
+            "publish_date": "2019",
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9781796747522"],
+            "title": "Dom Casmurro",
+            "weight": "0.482",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL40965252M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-11-22T11:08:34.846853"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [
+                { "key": "/authors/OL8353201A" },
+                { "key": "/authors/OL93286A" }
+            ],
+            "isbn_13": ["9781723711411"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "273",
+            "publish_date": "2018",
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9781723711411"],
+            "title": "Dom Casmurro",
+            "weight": "0.477",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL41201230M",
+            "contributors": [{ "role": "Editor", "name": "Jan Oliveira" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-11-24T01:34:22.936619"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-01-24T22:56:26.047276"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9781696469074"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "264",
+            "publish_date": "2019",
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9781696469074"],
+            "title": "Dom Casmurro",
+            "weight": "0.391",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL41540030M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-11-26T09:04:36.939495"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9781521498156"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "243",
+            "publish_date": "2017",
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9781521498156"],
+            "title": "Dom Casmurro (Ilustrado)",
+            "weight": "0.432",
+            "full_title": "Dom Casmurro (Ilustrado)",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL40909094M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-11-22T02:13:18.931010"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9781521761007"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "204",
+            "publish_date": "2017",
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9781521761007"],
+            "title": "Dom Casmurro",
+            "weight": "0.368",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL40692369M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-11-20T15:45:35.524647"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9781549784644"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "349",
+            "publish_date": "2017",
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9781549784644"],
+            "title": "Dom Casmurro",
+            "weight": "0.595",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL40697191M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-11-20T16:29:17.265147"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [
+                { "key": "/authors/OL10884549A" },
+                { "key": "/authors/OL93286A" }
+            ],
+            "isbn_13": ["9781520262376"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "420",
+            "publish_date": "2018",
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9781520262376"],
+            "title": "Dom Casmurro",
+            "weight": "0.709",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL40772601M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-11-21T04:07:33.540395"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9781720007067"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "174",
+            "publish_date": "2018",
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9781720007067"],
+            "title": "Dom Casmurro",
+            "weight": "0.318",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL40606300M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-11-20T02:43:57.094946"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [
+                { "key": "/authors/OL93286A" },
+                { "key": "/authors/OL2629730A" },
+                { "key": "/authors/OL2911809A" }
+            ],
+            "isbn_13": ["9781324090700"],
+            "languages": [{ "key": "/languages/eng" }],
+            "pagination": "288",
+            "publish_date": "2023",
+            "publishers": ["Liveright Publishing Corporation"],
+            "source_records": ["bwb:9781324090700"],
+            "title": "Dom Casmurro",
+            "weight": "0.666",
+            "subtitle": "A Novel",
+            "full_title": "Dom Casmurro A Novel",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL40322367M",
+            "covers": [14710032],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-11-17T06:50:35.868280"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2024-08-23T06:40:27.471351"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [
+                { "key": "/authors/OL93286A" },
+                { "key": "/authors/OL2629730A" },
+                { "key": "/authors/OL2911809A" }
+            ],
+            "isbn_13": ["9781324090717"],
+            "languages": [{ "key": "/languages/eng" }],
+            "pagination": "288",
+            "publish_date": "2023",
+            "publishers": ["Liveright Publishing Corporation"],
+            "source_records": ["bwb:9781324090717"],
+            "title": "Dom Casmurro",
+            "subtitle": "A Novel",
+            "full_title": "Dom Casmurro A Novel",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL42712610M",
+            "covers": [14711091],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-12-03T09:35:16.181931"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2024-08-23T06:58:42.745492"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9780557632169"],
+            "languages": [{ "key": "/languages/por" }],
+            "publish_date": "2010",
+            "publishers": ["Lulu Press, Inc."],
+            "source_records": ["bwb:9780557632169"],
+            "subjects": [
+                "Continental european fiction (fictional works by one author)"
+            ],
+            "title": "Dom Casmurro",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL39857730M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-10-17T10:47:10.304231"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9780099801108"],
+            "languages": [{ "key": "/languages/eng" }],
+            "publish_date": "1999",
+            "publishers": ["Penguin Random House"],
+            "source_records": ["bwb:9780099801108"],
+            "subjects": ["Fiction, general"],
+            "title": "Dom Casmurro",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL40335681M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-11-17T15:00:57.506402"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9781283848312"],
+            "languages": [{ "key": "/languages/eng" }],
+            "pagination": "287",
+            "publish_date": "1997",
+            "publishers": ["Oxford University Press"],
+            "source_records": ["bwb:9781283848312"],
+            "subjects": ["Machado de assis, 1839-1908"],
+            "title": "Dom Casmurro",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL40411018M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-11-18T14:09:25.197255"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9798830903882"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "285",
+            "publish_date": "2022",
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9798830903882"],
+            "title": "Dom Casmurro",
+            "weight": "0.623",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL38911823M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-07-19T22:04:04.485890"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "title": "Dom Casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "Nov 26, 2017",
+            "source_records": ["amazon:1973389541", "bwb:9781973389545"],
+            "number_of_pages": 214,
+            "publishers": ["Independently published"],
+            "isbn_10": ["1973389541"],
+            "isbn_13": ["9781973389545"],
+            "physical_format": "paperback",
+            "notes": {
+                "type": "/type/text",
+                "value": "Source title: Dom Casmurro (Os Melhores da Literatura) (Portuguese Edition)"
+            },
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL39207422M",
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-07-26T20:12:06.068007"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9798683410308"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "216",
+            "publish_date": "2020",
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9798683410308"],
+            "title": "Dom Casmurro",
+            "weight": "0.386",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL42098309M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-11-30T00:22:02.635180"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9798678497598"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "216",
+            "publish_date": "2020",
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9798678497598"],
+            "title": "Dom Casmurro",
+            "weight": "0.386",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL42155134M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-11-30T10:01:35.014982"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9781678165260"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "266",
+            "publish_date": "2022",
+            "publishers": ["Lulu Press, Inc."],
+            "source_records": ["bwb:9781678165260"],
+            "title": "Dom Casmurro",
+            "weight": "0.350",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL38085944M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2022-05-26T15:15:30.372702"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9798458453264"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "330",
+            "publish_date": "2021",
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9798458453264"],
+            "title": "Dom Casmurro",
+            "weight": "0.427",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL36111905M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2021-12-28T11:25:19.628714"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [
+                { "key": "/authors/OL93286A" },
+                { "key": "/authors/OL9595422A" },
+                { "key": "/authors/OL9595423A" }
+            ],
+            "isbn_13": ["9780199938117"],
+            "languages": [{ "key": "/languages/eng" }],
+            "publish_date": "1997",
+            "publishers": ["Oxford University Press, Incorporated"],
+            "source_records": ["bwb:9780199938117"],
+            "title": "Dom Casmurro",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL33993911M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2021-09-29T09:49:49.605311"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "title": "Dom Casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "Jan 16, 2021",
+            "source_records": ["amazon:1716221331", "bwb:9781716221330"],
+            "number_of_pages": 266,
+            "publishers": ["Lulu.com"],
+            "isbn_10": ["1716221331"],
+            "isbn_13": ["9781716221330"],
+            "physical_format": "hardcover",
+            "notes": {
+                "type": "/type/text",
+                "value": "Source title: Dom Casmurro (Portuguese Edition)"
+            },
+            "full_title": "Dom Casmurro",
+            "covers": [11495715],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL32863054M",
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2021-07-24T16:01:58.611144"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "publishers": ["L&PM", "L&PM EDITORES", "BTFDREEM"],
+            "languages": [{ "key": "/languages/por" }],
+            "title": "Dom Casmurro",
+            "identifiers": {
+                "goodreads": ["82892", "3435122"],
+                "librarything": ["131271"]
+            },
+            "isbn_13": ["9788525406798"],
+            "edition_name": "1 edition",
+            "physical_format": "Paperback",
+            "isbn_10": ["8525406791"],
+            "publish_date": "2002",
+            "key": "/books/OL9157135M",
+            "type": { "key": "/type/edition" },
+            "works": [{ "key": "/works/OL1003040W" }],
+            "covers": [10558903],
+            "ocaid": "domcasmurro0000mach",
+            "source_records": [
+                "ia:domcasmurro0000mach",
+                "promise:bwb_daily_pallets_2020-10-14",
+                "amazon:8525406791"
+            ],
+            "local_id": ["urn:bwbsku:O6-ECZ-231"],
+            "latest_revision": 7,
+            "revision": 7,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-30T09:38:13.731961"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2023-02-09T19:40:43.666849"
+            }
+        },
+        {
+            "publishers": ["Ediciones Cátedra"],
+            "source_records": ["amazon:8437609836"],
+            "title": "Don Casmurro",
+            "notes": {
+                "type": "/type/text",
+                "value": "Source title: Don Casmurro (Letras Universales) (Spanish Edition)"
+            },
+            "isbn_13": ["9788437609836"],
+            "covers": [10404973],
+            "physical_format": "paperback",
+            "full_title": "Don Casmurro",
+            "isbn_10": ["8437609836"],
+            "publish_date": "Mar 30, 1991",
+            "key": "/books/OL29655417M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2020-08-29T11:41:33.478938"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "publishers": ["Avon Books (Mm)"],
+            "title": "Dom Casmurro",
+            "identifiers": {
+                "librarything": ["131271"],
+                "goodreads": ["7200946"]
+            },
+            "isbn_13": ["9780380496686"],
+            "isbn_10": ["0380496682"],
+            "publish_date": "June 1980",
+            "key": "/books/OL7431942M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "oclc_numbers": ["8794554"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "first_sentence": {
+                "type": "/type/text",
+                "value": "One evening just lately, as I was coming back from town to Engenho Novo* on the Central line train, I met a young man from this neighborhood, whom I known by sight: enough to raise my hat to him."
+            },
+            "source_records": ["bwb:9780380496686"],
+            "latest_revision": 9,
+            "revision": 9,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-29T13:35:46.876380"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-20T22:13:48.809391"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "title": "Dom Casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "Oct 31, 2014",
+            "source_records": ["amazon:1503037401", "bwb:9781503037403"],
+            "number_of_pages": 162,
+            "publishers": ["CreateSpace Independent Publishing Platform"],
+            "isbn_10": ["1503037401"],
+            "isbn_13": ["9781503037403"],
+            "physical_format": "paperback",
+            "notes": {
+                "type": "/type/text",
+                "value": "Source title: Dom Casmurro (Portuguese Edition)"
+            },
+            "full_title": "Dom Casmurro",
+            "covers": [12453800],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL35718344M",
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2021-12-20T07:52:32.010761"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2024-09-29T19:34:36.201156"
+            }
+        },
+        {
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9798660012808"],
+            "title": "Dom Casmurro",
+            "number_of_pages": 209,
+            "isbn_13": ["9798660012808"],
+            "languages": [{ "key": "/languages/por" }],
+            "full_title": "Dom Casmurro",
+            "lc_classifications": [""],
+            "publish_date": "2020",
+            "key": "/books/OL30266540M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2020-09-17T06:57:05.957543"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "title": "Dom Casmurro",
+            "authors": [
+                { "key": "/authors/OL93286A" },
+                { "key": "/authors/OL9172169A" }
+            ],
+            "publish_date": "May 24, 2019",
+            "source_records": ["amazon:1099979943", "bwb:9781099979941"],
+            "number_of_pages": 264,
+            "publishers": [
+                "Independently published",
+                "Independently Published"
+            ],
+            "isbn_10": ["1099979943"],
+            "isbn_13": ["9781099979941"],
+            "physical_format": "paperback",
+            "notes": {
+                "type": "/type/text",
+                "value": "Source title: Dom Casmurro (Portuguese Edition)"
+            },
+            "full_title": "Dom Casmurro",
+            "covers": [11050581],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL32386849M",
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2021-05-10T21:29:36.483689"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [
+                { "key": "/authors/OL25726A" },
+                { "key": "/authors/OL93286A" }
+            ],
+            "isbn_13": ["9781907970504"],
+            "languages": [{ "key": "/languages/eng" }],
+            "lc_classifications": ["PQ9697.M18"],
+            "number_of_pages": 288,
+            "publish_date": "2015",
+            "publishers": ["Daunt Books"],
+            "source_records": ["bwb:9781907970504"],
+            "subjects": ["Fiction, general"],
+            "title": "Dom Casmurro",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL34513101M",
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2021-10-05T13:05:14.317983"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2023-04-16T23:49:57.432395"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [
+                { "key": "/authors/OL93286A" },
+                { "key": "/authors/OL9727331A" }
+            ],
+            "isbn_13": ["9780720618754"],
+            "languages": [{ "key": "/languages/eng" }],
+            "lc_classifications": ["PQ9697.M18"],
+            "publish_date": "2016",
+            "publishers": ["Owen Limited, Peter"],
+            "source_records": [
+                "bwb:9780720618754",
+                "promise:bwb_daily_pallets_2022-04-20"
+            ],
+            "subjects": [
+                "Continental european fiction (fictional works by one author)"
+            ],
+            "title": "Dom Casmurro",
+            "weight": "0.255",
+            "pagination": "288",
+            "full_title": "Dom Casmurro",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL34610149M",
+            "local_id": ["urn:bwbsku:KQ-443-032"],
+            "identifiers": { "amazon": ["B01LYOZ1AP"] },
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2021-10-06T12:46:04.820461"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "title": "Dom Casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "Nov 14, 2016",
+            "source_records": ["amazon:8582850352"],
+            "publishers": ["Penguin", "PENGUIN BOOKS - GRUPO CIA DAS LETRAS"],
+            "isbn_10": ["8582850352"],
+            "isbn_13": ["9788582850350"],
+            "physical_format": "paperback",
+            "full_title": "Dom Casmurro",
+            "covers": [12372756],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL35669237M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2021-11-16T11:19:25.646894"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "publishers": ["Independently Published"],
+            "source_records": ["bwb:9798630407252"],
+            "title": "Dom Casmurro",
+            "number_of_pages": 150,
+            "isbn_13": ["9798630407252"],
+            "languages": [{ "key": "/languages/por" }],
+            "full_title": "Dom Casmurro",
+            "lc_classifications": [""],
+            "publish_date": "2020",
+            "key": "/books/OL29887198M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2020-09-01T09:06:54.288968"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "type": { "key": "/type/edition" },
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "isbn_13": ["9781452892368"],
+            "languages": [{ "key": "/languages/por" }],
+            "publish_date": "2010",
+            "publishers": ["CreateSpace Independent Publishing Platform"],
+            "source_records": ["bwb:9781452892368"],
+            "subjects": ["Fiction, historical, general"],
+            "title": "Dom Casmurro",
+            "weight": "0.414",
+            "pagination": "232",
+            "subtitle": "Complete Portuguese Text",
+            "full_title": "Dom Casmurro Complete Portuguese Text",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "key": "/books/OL34832532M",
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2021-10-08T12:49:16.890703"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "publishers": ["Espasa-Calpe"],
+            "series": [
+                "Colección Austral -- no. 1246",
+                "Colección Austral -- no. 1246."
+            ],
+            "key": "/books/OL26906847M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["Buenos Aires"],
+            "languages": [{ "key": "/languages/spa" }],
+            "pagination": "211 p.",
+            "source_records": [
+                "marc:marc_openlibraries_sanfranciscopubliclibrary/sfpl_chq_2018_12_24_run02.mrc:87664481:1155"
+            ],
+            "title": "Don Casmurro",
+            "number_of_pages": 211,
+            "edition_name": "[1. ed.].",
+            "local_id": ["urn:sfpl:31223002726827"],
+            "publish_date": "1955",
+            "publish_country": "ag",
+            "by_statement": "Traducción directa de Luis M. Baudizzone y Newton Freitas",
+            "oclc_numbers": ["1203992"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 2,
+            "revision": 2,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2019-05-19T12:50:16.575669"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "publishers": ["Oxford University Press, USA"],
+            "identifiers": {
+                "goodreads": ["909745"],
+                "librarything": ["131271"]
+            },
+            "covers": [123225],
+            "key": "/books/OL7387820M",
+            "contributions": [
+                "Joaquim M. Machado de Assis (Editor)",
+                "John A. Gledson (Foreword)"
+            ],
+            "isbn_13": ["9780195103090"],
+            "source_records": ["ia:domcasmurrolibra00assi"],
+            "title": "Dom Casmurro (Library of Latin America)",
+            "number_of_pages": 286,
+            "languages": [{ "key": "/languages/eng" }],
+            "isbn_10": ["0195103092"],
+            "publish_date": "September 30, 1998",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "first_sentence": {
+                "type": "/type/text",
+                "value": "One evening just lately, as I was coming back from town to Engenho Novo* on the Central line train, I met a young man from this neighborhood, whom I known by sight: enough to raise my hat to him."
+            },
+            "latest_revision": 9,
+            "revision": 9,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-29T13:35:46.876380"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-03-28T16:08:32.105971"
+            }
+        },
+        {
+            "title": "Dom Casmurro, a novel",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1966",
+            "publishers": ["University of California Press"],
+            "pagination": "xii, 269 p. ;",
+            "contributions": ["Caldwell, Helen."],
+            "languages": [{ "key": "/languages/eng" }],
+            "publish_country": "cau",
+            "by_statement": "Machado de Assis ; translated, with an introduction, by Helen Caldwell.",
+            "publish_places": ["Berkeley"],
+            "type": { "key": "/type/edition" },
+            "key": "/books/OL23834675M",
+            "number_of_pages": 269,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2009-10-18T06:37:40.772144"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-09-03T15:14:49.641709"
+            }
+        },
+        {
+            "publishers": ["ABC"],
+            "pagination": "209",
+            "classifications": {},
+            "title": "Dom Casmurro",
+            "identifiers": {},
+            "publish_date": "2005",
+            "key": "/books/OL26595779M",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2018-12-01T19:02:34.329598"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "publishers": ["Scipione"],
+            "covers": [7946576],
+            "edition_name": "2 edition",
+            "physical_format": "Paperback",
+            "key": "/books/OL13394281M",
+            "source_records": ["ia:domcasmurrooalie00scip"],
+            "title": "Dom Casmurro; o Alienista",
+            "identifiers": { "librarything": ["4571728"] },
+            "languages": [{ "key": "/languages/por" }],
+            "publish_date": "1999",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "ocaid": "domcasmurrooalie00scip",
+            "isbn_10": ["8526222287"],
+            "isbn_13": ["9788526222281"],
+            "oclc_numbers": ["38131426"],
+            "classifications": {},
+            "latest_revision": 6,
+            "revision": 6,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-30T20:50:18.033121"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "identifiers": {
+                "librarything": ["131271"],
+                "goodreads": ["2678979"]
+            },
+            "title": "Dom Casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publishers": ["Publicacoes Europa-America"],
+            "isbn_13": ["9789721044999"],
+            "physical_format": "Paperback",
+            "isbn_10": ["9721044997"],
+            "type": { "key": "/type/edition" },
+            "subjects": ["Modern fiction"],
+            "first_sentence": {
+                "type": "/type/text",
+                "value": "One evening just lately, as I was coming back from town to Engenho Novo* on the Central line train, I met a young man from this neighborhood, whom I known by sight: enough to raise my hat to him."
+            },
+            "source_records": ["amazon:9721044997"],
+            "key": "/books/OL13157615M",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 8,
+            "revision": 8,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-30T20:50:18.033121"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-01-21T19:12:21.606813"
+            }
+        },
+        {
+            "identifiers": {
+                "goodreads": ["2678984"],
+                "librarything": ["9387614"]
+            },
+            "title": "Dom casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "February 1, 1997",
+            "publishers": ["LGF"],
+            "weight": "6.4 ounces",
+            "covers": [2152130],
+            "physical_format": "Mass Market Paperback",
+            "edition_name": "Ed. rev. / par Ronald de Carvalho edition",
+            "languages": [{ "key": "/languages/fre" }],
+            "first_sentence": {
+                "type": "/type/text",
+                "value": "One evening just lately, as I was coming back from town to Engenho Novo* on the Central line train, I met a young man from this neighborhood, whom I known by sight: enough to raise my hat to him."
+            },
+            "isbn_13": ["9782253932680"],
+            "isbn_10": ["225393268X"],
+            "oclc_numbers": ["37136300"],
+            "type": { "key": "/type/edition" },
+            "physical_dimensions": "6.7 x 4.3 x 0.4 inches",
+            "source_records": ["amazon:225393268X"],
+            "key": "/books/OL9733320M",
+            "number_of_pages": 287,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 10,
+            "revision": 10,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-30T09:38:13.731961"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-12-26T14:34:23.283647"
+            }
+        },
+        {
+            "identifiers": {
+                "librarything": ["131271"],
+                "goodreads": ["1888210"]
+            },
+            "title": "Dom Casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "June 1966",
+            "publishers": ["University of California Press"],
+            "isbn_13": ["9780520007901"],
+            "physical_format": "Paperback",
+            "isbn_10": ["0520007905"],
+            "type": { "key": "/type/edition" },
+            "first_sentence": {
+                "type": "/type/text",
+                "value": "One evening just lately, as I was coming back from town to Engenho Novo* on the Central line train, I met a young man from this neighborhood, whom I known by sight: enough to raise my hat to him."
+            },
+            "source_records": ["amazon:0520007905"],
+            "key": "/books/OL7708116M",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 8,
+            "revision": 8,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-29T15:03:11.581851"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-02-24T06:43:30.696087"
+            }
+        },
+        {
+            "publishers": ["Peter Owen Publishers"],
+            "number_of_pages": 216,
+            "weight": "14.1 ounces",
+            "physical_format": "Hardcover",
+            "key": "/books/OL7861457M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "contributions": ["R. L. Scott-Buccleuch (Translator)"],
+            "subjects": [
+                "Literary studies: general",
+                "Modern fiction",
+                "Fiction - General",
+                "Brazilian Literature",
+                "Portuguese",
+                "Fiction",
+                "General"
+            ],
+            "languages": [{ "key": "/languages/eng" }],
+            "first_sentence": {
+                "type": "/type/text",
+                "value": "One evening just lately, as I was coming back from town to Engenho Novo* on the Central line train, I met a young man from this neighborhood, whom I known by sight: enough to raise my hat to him."
+            },
+            "title": "Dom Casmurro (Lord Taciturn)",
+            "identifiers": {
+                "librarything": ["131271"],
+                "goodreads": ["4079921"]
+            },
+            "isbn_13": ["9780720608458"],
+            "isbn_10": ["0720608457"],
+            "publish_date": "July 1992",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "physical_dimensions": "8.7 x 5.5 x 0.8 inches",
+            "covers": [13187838],
+            "source_records": [
+                "amazon:0720608457",
+                "marc:marc_columbia/Columbia-extract-20221130-003.mrc:76153270:1049",
+                "marc:harvard_bibliographic_metadata/20220215_020.bib.mrc:24258562:1226"
+            ],
+            "oclc_numbers": ["27754811", "27641554"],
+            "lccn": ["93008274"],
+            "lc_classifications": ["PQ9697.M18 D613 1992"],
+            "latest_revision": 10,
+            "revision": 10,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-29T15:03:11.581851"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-10-24T07:27:06.647565"
+            }
+        },
+        {
+            "notes": { "type": "/type/text", "value": "Penguin Classics" },
+            "title": "Dom Casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "October 25, 2001",
+            "publishers": ["Penguin Books Ltd"],
+            "type": { "key": "/type/edition" },
+            "isbn_13": ["9780140448368"],
+            "isbn_10": ["0140448365"],
+            "contributions": [
+                "R.L. Scott-Buccleuch (Introduction, Translator)"
+            ],
+            "first_sentence": {
+                "type": "/type/text",
+                "value": "One evening just lately, as I was coming back from town to Engenho Novo* on the Central line train, I met a young man from this neighborhood, whom I known by sight: enough to raise my hat to him."
+            },
+            "source_records": ["amazon:0140448365"],
+            "key": "/books/OL7355446M",
+            "number_of_pages": 224,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 6,
+            "revision": 6,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-29T13:35:46.876380"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-06-04T09:46:41.158464"
+            }
+        },
+        {
+            "publishers": ["Oxford University Press"],
+            "identifiers": {
+                "librarything": ["131271"],
+                "goodreads": ["1770416"]
+            },
+            "subtitle": "a novel",
+            "description": {
+                "type": "/type/text",
+                "value": "\"At last, a new translation of Machado's masterpiece that is complete (unlike Scott-Buccleuch's 1992 version - see HLAS 54:5078 - which omitted key chapters) and highly readable. Gledson produces a much-needed, graceful and accurate translation, attentive to Machado's tone and rhythms. Hansen's Afterword is excellent\"--Handbook of Latin American Studies, v. 58."
+            },
+            "series": ["Library of Latin America"],
+            "pagination": "xxvii, 258 p. ;",
+            "covers": [123224],
+            "local_id": ["urn:sfpl:31223048223235", "urn:sfpl:31223048223243"],
+            "lc_classifications": [
+                "PQ9697.M18 D613 1997",
+                "PQ9697.M18 D613 1998eb",
+                "PQ9697.M8D613 1997",
+                "PQ9697.M8 D613 1997"
+            ],
+            "key": "/books/OL1004411M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["New York"],
+            "contributions": ["Gledson, John, 1945-"],
+            "subjects": [
+                "Reminiscing in old age -- Fiction",
+                "Adultery -- Fiction",
+                "Authorship -- Fiction",
+                "Catholics -- Fiction"
+            ],
+            "genres": ["Fiction."],
+            "source_records": [
+                "marc:marc_records_scriblio_net/part25.dat:201769762:1478",
+                "marc:marc_loc_updates/v35.i20.records.utf8:4826407:1696",
+                "marc:marc_cca/b10621386.out:29082445:1172",
+                "marc:marc_openlibraries_sanfranciscopubliclibrary/sfpl_chq_2018_12_24_run02.mrc:159062315:1895",
+                "ia:domcasmurrobyjoa0000unse",
+                "marc:marc_loc_2016/BooksAll.2016.part25.utf8:107763683:1696",
+                "bwb:9780195103083",
+                "marc:marc_columbia/Columbia-extract-20221130-005.mrc:118413856:3176",
+                "marc:marc_columbia/Columbia-extract-20221130-005.mrc:125683956:3102",
+                "marc:harvard_bibliographic_metadata/20220215_040.bib.mrc:112058002:1827"
+            ],
+            "title": "Dom Casmurro",
+            "dewey_decimal_class": ["869.3"],
+            "notes": {
+                "type": "/type/text",
+                "value": "Includes bibliographical references."
+            },
+            "number_of_pages": 258,
+            "languages": [{ "key": "/languages/eng" }],
+            "lccn": ["96044126"],
+            "isbn_10": ["0195103084"],
+            "publish_date": "1997",
+            "publish_country": "nyu",
+            "by_statement": "by Joachim Maria Machado de Assis ; translated from the Portuguese by John Gledson ; with a foreword by John Gledson and an afterword by João Adolfo Hansen.",
+            "work_title": ["Dom Casmurro."],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "oclc_numbers": ["35586804"],
+            "latest_revision": 18,
+            "revision": 18,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-01T03:28:50.625462"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-05-18T01:45:03.725365"
+            }
+        },
+        {
+            "title": "Dom Casmurro.",
+            "subtitle": "Apuração do texto, revisão, introdução e notas por Maximiano de Carvalho e Silva, com um prefácio de Gustavo Corção.",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1966",
+            "publishers": ["Edições Melhoramentos"],
+            "lc_classifications": ["PQ9697 M18 D67 1966"],
+            "publish_places": ["[São Paulo]"],
+            "contributions": ["Silva, Maximiano de Carvalho e,"],
+            "pagination": "321p.",
+            "languages": [{ "key": "/languages/por" }],
+            "publish_country": "bl ",
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:marc_university_of_toronto/uoft.marc:1227986114:618"
+            ],
+            "key": "/books/OL17235043M",
+            "number_of_pages": 321,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-09-28T02:11:37.876036"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-12-29T02:18:14.002800"
+            }
+        },
+        {
+            "publishers": ["W. M. Jackson inc."],
+            "lc_classifications": ["PQ9697.M18 D6 1938"],
+            "key": "/books/OL6461419M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["Rio de Janeiro [etc]"],
+            "pagination": "436 p.",
+            "source_records": [
+                "marc:marc_loc_2016/BooksAll.2016.part04.utf8:35330157:545"
+            ],
+            "title": "Dom Casmurro.",
+            "dewey_decimal_class": ["869.3"],
+            "notes": {
+                "type": "/type/text",
+                "value": "At head of title: Machado de Assis."
+            },
+            "number_of_pages": 436,
+            "languages": [{ "key": "/languages/por" }],
+            "lccn": ["43046084"],
+            "publish_date": "1938",
+            "publish_country": "bl ",
+            "oclc_numbers": ["6662651"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-01T03:28:50.625462"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "publishers": ["Livraria Garnier"],
+            "series": [
+                "Coleção dos autores célebres da literatura brasileira ;",
+                "7"
+            ],
+            "lc_classifications": ["PQ9697.M18 D6 1988"],
+            "key": "/books/OL2269945M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["Rio de Janeiro"],
+            "contributions": ["Kury, Adriano da Gama."],
+            "pagination": "228 p., [12] leaves of plates :",
+            "source_records": [
+                "marc:marc_loc_2016/BooksAll.2016.part19.utf8:174247716:776",
+                "marc:harvard_bibliographic_metadata/ab.bib.01.20150123.full.mrc:623482668:829",
+                "marc:harvard_bibliographic_metadata/20220215_013.bib.mrc:147740796:1790"
+            ],
+            "title": "Dom Casmurro",
+            "dewey_decimal_class": ["869.3"],
+            "notes": {
+                "type": "/type/text",
+                "value": "Includes bibliographical references (p. 16-17).\r\nOriginally published in 1899."
+            },
+            "number_of_pages": 228,
+            "languages": [{ "key": "/languages/por" }],
+            "lccn": ["89157549"],
+            "publish_date": "1988",
+            "publish_country": "bl ",
+            "by_statement": "Machado de Assis ; estabelecimento do texto e notas, Adriano da Gama Kury.",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "oclc_numbers": ["21064830"],
+            "latest_revision": 7,
+            "revision": 7,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-01T03:28:50.625462"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-08-10T12:42:45.506914"
+            }
+        },
+        {
+            "publishers": ["Instituto Nacional do Livro"],
+            "number_of_pages": 255,
+            "series": ["His Obras,", "8"],
+            "lc_classifications": ["PQ9697 .M18 1969, no. 8"],
+            "key": "/books/OL5692246M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["Rio de Janeiro"],
+            "pagination": "255 p.",
+            "source_records": [
+                "marc:marc_loc_2016/BooksAll.2016.part07.utf8:22715679:673"
+            ],
+            "title": "Dom Casmurro.",
+            "lccn": ["70027538"],
+            "notes": {
+                "type": "/type/text",
+                "value": "Bibliography: p. [21]-36.\nAt head of title: Comissão Machado de Assis."
+            },
+            "identifiers": { "librarything": ["131271"] },
+            "languages": [{ "key": "/languages/por" }],
+            "publish_date": "1969",
+            "publish_country": "bl ",
+            "oclc_numbers": ["6590121"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 5,
+            "revision": 5,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-01T03:28:50.625462"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "publishers": ["Oxford University Press"],
+            "identifiers": {
+                "librarything": ["131271"],
+                "goodreads": ["909745"]
+            },
+            "series": ["Library of Latin America"],
+            "local_id": ["urn:phillips:31867007228153"],
+            "key": "/books/OL22142239M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["Oxford"],
+            "contributions": ["Gledson, John."],
+            "pagination": "xxvii, 258p. ;",
+            "source_records": [
+                "marc:marc_openlibraries_phillipsacademy/PANO_FOR_IA_05072019.mrc:57553276:1621",
+                "bwb:9780195103090",
+                "idb:9780195103090"
+            ],
+            "title": "Dom Casmurro",
+            "work_titles": ["Dom Casmurro."],
+            "notes": {
+                "type": "/type/text",
+                "value": "Includes bibliographical references."
+            },
+            "number_of_pages": 258,
+            "languages": [{ "key": "/languages/eng" }],
+            "dewey_decimal_class": ["869.3"],
+            "isbn_10": ["0195103092"],
+            "publish_date": "1998",
+            "publish_country": "enk",
+            "by_statement": "a novel by Joaquim Maria Machado de Assis ; translated from the Portuguese by John Gledson ; with a foreword by John Gledson and an afterword by João Adolfo Hansen.",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "lc_classifications": [""],
+            "latest_revision": 8,
+            "revision": 8,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-11-07T10:00:38.383366"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2023-12-19T21:06:52.905734"
+            }
+        },
+        {
+            "publishers": ["Noonday Press"],
+            "identifiers": { "librarything": ["131271"] },
+            "subtitle": "a novel",
+            "lc_classifications": [
+                "PZ3.M1817 Do",
+                "PQ9697.M18 Dx Do",
+                "PZ3.M1817 Dx Do",
+                "PQ9697.M18 D613 1953"
+            ],
+            "key": "/books/OL6135604M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["New York"],
+            "pagination": "283 p.",
+            "source_records": [
+                "marc:marc_records_scriblio_net/part04.dat:77431963:605",
+                "marc:marc_loc_updates/v36.i18.records.utf8:976570:824",
+                "marc:marc_ithaca_college/ic_marc.mrc:70687909:589",
+                "marc:marc_loc_2016/BooksAll.2016.part04.utf8:163231335:824",
+                "marc:marc_scms/20220805_ADAM_MARC_records.mrc:66266313:1333",
+                "marc:harvard_bibliographic_metadata/ab.bib.00.20150123.full.mrc:751534539:713",
+                "marc:marc_columbia/Columbia-extract-20221130-003.mrc:248795080:848",
+                "marc:harvard_bibliographic_metadata/20220215_067.bib.mrc:154627282:2270"
+            ],
+            "title": "Dom Casmurro",
+            "dewey_decimal_class": ["869.3"],
+            "number_of_pages": 283,
+            "languages": [{ "key": "/languages/eng" }],
+            "lccn": ["53009085"],
+            "publish_date": "1953",
+            "publish_country": "nyu",
+            "by_statement": "by Machado de Assis; translated by Helen Caldwell, with an introd. by Waldo Frank.",
+            "oclc_numbers": ["1026799", "4011026"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "local_id": ["urn:scms:0188500514743"],
+            "description": {
+                "type": "/type/text",
+                "value": "Psychological character study set in nineteenth-century-Brazil. Translated from the Portuguese."
+            },
+            "latest_revision": 13,
+            "revision": 13,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-01T03:28:50.625462"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-05-18T19:35:39.007546"
+            }
+        },
+        {
+            "publishers": ["University of California Press", "1966 [c1953]"],
+            "subtitle": "a novel",
+            "key": "/books/OL17729488M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["Berkeley"],
+            "pagination": "xii, 269 p.",
+            "source_records": [
+                "marc:marc_oregon_summit_records/catalog_files/lewisandclarkbibsrev.mrc:22947878:663"
+            ],
+            "title": "Dom Casmurro",
+            "number_of_pages": 269,
+            "languages": [{ "key": "/languages/eng" }],
+            "publish_date": "1966",
+            "publish_country": "cau",
+            "by_statement": "translated and with an introduction  by Helen Caldwell.",
+            "oclc_numbers": ["2555887"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-09-30T18:47:17.052150"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "title": "Dom Casmurro",
+            "subtitle": "a novel",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1953",
+            "publishers": ["W.H.Allen"],
+            "publish_places": ["London"],
+            "pagination": "240p.,21cm",
+            "dewey_decimal_class": ["869.3"],
+            "languages": [{ "key": "/languages/eng" }],
+            "work_titles": ["Dom Casmurro."],
+            "publish_country": "xxk",
+            "by_statement": "by Machado de Assis ; translated from the Por tuguese by  Helen Caldwell.",
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:2614912074:577"
+            ],
+            "key": "/books/OL18830608M",
+            "number_of_pages": 240,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-10-20T06:41:06.210608"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-03-15T16:16:30.972491"
+            }
+        },
+        {
+            "publishers": ["Garnier"],
+            "series": [
+                "Collecção dos autores celebres da litteratura brasileira"
+            ],
+            "lc_classifications": ["PQ9697.M18 D6"],
+            "key": "/books/OL6735236M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["Rio de Janeiro", "Paris"],
+            "pagination": "2 p. l., 404 p.",
+            "source_records": [
+                "marc:marc_loc_2016/BooksAll.2016.part03.utf8:49585127:596",
+                "marc:harvard_bibliographic_metadata/20220215_025.bib.mrc:250887242:899"
+            ],
+            "title": "Dom Casmurro.",
+            "lccn": ["29025881"],
+            "notes": {
+                "type": "/type/text",
+                "value": "At head of title: Machado de Assis."
+            },
+            "number_of_pages": 404,
+            "languages": [{ "key": "/languages/por" }],
+            "publish_date": "1924",
+            "publish_country": "bl ",
+            "oclc_numbers": ["8679476"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 5,
+            "revision": 5,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-01T03:28:50.625462"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-12-27T00:07:21.968726"
+            }
+        },
+        {
+            "publishers": ["Penguin Books"],
+            "number_of_pages": 216,
+            "series": ["Penguin classics"],
+            "covers": [104166],
+            "lc_classifications": [
+                "PQ9697.M18 D613 1994",
+                "PQ9697.M18D613 1994"
+            ],
+            "key": "/books/OL869736M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["London, England", "New York, NY, USA"],
+            "contributions": ["Scott-Buccleuch, R. L."],
+            "work_title": ["Dom Casmurro."],
+            "pagination": "216 p. ;",
+            "source_records": [
+                "marc:marc_loc_2016/BooksAll.2016.part24.utf8:179640696:732",
+                "bwb:9780140446128",
+                "marc:harvard_bibliographic_metadata/20220215_029.bib.mrc:244516621:1641"
+            ],
+            "title": "Dom Casmurro",
+            "dewey_decimal_class": ["869.3"],
+            "identifiers": {
+                "goodreads": ["1888211"],
+                "librarything": ["131271"]
+            },
+            "languages": [{ "key": "/languages/eng" }],
+            "lccn": ["95154670", "94080545"],
+            "isbn_10": ["0140446125"],
+            "publish_date": "1994",
+            "publish_country": "enk",
+            "by_statement": "Machado de Assis ; translated from the Portuguese and with an introduction by R.L. Scott-Buccleuch.",
+            "oclc_numbers": ["40251228"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 10,
+            "revision": 10,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-01T03:28:50.625462"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-02-05T20:38:01.721500"
+            }
+        },
+        {
+            "publishers": ["University of California Press"],
+            "number_of_pages": 269,
+            "subtitle": "a novel",
+            "ia_box_id": ["IA115403"],
+            "covers": [6491476],
+            "key": "/books/OL22170762M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["Berkeley"],
+            "pagination": "xxi, 269 p. ;",
+            "source_records": [
+                "ia:domcasmurronovel00mach",
+                "ia:domcasmurro0000unse"
+            ],
+            "title": "Dom Casmurro",
+            "notes": "Also issued online.",
+            "identifiers": {
+                "librarything": ["131271"],
+                "goodreads": ["1888210"]
+            },
+            "languages": [{ "key": "/languages/eng" }],
+            "publish_date": "1966",
+            "publish_country": "cau",
+            "by_statement": "translated and with an introduction by Helen Caldwell",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "location": ["BIN"],
+            "ocaid": "domcasmurronovel00mach",
+            "isbn_10": ["0520007905"],
+            "classifications": {},
+            "lc_classifications": ["PQ9697.M18 D63 1966"],
+            "latest_revision": 12,
+            "revision": 12,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-11-07T22:13:03.901200"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "publishers": ["W. M. Jackson inc."],
+            "lc_classifications": ["PQ9697.M18 D6 1937"],
+            "key": "/books/OL6378236M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["Rio de Janeiro [etc.]"],
+            "pagination": "426 p.",
+            "source_records": [
+                "marc:marc_loc_2016/BooksAll.2016.part03.utf8:166249199:474"
+            ],
+            "title": "Dom Casmurro.",
+            "lccn": ["38032239"],
+            "number_of_pages": 426,
+            "languages": [{ "key": "/languages/ita" }],
+            "publish_date": "1937",
+            "publish_country": "bl ",
+            "oclc_numbers": ["16763962"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-01T03:28:50.625462"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "publishers": ["University of California Press", "1966 [c1953]"],
+            "subtitle": "a novel",
+            "key": "/books/OL13534695M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["Berkeley"],
+            "pagination": "xii, 269 p.",
+            "source_records": [
+                "marc:marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:122134567:665"
+            ],
+            "title": "Dom Casmurro",
+            "number_of_pages": 269,
+            "languages": [{ "key": "/languages/eng" }],
+            "publish_date": "1966",
+            "publish_country": "cau",
+            "by_statement": "translated and with an introduction  by Helen Caldwell.",
+            "oclc_numbers": ["2555887"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-08-27T17:42:42.552873"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "title": "Dom Casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1979",
+            "publishers": ["Ática"],
+            "series": ["Série Bom livro"],
+            "publish_places": ["São Paulo"],
+            "edition_name": "10a ed.",
+            "pagination": "152p. ;",
+            "languages": [{ "key": "/languages/por" }],
+            "publish_country": "bl ",
+            "by_statement": "Machado de Assis ; texto integral, cotejado com a edição crítica do Instituto Nacional do Livro.",
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:982960124:564"
+            ],
+            "key": "/books/OL22034455M",
+            "number_of_pages": 152,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-11-06T06:58:09.203169"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-05-07T11:30:47.217801"
+            }
+        },
+        {
+            "publishers": ["Editôra Cultrix"],
+            "series": ["Obras escolhidas de Machado de Assis ;", "5"],
+            "lc_classifications": ["PQ9697.M18 D6 1967"],
+            "key": "/books/OL5643262M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["São Paulo"],
+            "contributions": ["Moisés, Massaud."],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "231 p.",
+            "source_records": [
+                "marc:marc_loc_2016/BooksAll.2016.part06.utf8:169615055:699",
+                "marc:harvard_bibliographic_metadata/ab.bib.01.20150123.full.mrc:592346460:691",
+                "marc:harvard_bibliographic_metadata/20220215_033.bib.mrc:260503357:1114"
+            ],
+            "title": "Dom Casmurro.",
+            "lccn": ["68075801"],
+            "notes": {
+                "type": "/type/text",
+                "value": "Includes bibliography."
+            },
+            "number_of_pages": 231,
+            "edition_name": "5. ed.",
+            "publish_date": "1967",
+            "publish_country": "po ",
+            "by_statement": "Organização, introdução, revisão de texto e notas de Massaud Moisés.",
+            "oclc_numbers": ["28925897"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 6,
+            "revision": 6,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-01T03:28:50.625462"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-03-28T13:53:13.660022"
+            }
+        },
+        {
+            "identifiers": {
+                "goodreads": ["6881847"],
+                "librarything": ["131271"]
+            },
+            "title": "Dom Casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "2003",
+            "publishers": ["Dom Quixote"],
+            "languages": [{ "key": "/languages/por" }],
+            "isbn_10": ["9722024906"],
+            "publish_country": "po ",
+            "by_statement": "Machado de Assis.",
+            "publish_places": ["Lisbon"],
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:1075044947:406"
+            ],
+            "key": "/books/OL22122321M",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 6,
+            "revision": 6,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-11-07T03:37:03.266724"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-12-23T08:20:04.777881"
+            }
+        },
+        {
+            "notes": {
+                "type": "/type/text",
+                "value": "\"Ediouro/50700\"--Cover."
+            },
+            "title": "Dom Casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1990",
+            "publishers": ["Ediouro"],
+            "series": ["Coleção Prestigio", "Coleção Prestígio"],
+            "publish_places": ["Rio de Janeiro, RJ"],
+            "pagination": "152 p. ;",
+            "languages": [{ "key": "/languages/por" }],
+            "isbn_10": ["8500507004"],
+            "publish_country": "bl ",
+            "by_statement": "Machado de Assis ; biografia de M. Cavalcanti Proença ; introdução de Ivan C. Proença ; estudo introdutivo e notas de Afrânio Coutinho.",
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:SanFranPL05/SanFranPL05.out:78418284:1131"
+            ],
+            "key": "/books/OL22953341M",
+            "number_of_pages": 152,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2009-02-12T17:04:13.078975"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-12-28T12:21:33.872882"
+            }
+        },
+        {
+            "publishers": ["A. Michel"],
+            "lc_classifications": ["PQ9697.M18 D63 1956"],
+            "key": "/books/OL6229624M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["Paris"],
+            "pagination": "334 p.",
+            "source_records": [
+                "marc:marc_loc_2016/BooksAll.2016.part05.utf8:45145287:574"
+            ],
+            "title": "Dom Casmurro.",
+            "lccn": ["57021350"],
+            "number_of_pages": 334,
+            "languages": [{ "key": "/languages/fre" }],
+            "publish_date": "1956",
+            "publish_country": "fr ",
+            "by_statement": "Traduit du portugais par Francis de Miomandre; version revue par Ronald de Cavalho.",
+            "oclc_numbers": ["12529173"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-01T03:28:50.625462"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "title": "Dom Casmurro",
+            "subtitle": "a novel.  Translated and with an introd. by Helen Caldwell.",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1966",
+            "publishers": ["University of California Press"],
+            "pagination": "xii, 269 p. ;",
+            "languages": [{ "key": "/languages/eng" }],
+            "publish_places": ["Berkeley"],
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:marc_university_of_toronto/uoft.marc:3848178252:680"
+            ],
+            "key": "/books/OL21642313M",
+            "number_of_pages": 269,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-11-03T10:27:54.749865"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-02-12T09:04:11.113729"
+            }
+        },
+        {
+            "title": "Dom Casmurro.",
+            "subtitle": "Organização, introdução, revisão de texto e notas de Massaud Moises.",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1966",
+            "publishers": ["Editôra Cultrix"],
+            "series": ["His  Obras escolhidas, 5"],
+            "lc_classifications": ["PQ9697 M18 D67 1966A"],
+            "publish_places": ["São Paulo"],
+            "contributions": ["Moisés, Massaud,"],
+            "languages": [{ "key": "/languages/por" }],
+            "pagination": "231p.",
+            "edition_name": "4. ed.",
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:marc_university_of_toronto/uoft.marc:1282031724:621"
+            ],
+            "key": "/books/OL17287524M",
+            "number_of_pages": 231,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-09-28T06:40:39.594181"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-03-06T04:53:02.674724"
+            }
+        },
+        {
+            "title": "Dom Casmurro.",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1900",
+            "publishers": ["Garnier"],
+            "pagination": "2 p. l.,",
+            "languages": [{ "key": "/languages/por" }],
+            "location": ["BIN"],
+            "publish_country": "xx ",
+            "publish_places": ["Rio de Janiero, Paris"],
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:marc_binghamton_univ/bgm_openlib_final_0-5.mrc:438065957:497"
+            ],
+            "key": "/books/OL22171755M",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-11-07T22:30:39.285640"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-01-07T22:58:42.600877"
+            }
+        },
+        {
+            "title": "Dom Casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1953",
+            "publishers": ["University of California Press"],
+            "publish_places": ["Berkeley"],
+            "pagination": "269 p.",
+            "work_titles": ["Dom Casmurro."],
+            "languages": [{ "key": "/languages/eng" }],
+            "publish_country": "cau",
+            "by_statement": "tr. and with an introd. by Helen Caldwell.",
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:marc_oregon_summit_records/catalog_files/washs02192008.mrc_revrev.mrc:482543920:679"
+            ],
+            "key": "/books/OL18680724M",
+            "number_of_pages": 269,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-10-19T01:19:16.201587"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-03-27T08:08:06.290550"
+            }
+        },
+        {
+            "publishers": ["Noonday Press"],
+            "identifiers": {
+                "goodreads": ["1853207"],
+                "librarything": ["131271"]
+            },
+            "covers": [1188836],
+            "lc_classifications": [
+                "PQ9697.M18 D613 1991",
+                "PQ9697.M18 D613 2009",
+                "PQ9697.M18D613 1991"
+            ],
+            "key": "/books/OL1541140M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["New York"],
+            "pagination": "xxii, 263 p. ;",
+            "source_records": [
+                "marc:marc_records_scriblio_net/part22.dat:9676875:629",
+                "marc:marc_loc_updates/v37.i15.records.utf8:1533747:846",
+                "marc:marc_loc_updates/v40.i20.records.utf8:3812499:857",
+                "marc:marc_loc_2016/BooksAll.2016.part21.utf8:9013362:846",
+                "marc:marc_loc_2016/BooksAll.2016.part37.utf8:99071874:857",
+                "bwb:9780374523039",
+                "marc:marc_columbia/Columbia-extract-20221130-025.mrc:157306649:1324",
+                "idb:9780374523039",
+                "marc:harvard_bibliographic_metadata/ab.bib.02.20150123.full.mrc:357229225:709",
+                "marc:harvard_bibliographic_metadata/20220215_003.bib.mrc:312408431:1238"
+            ],
+            "title": "Dom Casmurro",
+            "dewey_decimal_class": ["869.3"],
+            "number_of_pages": 263,
+            "languages": [{ "key": "/languages/eng" }],
+            "lccn": ["91019838", "2009927450"],
+            "isbn_10": ["0374523037"],
+            "publish_date": "1991",
+            "publish_country": "nyu",
+            "by_statement": "Machado de Assis ; translated by Helen Caldwell ; with a foreword by Elizabeth Hardwick.",
+            "work_title": ["Dom Casmurro."],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "oclc_numbers": ["23901504"],
+            "latest_revision": 15,
+            "revision": 15,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-01T03:28:50.625462"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-05-22T00:33:36.314963"
+            }
+        },
+        {
+            "notes": {
+                "type": "/type/text",
+                "value": "Bibliography: p. 23-38"
+            },
+            "title": "Dom Casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1975",
+            "publishers": ["Civilização Brasileira"],
+            "series": [
+                "Edições críticas de obras de Machado de Assis -- v. 12",
+                "Edições críticas de obras de Machado de Assis -- v. 12"
+            ],
+            "publish_places": ["Rio de Janeiro"],
+            "pagination": "267 p. ;",
+            "languages": [{ "key": "/languages/por" }],
+            "publish_country": "bl ",
+            "by_statement": "Machado de Assis ; em convênio com o Instituto Nacional do Livro / Ministério da Educação e Cultura, sob o patrocínio do Programa de Ação Cultural do Departamento de Assuntos Culturais",
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:marc_miami_univ_ohio/allbibs0021.out:5233849:975"
+            ],
+            "key": "/books/OL16384916M",
+            "number_of_pages": 267,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-09-23T16:08:14.764829"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-01-29T09:10:15.708577"
+            }
+        },
+        {
+            "notes": {
+                "type": "/type/text",
+                "value": "Date from colophon: Pariz : Typ. Garnier Irmãos ..., 370.10.99."
+            },
+            "title": "Dom Casmurro",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publishers": ["H. Garnier"],
+            "pagination": "404 p. ;",
+            "by_statement": "por Machado de Assis.",
+            "publish_places": ["Rio de Janeiro"],
+            "type": { "key": "/type/edition" },
+            "source_records": ["marc:hollis_marc/hollis.marc:3711749:578"],
+            "key": "/books/OL21911425M",
+            "number_of_pages": 404,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-11-04T17:48:19.197316"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-12-24T03:16:38.433210"
+            }
+        },
+        {
+            "series": ["Série bom livro"],
+            "edition_name": "14. ed.",
+            "source_records": [
+                "marc:marc_oregon_summit_records/catalog_files/lewisandclarkbibsrev.mrc:191252307:760"
+            ],
+            "title": "Dom Casmurro",
+            "languages": [{ "key": "/languages/por" }],
+            "publish_country": "bl ",
+            "by_statement": "Machado de Assis.",
+            "oclc_numbers": ["12954223"],
+            "type": { "key": "/type/edition" },
+            "publishers": ["Editora Atica"],
+            "key": "/books/OL20294249M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["São Paulo"],
+            "pagination": "152 p. :",
+            "notes": {
+                "type": "/type/text",
+                "value": "\"Texto integral cotejado com a  ed. crítica do Instituto Nacional do Livro.\"\n\n\"Edicão didática.\""
+            },
+            "number_of_pages": 152,
+            "publish_date": "1983",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-10-26T11:48:18.651759"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "publishers": ["University of California Press"],
+            "subtitle": "a novel",
+            "isbn_10": ["0520007905"],
+            "key": "/books/OL21487746M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["Berkeley (Cal.)"],
+            "source_records": [
+                "marc:OpenLibraries-Trent-MARCs/tier5.mrc:9939687:822",
+                "marc:marc_marygrove/marygrovecollegelibrary.full.D20191108.T213022.internetarchive2nd_REPACK.mrc:69025662:2664",
+                "marc:marc_columbia/Columbia-extract-20221130-003.mrc:10232097:1028"
+            ],
+            "title": "Dom Casmurro",
+            "work_titles": ["Dom Casmurro."],
+            "identifiers": {
+                "goodreads": ["1888210"],
+                "librarything": ["131271"]
+            },
+            "languages": [{ "key": "/languages/eng" }],
+            "local_id": ["urn:trent:0116301755801", "urn:mgc:31927000485521"],
+            "publish_date": "1966",
+            "publish_country": "xxu",
+            "by_statement": "by Machado de Assis ; translated [from the Portugese] and with an introduction by Helen Caldwell.",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "oclc_numbers": ["13806862"],
+            "number_of_pages": 269,
+            "latest_revision": 8,
+            "revision": 8,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-11-02T19:44:36.943372"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2024-07-17T11:07:00.576337"
+            }
+        },
+        {
+            "title": "Dom Casmurro",
+            "subtitle": "a novel.",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1960",
+            "publishers": ["Noonday Press"],
+            "series": ["Noonday paperbacks -- N205"],
+            "publish_places": ["[New York]"],
+            "oclc_number": ["22985439"],
+            "pagination": "283 p. ;",
+            "languages": [{ "key": "/languages/eng" }],
+            "publish_country": "nyu",
+            "by_statement": "Translated by Helen Caldwell, with an introduction by Waldo Frank.",
+            "type": { "key": "/type/edition" },
+            "location": ["MChB"],
+            "source_records": ["marc:bcl_marc/bcl_open.03.mrc:331880699:715"],
+            "key": "/books/OL18024328M",
+            "number_of_pages": 283,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-10-09T06:52:57.917673"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-01-17T00:15:04.931595"
+            }
+        },
+        {
+            "title": "Dom Casmurro.",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1952",
+            "publishers": ["W.M. Jackson"],
+            "series": ["Obras completas de Machado de Assis"],
+            "languages": [{ "key": "/languages/por" }],
+            "publish_country": "bl ",
+            "publish_places": ["Rio de Janeiro"],
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:263381774:418"
+            ],
+            "key": "/books/OL13926191M",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-09-02T03:54:50.696073"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2025-12-27T10:32:53.431635"
+            }
+        },
+        {
+            "publishers": [
+                "Institut international de coopération intellectuelle"
+            ],
+            "series": ["Collection ibéro-américaine"],
+            "lc_classifications": ["PQ9697.M18 D63"],
+            "key": "/books/OL6340068M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_places": ["Paris"],
+            "contributions": [
+                "Miomandre, Francis de, b. 1880, tr.",
+                "Carvalho, Ronald de, 1893-1935.",
+                "International Institute of Intellectual Co-operation.",
+                "League of Nations."
+            ],
+            "pagination": "2 p. l., [7]-332 p., 1 l.",
+            "source_records": [
+                "marc:marc_loc_2016/BooksAll.2016.part03.utf8:135530420:990",
+                "marc:marc_columbia/Columbia-extract-20221130-003.mrc:132687376:1575"
+            ],
+            "title": "Dom Casmurro",
+            "dewey_decimal_class": ["869.3"],
+            "notes": {
+                "type": "/type/text",
+                "value": "At head of title: Machado de Assis."
+            },
+            "number_of_pages": 332,
+            "languages": [{ "key": "/languages/fre" }],
+            "lccn": ["36017851"],
+            "publish_date": "1936",
+            "publish_country": "fr ",
+            "by_statement": "traduit du portugais par Francis de Miomandre, version revue par Ronald de Carvalho, préface de Afranio Peixoto ...",
+            "oclc_numbers": ["13682565"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "latest_revision": 5,
+            "revision": 5,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-01T03:28:50.625462"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2024-07-20T15:45:36.034341"
+            }
+        },
+        {
+            "publishers": ["Ciranda Cultural Editora e Distribuidora Ltda"],
+            "classifications": {},
+            "title": "Dom Casmurro",
+            "identifiers": {},
+            "covers": [9080625],
+            "languages": [{ "key": "/languages/por" }],
+            "publish_date": "2006",
+            "key": "/books/OL27632860M",
+            "publish_places": ["Brazil"],
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "isbn_13": ["9788575201176"],
+            "latest_revision": 5,
+            "revision": 5,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2019-11-06T01:10:05.258389"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "title": "Dom Casmurro",
+            "publish_date": "2020",
+            "publishers": ["Antofágica"],
+            "type": { "key": "/type/edition" },
+            "covers": [10653585],
+            "isbn_13": ["9786586490084"],
+            "languages": [{ "key": "/languages/por" }],
+            "key": "/books/OL31977000M",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 5,
+            "revision": 5,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2021-02-20T21:42:14.867720"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-18T22:04:59.790806"
+            }
+        },
+        {
+            "notes": {
+                "type": "/type/text",
+                "value": "At head of title: Machado de Assis. \"Traduccion directa de Luis M. Baudizzone y Newton Freitas.\""
+            },
+            "title": "Don Casmurro.",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1943",
+            "publishers": ["Editorial Nova"],
+            "series": ["Coleccio n Nuestra Ame rica"],
+            "publish_places": ["Buenos Aires"],
+            "contributions": ["Baudizzone, Luis M.", "Freitas, Newton."],
+            "pagination": "244 p.",
+            "languages": [{ "key": "/languages/spa" }],
+            "publish_country": "ve ",
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:marc_oregon_summit_records/catalog_files/osu_bibs.mrc:306283215:858"
+            ],
+            "key": "/books/OL14260248M",
+            "number_of_pages": 244,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-09-11T18:48:11.017151"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-02-18T06:48:14.542383"
+            }
+        },
+        {
+            "title": "Don Casmurro.",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1955",
+            "publishers": ["Espasa-Calpe"],
+            "series": ["Colección Austral -- no. 1246"],
+            "publish_places": ["Buenos Aires"],
+            "edition_name": "[1. ed.]",
+            "pagination": "211 p.",
+            "languages": [{ "key": "/languages/spa" }],
+            "publish_country": "ag ",
+            "by_statement": "Traducción directa de Luis M. Baudizzone y Newton Freitas.",
+            "type": { "key": "/type/edition" },
+            "source_records": ["marc:SanFranPL05/SanFranPL05.out:77854511:868"],
+            "key": "/books/OL22953215M",
+            "number_of_pages": 211,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2009-02-12T17:02:25.722546"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-02-03T11:04:37.494325"
+            }
+        },
+        {
+            "title": "Dom Casmurro, romance.",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1968",
+            "publishers": ["Gráfica Record Editôra"],
+            "pagination": "446p.",
+            "languages": [{ "key": "/languages/por" }],
+            "lc_classifications": ["PQ9697 M18 D67 1968"],
+            "publish_country": "bl ",
+            "publish_places": ["Rio de Janeiro"],
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:marc_university_of_toronto/uoft.marc:1751289601:455"
+            ],
+            "key": "/books/OL18222670M",
+            "number_of_pages": 446,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 4,
+            "revision": 4,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-10-12T01:41:07.440525"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-01-07T21:25:23.269301"
+            }
+        },
+        {
+            "publishers": ["Luso-Brazilian Books"],
+            "number_of_pages": 176,
+            "weight": "1.8 pounds",
+            "covers": [647501],
+            "physical_format": "Paperback",
+            "key": "/books/OL8265063M",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "subjects": [
+                "Modern fiction",
+                "Fiction",
+                "Fiction - General",
+                "Spanish: Adult Fiction",
+                "Fiction / Literary",
+                "Language Arts & Disciplines / General",
+                "Literary"
+            ],
+            "first_sentence": {
+                "type": "/type/text",
+                "value": "One evening just lately, as I was coming back from town to Engenho Novo* on the Central line train, I met a young man from this neighborhood, whom I known by sight: enough to raise my hat to him."
+            },
+            "title": "Dom Casmurro (Classicos Da Literatura Brasileira)",
+            "identifiers": {
+                "goodreads": ["82888"],
+                "librarything": ["131271"]
+            },
+            "isbn_13": ["9780850515039"],
+            "languages": [{ "key": "/languages/por" }],
+            "isbn_10": ["0850515033"],
+            "publish_date": "February 4, 2005",
+            "works": [{ "key": "/works/OL1003040W" }],
+            "type": { "key": "/type/edition" },
+            "physical_dimensions": "8.9 x 6 x 0.3 inches",
+            "source_records": [
+                "bwb:9780850515039",
+                "marc:marc_columbia/Columbia-extract-20221130-014.mrc:161897705:820"
+            ],
+            "lc_classifications": ["PQ9697.M8 D6 2004"],
+            "oclc_numbers": ["298305038"],
+            "latest_revision": 9,
+            "revision": 9,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-04-29T15:03:11.581851"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2022-12-27T23:51:32.264604"
+            }
+        },
+        {
+            "title": "Dom Casmurro, a novel.",
+            "subtitle": "Translated by Helen Caldwell, with an introd. by Waldo Frank.",
+            "authors": [{ "key": "/authors/OL93286A" }],
+            "publish_date": "1953",
+            "publishers": ["Noonday Press"],
+            "pagination": "283p.",
+            "lc_classifications": ["PQ9697 M18 D673 1953"],
+            "languages": [{ "key": "/languages/eng" }],
+            "publish_places": ["New York"],
+            "type": { "key": "/type/edition" },
+            "source_records": [
+                "marc:marc_university_of_toronto/uoft.marc:649803811:729"
+            ],
+            "key": "/books/OL15543065M",
+            "number_of_pages": 283,
+            "works": [{ "key": "/works/OL1003040W" }],
+            "latest_revision": 3,
+            "revision": 3,
+            "created": {
+                "type": "/type/datetime",
+                "value": "2008-09-20T10:57:06.410379"
+            },
+            "last_modified": {
+                "type": "/type/datetime",
+                "value": "2026-06-19T17:22:09.770979"
+            }
+        }
+    ]
+}
