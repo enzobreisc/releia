@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'open_library' => [
+        // A Open Library pede um User-Agent identificando o app.
+        'user_agent' => 'releia/'.env('NATIVEPHP_APP_VERSION', '0.1.0').' (https://github.com/enzobreisc/releia)',
+    ],
+
+    'google_books' => [
+        // Opcional: sem chave a cota é compartilhada e costuma dar 429.
+        'key' => env('GOOGLE_BOOKS_API_KEY'),
+    ],
+
 ];
