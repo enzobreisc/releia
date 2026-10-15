@@ -3,7 +3,10 @@
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookCoverController;
 use App\Http\Controllers\LibraryController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReadingController;
+use App\Http\Controllers\StatsController;
+use App\Http\Controllers\WrappedController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'inicio')->name('inicio');
@@ -18,7 +21,10 @@ Route::get('/biblioteca/{book}/capa', BookCoverController::class)->whereNumber('
 
 Route::inertia('/notas', 'notas')->name('notas');
 Route::inertia('/fila', 'fila')->name('fila');
-Route::inertia('/perfil', 'perfil')->name('perfil');
-Route::inertia('/estatisticas', 'estatisticas')->name('estatisticas');
-Route::inertia('/wrapped', 'wrapped')->name('wrapped');
+// Fase 4
+Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+Route::post('/profile/pins', [ProfileController::class, 'pin'])->name('profile.pins.store');
+Route::delete('/profile/pins/{book}', [ProfileController::class, 'unpin'])->whereNumber('book')->name('profile.pins.destroy');
+Route::get('/stats', [StatsController::class, 'index'])->name('stats.index');
+Route::get('/wrapped', [WrappedController::class, 'show'])->name('wrapped.show');
 Route::inertia('/sugestoes', 'sugestoes')->name('sugestoes');

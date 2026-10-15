@@ -12,8 +12,8 @@ test('cada tela abre com o componente certo', function (string $route, string $c
     ['adicionar', 'adicionar'],
     ['notas', 'notas'],
     ['fila', 'fila'],
-    ['perfil', 'perfil'],
-    ['estatisticas', 'estatisticas'],
-    ['wrapped', 'wrapped'],
+    ['profile.show', 'profile'],
+    ['stats.index', 'stats'],
+    ['wrapped.show', 'wrapped'],
     ['sugestoes', 'sugestoes'],
 ]);

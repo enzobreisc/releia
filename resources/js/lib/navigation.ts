@@ -12,14 +12,14 @@ import {
 import {
     adicionar,
     biblioteca,
-    estatisticas,
     fila,
     inicio,
     notas,
-    perfil,
     sugestoes,
-    wrapped,
 } from '@/routes';
+import { show as profile } from '@/routes/profile';
+import { index as stats } from '@/routes/stats';
+import { show as wrapped } from '@/routes/wrapped';
 import type { NavItem } from '@/types';
 
 /** Grupos da barra lateral, na ordem do escopo (seção 3). */
@@ -36,8 +36,8 @@ export const navGroups: NavItem[][] = [
         { title: 'Fila', href: fila.url(), icon: QueueIcon },
     ],
     [
-        { title: 'Perfil', href: perfil.url(), icon: ProfileIcon },
-        { title: 'Estatísticas', href: estatisticas.url(), icon: StatsIcon },
+        { title: 'Perfil', href: profile.url(), icon: ProfileIcon },
+        { title: 'Estatísticas', href: stats.url(), icon: StatsIcon },
         { title: 'Wrapped', href: wrapped.url(), icon: WrappedIcon },
     ],
     [{ title: 'Sugestões', href: sugestoes.url(), icon: SparkleIcon }],
