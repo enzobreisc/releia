@@ -290,3 +290,22 @@ test('o comando avisa quando não há livros avaliados com 4 ou 5', function () 
         ->expectsOutputToContain('Avalie livros com 4 ou 5 estrelas')
         ->assertSuccessful();
 });
+
+test('o início mostra a sugestão do dia com motivo e livro de origem', function () {
+    $source = ratedBook('Torto Arado', 'Itamar Vieira Junior', 5);
+    Recommendation::factory()->create([
+        'based_on_book_id' => $source->id,
+        'title' => 'Doramar ou a Odisseia',
+        'reason' => 'mesmo autor que Torto Arado',
+    ]);
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('suggestion.title', 'Doramar ou a Odisseia')
+            ->where('suggestion.reason', 'mesmo autor que Torto Arado')
+            ->where('suggestion.based_on', 'Torto Arado'));
+});
+
+test('sem sugestões novas, o início não mostra o card', function () {
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->where('suggestion', null));
+});

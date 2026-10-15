@@ -1,18 +1,24 @@
-import { Link, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { BookCover } from '@/components/book-cover';
-import { Button, Field, Input } from '@/components/form';
+import { Button, Field, Input, buttonClass } from '@/components/form';
 import { PageHeader, SectionTitle } from '@/components/page-header';
 import { ProgressBar, progressText } from '@/components/reading-progress';
 import { index as libraryIndex } from '@/routes/library';
 import { update as updateGoal } from '@/routes/goal';
 import { show as showBook } from '@/routes/books';
-import type { BookCard, ReadingSummary, YearGoal } from '@/types';
+import {
+    accept,
+    dismiss,
+    index as suggestionsIndex,
+} from '@/routes/suggestions';
+import type { BookCard, ReadingSummary, Suggestion, YearGoal } from '@/types';
 
 type HomeProps = {
     reading: ReadingSummary[];
     goal: YearGoal;
     recent: BookCard[];
+    suggestion: Suggestion | null;
 };
 
 function greeting(hour: number): string {
@@ -23,7 +29,7 @@ function greeting(hour: number): string {
     return hour >= 12 && hour < 18 ? 'Boa tarde' : 'Boa noite';
 }
 
-export default function Home({ reading, goal, recent }: HomeProps) {
+export default function Home({ reading, goal, recent, suggestion }: HomeProps) {
     return (
         <>
             <PageHeader
@@ -81,6 +87,8 @@ export default function Home({ reading, goal, recent }: HomeProps) {
                     <GoalForm current={goal.goal} />
                 </section>
             </div>
+
+            {suggestion && <TodaySuggestion suggestion={suggestion} />}
 
             <section className="flex flex-col gap-3">
                 <SectionTitle>últimos terminados</SectionTitle>
@@ -167,5 +175,57 @@ function GoalForm({ current }: { current: number | null }) {
                 Salvar meta
             </Button>
         </form>
+    );
+}
+
+/** Sugestão do dia (fase 5): sempre com o motivo, ligado a um livro lido. */
+function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
+    const options = { preserveScroll: true };
+
+    return (
+        <section className="flex flex-wrap items-center gap-5 rounded-md border bg-surface p-5">
+            <BookCover
+                src={suggestion.cover_url}
+                title={suggestion.title}
+                className="w-18"
+            />
+            <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-2">
+                <SectionTitle>sugestão de hoje</SectionTitle>
+                <div className="text-lg font-bold">{suggestion.title}</div>
+                {suggestion.authors && (
+                    <div className="text-sm text-muted">
+                        {suggestion.authors}
+                    </div>
+                )}
+                <div className="text-sm text-muted">
+                    Por quê: {suggestion.reason} · parecido com{' '}
+                    {suggestion.based_on}
+                </div>
+                <Link
+                    href={suggestionsIndex.url()}
+                    className="self-start text-sm font-semibold text-accent hover:underline"
+                >
+                    Ver mais sugestões
+                </Link>
+            </div>
+            <div className="flex gap-3">
+                <button
+                    type="button"
+                    onClick={() => router.visit(accept(suggestion.id), options)}
+                    className={buttonClass('outline')}
+                >
+                    Quero ler
+                </button>
+                <button
+                    type="button"
+                    onClick={() =>
+                        router.visit(dismiss(suggestion.id), options)
+                    }
+                    className={buttonClass('ghost')}
+                >
+                    Dispensar
+                </button>
+            </div>
+        </section>
     );
 }
