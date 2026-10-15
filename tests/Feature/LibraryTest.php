@@ -160,7 +160,7 @@ test('detalhe mostra o livro e a capa é servida do disco local', function () {
 
     $this->get(route('livros.show', $book))
         ->assertInertia(fn (Assert $page) => $page
-            ->component('livro')
+            ->component('book')
             ->where('book.title', 'Dom Casmurro')
             ->where('book.authors', 'Machado de Assis')
             ->where('slug', 'dom-casmurro')
@@ -185,7 +185,7 @@ test('resultados de busca marcam o que já está na biblioteca', function () {
 
     $this->get(route('adicionar', ['q' => 'torto arado']))
         ->assertInertia(fn (Assert $page) => $page
-            ->component('adicionar')
+            ->component('add-book')
             ->where('results.0.title', 'Torto Arado')
             ->where('results.0.library_id', $book->id));
 });

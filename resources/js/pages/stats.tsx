@@ -1,7 +1,7 @@
 import { ComingSoon } from '@/components/coming-soon';
 import { PageHeader } from '@/components/page-header';
 
-export default function Estatisticas() {
+export default function Stats() {
     return (
         <>
             <PageHeader

@@ -41,7 +41,7 @@ class LibraryController extends Controller
             ->latest('id')
             ->get();
 
-        return Inertia::render('biblioteca', [
+        return Inertia::render('library', [
             'books' => $books->map(BookPresenter::card(...)),
             'shelves' => $this->shelves(),
             'genres' => Book::query()->whereNotNull('genre')->distinct()->orderBy('genre')->pluck('genre'),

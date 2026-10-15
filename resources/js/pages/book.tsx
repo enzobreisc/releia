@@ -9,13 +9,13 @@ import { biblioteca } from '@/routes';
 import { destroy, leitura } from '@/routes/livros';
 import type { BookDetail, Option } from '@/types';
 
-type LivroProps = {
+type BookProps = {
     book: BookDetail;
     slug: string;
     statuses: Option[];
 };
 
-export default function Livro({ book, slug, statuses }: LivroProps) {
+export default function Book({ book, slug, statuses }: BookProps) {
     const reading = book.reading;
     const [saving, setSaving] = useState(false);
 

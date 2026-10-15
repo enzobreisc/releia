@@ -1,7 +1,7 @@
 import { ComingSoon } from '@/components/coming-soon';
 import { PageHeader } from '@/components/page-header';
 
-export default function Perfil() {
+export default function Profile() {
     return (
         <>
             <PageHeader title="Perfil" description="Sua identidade de leitor" />

@@ -17,7 +17,7 @@ type Filters = {
     ordem: string;
 };
 
-type BibliotecaProps = {
+type LibraryProps = {
     books: BookCard[];
     shelves: Shelf[];
     genres: string[];
@@ -30,12 +30,12 @@ const SORTS = [
     { value: 'nota', label: 'Nota' },
 ];
 
-export default function Biblioteca({
+export default function Library({
     books,
     shelves,
     genres,
     filters,
-}: BibliotecaProps) {
+}: LibraryProps) {
     const [search, setSearch] = useState(filters.q);
     const searchRef = useRef<HTMLInputElement>(null);
     const searchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);

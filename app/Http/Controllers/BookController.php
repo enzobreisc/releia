@@ -36,7 +36,7 @@ class BookController extends Controller
         $work = OpenLibraryProvider::workKey('/works/'.$request->string('obra'));
         $isbn = Isbn::toIsbn13((string) $request->string('isbn'));
 
-        return Inertia::render('adicionar', [
+        return Inertia::render('add-book', [
             'query' => $query,
             'publisher' => $publisher,
             'results' => fn () => $query === '' ? [] : $this->candidates($this->lookup->search($query, $publisher)),
@@ -63,7 +63,7 @@ class BookController extends Controller
     {
         $book->load(['authors', 'currentReading']);
 
-        return Inertia::render('livro', [
+        return Inertia::render('book', [
             'book' => BookPresenter::detail($book),
             'slug' => Str::slug($book->title),
             'statuses' => ReadingStatus::options(),

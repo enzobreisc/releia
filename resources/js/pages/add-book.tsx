@@ -10,7 +10,7 @@ import { adicionar } from '@/routes';
 import { show, store } from '@/routes/livros';
 import type { Candidate, Editions, Option } from '@/types';
 
-type AdicionarProps = {
+type AddBookProps = {
     query: string;
     publisher: string;
     results: Candidate[];
@@ -76,14 +76,14 @@ function keyOf(candidate: Candidate): string {
     return candidate.isbn_13 ?? `${candidate.work_key}-${candidate.title}`;
 }
 
-export default function Adicionar({
+export default function AddBook({
     query,
     publisher,
     results,
     editions,
     preview,
     statuses,
-}: AdicionarProps) {
+}: AddBookProps) {
     const [search, setSearch] = useState(query);
     const [publisherFilter, setPublisherFilter] = useState(publisher);
     const [searching, setSearching] = useState(false);

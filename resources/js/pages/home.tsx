@@ -9,7 +9,7 @@ function greeting(hour: number): string {
     return hour >= 12 && hour < 18 ? 'Boa tarde' : 'Boa noite';
 }
 
-export default function Inicio() {
+export default function Home() {
     return (
         <>
             <PageHeader

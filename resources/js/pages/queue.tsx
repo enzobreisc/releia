@@ -1,7 +1,7 @@
 import { ComingSoon } from '@/components/coming-soon';
 import { PageHeader } from '@/components/page-header';
 
-export default function Fila() {
+export default function Queue() {
     return (
         <>
             <PageHeader
