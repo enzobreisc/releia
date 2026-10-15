@@ -104,6 +104,18 @@ test('a rota do perfil é a de perfil e não há mais a placeholder', function (
         ->and(route('wrapped.show'))->toEndWith('/wrapped');
 });
 
+test('livro abandonado não aparece como terminado na atividade', function () {
+    pagesSample2026();
+
+    $events = app(ProfileService::class)->recentActivity(50);
+
+    // Livro E foi abandonado (tem finished_at, mas não está lido): só pode aparecer como sessão.
+    $finishedTitles = collect($events)->where('type', 'finished')->pluck('title')->all();
+
+    expect($finishedTitles)->not->toContain('Livro E')
+        ->and(collect($events)->where('type', 'session')->pluck('title')->all())->toContain('Livro E');
+});
+
 /** Amostra mínima de 2026 para as telas (os números completos ficam em StatsServiceTest). */
 function pagesSample2026(): void
 {

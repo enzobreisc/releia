@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ReadingStatus;
 use App\Models\Book;
 use App\Models\Reading;
 use App\Models\ReadingSession;
@@ -100,8 +101,10 @@ class ProfileService
      */
     public function recentActivity(int $limit = 8): array
     {
+        // Abandonados também têm finished_at: só leituras lidas são "terminadas".
         $finished = Reading::query()
             ->with('book')
+            ->where('status', ReadingStatus::Lido->value)
             ->whereNotNull('finished_at')
             ->orderByDesc('finished_at')
             ->limit($limit)
@@ -136,7 +139,6 @@ class ProfileService
                 'type' => 'added',
                 'title' => $reading->book->title,
                 'date' => $reading->created_at->toDateString(),
-                'shelf' => $reading->status->label(),
             ]);
 
         return array_values($finished

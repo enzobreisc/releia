@@ -20,7 +20,7 @@ type PinnedBook = {
 type ActivityItem =
     | { type: 'finished'; title: string; date: string; rating: number | null }
     | { type: 'session'; title: string; date: string; pages: number }
-    | { type: 'added'; title: string; date: string; shelf: string };
+    | { type: 'added'; title: string; date: string };
 
 type ProfileProps = {
     since: string;
@@ -69,7 +69,7 @@ function activityText(item: ActivityItem) {
         case 'session':
             return `Leu ${item.pages} ${item.pages === 1 ? 'página' : 'páginas'} de ${item.title}`;
         case 'added':
-            return `Adicionou ${item.title} à estante ${item.shelf}`;
+            return `Adicionou ${item.title} à biblioteca`;
     }
 }
 
