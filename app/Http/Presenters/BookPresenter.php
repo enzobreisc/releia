@@ -57,6 +57,22 @@ final class BookPresenter
     }
 
     /**
+     * Resultados de busca externa, cada um marcado se o ISBN já está na biblioteca.
+     *
+     * @param  list<BookCandidate>  $candidates
+     * @return list<array<string, mixed>>
+     */
+    public static function candidates(array $candidates): array
+    {
+        $isbns = array_values(array_filter(array_map(fn (BookCandidate $c) => $c->isbn13, $candidates)));
+
+        /** @var array<string, int> $libraryIds */
+        $libraryIds = Book::query()->whereIn('isbn_13', $isbns)->pluck('id', 'isbn_13')->all();
+
+        return array_map(fn (BookCandidate $c) => self::candidate($c, $libraryIds), $candidates);
+    }
+
+    /**
      * Resultado de busca externa, marcando o que já está na biblioteca.
      *
      * @param  array<string, int>  $libraryIds  isbn_13 => id do livro

@@ -10,7 +10,6 @@ use App\Http\Requests\StoreBookRequest;
 use App\Models\Book;
 use App\Models\Note;
 use App\Models\QueueItem;
-use App\Services\BookLookup\BookCandidate;
 use App\Services\BookLookup\OpenLibraryProvider;
 use App\Services\BookLookupService;
 use App\Services\LibraryService;
@@ -44,10 +43,10 @@ class BookController extends Controller
         return Inertia::render('add-book', [
             'query' => $query,
             'publisher' => $publisher,
-            'results' => fn () => $query === '' ? [] : $this->candidates($this->lookup->search($query, $publisher)),
+            'results' => fn () => $query === '' ? [] : BookPresenter::candidates($this->lookup->search($query, $publisher)),
             'editions' => fn () => $work === null ? null : [
                 'work_key' => $work,
-                'items' => $this->candidates($this->lookup->editions($work, publisher: $publisher)),
+                'items' => BookPresenter::candidates($this->lookup->editions($work, publisher: $publisher)),
             ],
             'preview' => fn () => $isbn === null ? null : $this->preview($isbn),
             'statuses' => ReadingStatus::options(),
@@ -102,26 +101,12 @@ class BookController extends Controller
     }
 
     /**
-     * @param  list<BookCandidate>  $candidates
-     * @return list<array<string, mixed>>
-     */
-    private function candidates(array $candidates): array
-    {
-        $isbns = array_values(array_filter(array_map(fn (BookCandidate $c) => $c->isbn13, $candidates)));
-
-        /** @var array<string, int> $libraryIds */
-        $libraryIds = Book::query()->whereIn('isbn_13', $isbns)->pluck('id', 'isbn_13')->all();
-
-        return array_map(fn (BookCandidate $c) => BookPresenter::candidate($c, $libraryIds), $candidates);
-    }
-
-    /**
      * @return array<string, mixed>|null
      */
     private function preview(string $isbn): ?array
     {
         $candidate = $this->lookup->findByIsbn($isbn);
 
-        return $candidate === null ? null : $this->candidates([$candidate])[0];
+        return $candidate === null ? null : BookPresenter::candidates([$candidate])[0];
     }
 }
