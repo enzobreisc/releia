@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Enums\ReadingStatus;
 use App\Http\Presenters\BookPresenter;
+use App\Http\Presenters\ReadingPresenter;
 use App\Http\Requests\StoreBookRequest;
 use App\Models\Book;
 use App\Services\BookLookup\BookCandidate;
 use App\Services\BookLookup\OpenLibraryProvider;
 use App\Services\BookLookupService;
 use App\Services\LibraryService;
+use App\Services\ReadingService;
 use App\Support\Isbn;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -59,14 +61,24 @@ class BookController extends Controller
         return to_route('livros.show', $book);
     }
 
-    public function show(Book $book): Response
+    public function show(Book $book, ReadingService $readings): Response
     {
         $book->load(['authors', 'currentReading']);
+        $reading = $book->currentReading;
 
         return Inertia::render('livro', [
             'book' => BookPresenter::detail($book),
             'slug' => Str::slug($book->title),
             'statuses' => ReadingStatus::options(),
+            'progress' => $reading === null ? null : $readings->progress($reading),
+            'sessions' => $reading === null ? [] : $reading->sessions()
+                ->orderByDesc('read_on')
+                ->orderByDesc('id')
+                ->get()
+                ->map(ReadingPresenter::session(...))
+                ->values(),
+            // Sessões só entram em livros "quero ler" ou "lendo" (ver ReadingService).
+            'can_log' => $reading !== null && in_array($reading->status, [ReadingStatus::QueroLer, ReadingStatus::Lendo], true),
         ]);
     }
 
