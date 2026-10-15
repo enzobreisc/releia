@@ -31,6 +31,15 @@
     --color-heat-3: #5b9bff;
     --color-heat-4: #6ca6ff;
 
+    /* Onda 1: perigo (apagar), atenção (abandonado, avisos) e borda de elementos flutuantes. */
+    --color-danger: #f4a3a3;
+    --color-danger-fill: #a8323a;
+    --color-danger-line: #5a2a30;
+    --color-warn: #e3b263;
+    --color-warn-line: #5c4a26;
+    --color-warn-fill: #2a2214;
+    --color-strong: #2e3b52;
+
     --radius-sm: 6px;
     --radius-md: 8px;
 }
@@ -44,6 +53,28 @@
     ::before,
     ::after {
         border-color: var(--color-border);
+    }
+
+    /* Anel de foco visível em tudo que recebe Tab. */
+    :focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
+}
+
+@keyframes toast-in {
+    from {
+        transform: translateY(8px);
+        opacity: 0;
+    }
+}
+
+@keyframes toast-timer {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
     }
 }
 

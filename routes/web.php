@@ -14,6 +14,7 @@ use App\Http\Controllers\ReadingSessionController;
 use App\Http\Controllers\ShoppingController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\SuggestionController;
+use App\Http\Controllers\UndoController;
 use App\Http\Controllers\WrappedController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,7 @@ Route::get('/library/{book}', [BookController::class, 'show'])->whereNumber('boo
 Route::delete('/library/{book}', [BookController::class, 'destroy'])->whereNumber('book')->name('books.destroy');
 Route::patch('/library/{book}/reading', [ReadingController::class, 'update'])->whereNumber('book')->name('books.reading');
 Route::get('/library/{book}/cover', BookCoverController::class)->whereNumber('book')->name('books.cover');
+Route::post('/undo/{token}', UndoController::class)->where('token', '[A-Za-z0-9]+')->name('undo');
 
 // Fase 2
 Route::put('/goal', [GoalController::class, 'update'])->name('goal.update');

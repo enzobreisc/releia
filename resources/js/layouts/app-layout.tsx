@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { AppSidebar } from '@/components/app-sidebar';
 import { CommandPalette } from '@/components/command-palette';
+import { Toaster } from '@/components/toaster';
 
 const COLLAPSED_KEY = 'releia.sidebar.collapsed';
 
@@ -63,6 +64,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             {commandOpen && (
                 <CommandPalette onClose={() => setCommandOpen(false)} />
             )}
+            <Toaster />
         </div>
     );
 }
