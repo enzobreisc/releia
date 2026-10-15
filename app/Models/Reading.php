@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * Uma passagem por um livro. Um livro pode ter várias (releitura).
@@ -24,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Book $book
+ * @property-read Collection<int, ReadingSession> $sessions
  */
 #[Fillable(['status', 'started_at', 'finished_at', 'current_page', 'rating', 'review'])]
 class Reading extends Model
@@ -55,5 +58,13 @@ class Reading extends Model
     public function book(): BelongsTo
     {
         return $this->belongsTo(Book::class);
+    }
+
+    /**
+     * @return HasMany<ReadingSession, $this>
+     */
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(ReadingSession::class);
     }
 }
