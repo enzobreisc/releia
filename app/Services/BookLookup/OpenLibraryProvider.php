@@ -148,6 +148,66 @@ class OpenLibraryProvider implements MetadataProvider
         return is_array($json) ? $json : [];
     }
 
+    /**
+     * Obras de um autor, com as edições de cada uma (por nome, não por chave).
+     * Usado pelas sugestões; a busca por autor também traz obras de coautores.
+     *
+     * @return list<BookCandidate>
+     */
+    public function searchByAuthor(string $author): array
+    {
+        return $this->searchDocs(['author' => $author], 20);
+    }
+
+    /**
+     * Obras com um assunto. Assuntos genéricos (ex.: "Fiction") trazem milhares de resultados.
+     *
+     * @return list<BookCandidate>
+     */
+    public function searchBySubject(string $subject): array
+    {
+        return $this->searchDocs(['subject' => $subject], 20);
+    }
+
+    /**
+     * @param  array<string, string>  $query
+     * @return list<BookCandidate>
+     */
+    private function searchDocs(array $query, int $limit): array
+    {
+        $docs = $this->get('/search.json', [
+            ...$query,
+            'fields' => self::SEARCH_FIELDS,
+            'limit' => $limit,
+        ])['docs'] ?? [];
+
+        $candidates = [];
+
+        foreach (is_array($docs) ? $docs : [] as $doc) {
+            if (! is_array($doc) || ! is_string($doc['title'] ?? null)) {
+                continue;
+            }
+
+            $isbn13 = $this->pickIsbn(is_array($doc['isbn'] ?? null) ? $doc['isbn'] : []);
+            $coverId = BookCandidate::positiveInt($doc['cover_i'] ?? null);
+
+            $candidates[] = new BookCandidate(
+                title: $doc['title'],
+                source: BookSource::OpenLibrary,
+                isbn13: $isbn13,
+                isbn10: $isbn13 ? Isbn::toIsbn10($isbn13) : null,
+                subtitle: BookCandidate::nonEmptyString($doc['subtitle'] ?? null),
+                authors: BookCandidate::uniqueAuthors(is_array($doc['author_name'] ?? null) ? $doc['author_name'] : []),
+                publishedYear: BookCandidate::yearFrom($doc['first_publish_year'] ?? null),
+                pages: BookCandidate::positiveInt($doc['number_of_pages_median'] ?? null),
+                genre: BookCandidate::nonEmptyString($doc['subject'][0] ?? null),
+                coverUrl: $coverId ? "https://covers.openlibrary.org/b/id/{$coverId}-L.jpg" : null,
+            );
+        }
+
+        return $candidates;
+    }
+
     private function client(): PendingRequest
     {
         return Http::baseUrl('https://openlibrary.org')
