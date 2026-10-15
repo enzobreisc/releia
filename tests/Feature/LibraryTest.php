@@ -34,10 +34,10 @@ function bookPayload(array $overrides = []): array
 test('cadastra um livro com autores, leitura e capa', function () {
     Http::fake(['covers.openlibrary.org/*' => Http::response(str_repeat('x', 4096), 200, ['Content-Type' => 'image/jpeg'])]);
 
-    $this->post(route('livros.store'), bookPayload([
+    $this->post(route('books.store'), bookPayload([
         'authors' => 'Fulana, Beltrano',
         'cover_url' => 'https://covers.openlibrary.org/b/id/12369648-L.jpg',
-    ]))->assertRedirect(route('livros.show', 1));
+    ]))->assertRedirect(route('books.show', 1));
 
     $book = Book::with('authors', 'currentReading')->sole();
 
@@ -54,14 +54,14 @@ test('cadastra um livro com autores, leitura e capa', function () {
 test('o cadastro não falha quando a capa não baixa', function () {
     Http::fake(['*' => Http::response('', 404)]);
 
-    $this->post(route('livros.store'), bookPayload(['cover_url' => 'https://covers.openlibrary.org/b/id/1-L.jpg']))
+    $this->post(route('books.store'), bookPayload(['cover_url' => 'https://covers.openlibrary.org/b/id/1-L.jpg']))
         ->assertRedirect();
 
     expect(Book::sole()->cover_path)->toBeNull();
 });
 
 test('livro adicionado como lido ganha datas de início e fim', function () {
-    $this->post(route('livros.store'), bookPayload(['status' => 'lido']))->assertRedirect();
+    $this->post(route('books.store'), bookPayload(['status' => 'lido']))->assertRedirect();
 
     $reading = Reading::sole();
 
@@ -73,15 +73,15 @@ test('livro adicionado como lido ganha datas de início e fim', function () {
 test('recusa ISBN repetido e ISBN inválido', function () {
     Book::factory()->create(['isbn_13' => '9786580309313']);
 
-    $this->post(route('livros.store'), bookPayload())
+    $this->post(route('books.store'), bookPayload())
         ->assertSessionHasErrors(['isbn_13' => 'Esse livro já está na biblioteca.']);
 
-    $this->post(route('livros.store'), bookPayload(['isbn_13' => '123']))
+    $this->post(route('books.store'), bookPayload(['isbn_13' => '123']))
         ->assertSessionHasErrors('isbn_13');
 });
 
 test('cadastro manual aceita livro sem ISBN', function () {
-    $this->post(route('livros.store'), ['title' => 'Caderno de receitas da vó', 'status' => 'lendo'])
+    $this->post(route('books.store'), ['title' => 'Caderno de receitas da vó', 'status' => 'lendo'])
         ->assertRedirect();
 
     expect(Book::sole()->source->value)->toBe('manual');
@@ -91,7 +91,7 @@ test('a busca ignora acentos e procura em título, autor e ISBN', function (stri
     Book::factory()->withAuthors(['Euclides da Cunha'])->create(['title' => 'Os Sertões', 'isbn_13' => '9788535933390']);
     Book::factory()->withAuthors(['Outra Pessoa'])->create(['title' => 'Outro livro']);
 
-    $this->get(route('biblioteca', ['q' => $term]))
+    $this->get(route('library.index', ['q' => $term]))
         ->assertInertia(fn (Assert $page) => $page
             ->has('books', 1)
             ->where('books.0.title', 'Os Sertões'));
@@ -103,7 +103,7 @@ test('estante e contagens usam só a leitura mais recente', function () {
     $reread->readings()->create(['status' => ReadingStatus::Lendo]);
     Book::factory()->onShelf(ReadingStatus::Lido)->create(['title' => 'Só lido']);
 
-    $this->get(route('biblioteca', ['estante' => 'lido']))
+    $this->get(route('library.index', ['estante' => 'lido']))
         ->assertInertia(fn (Assert $page) => $page
             ->has('books', 1)
             ->where('books.0.title', 'Só lido')
@@ -118,7 +118,7 @@ test('filtra por gênero e ordena por nota', function () {
     Book::factory()->create(['title' => 'Nota 5', 'genre' => 'Romance'])->readings()->create(['status' => ReadingStatus::Lido, 'rating' => 5]);
     Book::factory()->create(['title' => 'Outro gênero', 'genre' => 'História']);
 
-    $this->get(route('biblioteca', ['genero' => 'Romance', 'ordem' => 'nota']))
+    $this->get(route('library.index', ['genero' => 'Romance', 'ordem' => 'nota']))
         ->assertInertia(fn (Assert $page) => $page
             ->where('books.0.title', 'Nota 5')
             ->where('books.1.title', 'Nota 3')
@@ -129,11 +129,11 @@ test('filtra por gênero e ordena por nota', function () {
 test('mudar de estante atualiza as datas da leitura', function () {
     $book = Book::factory()->onShelf(ReadingStatus::QueroLer)->create();
 
-    $this->patch(route('livros.leitura', $book), ['status' => 'lendo'])->assertRedirect();
+    $this->patch(route('books.reading', $book), ['status' => 'lendo'])->assertRedirect();
     expect($book->currentReading()->first()?->started_at?->toDateString())->toBe('2026-10-14');
 
     Carbon::setTestNow('2026-10-20 08:00:00');
-    $this->patch(route('livros.leitura', $book), ['status' => 'lido']);
+    $this->patch(route('books.reading', $book), ['status' => 'lido']);
 
     $reading = $book->currentReading()->first();
     expect($reading?->started_at?->toDateString())->toBe('2026-10-14')
@@ -143,37 +143,37 @@ test('mudar de estante atualiza as datas da leitura', function () {
 test('salva nota e resenha sem mexer na estante', function () {
     $book = Book::factory()->onShelf(ReadingStatus::Lido)->create();
 
-    $this->patch(route('livros.leitura', $book), ['rating' => 4])->assertRedirect();
-    $this->patch(route('livros.leitura', $book), ['review' => '  Muito bom.  ']);
+    $this->patch(route('books.reading', $book), ['rating' => 4])->assertRedirect();
+    $this->patch(route('books.reading', $book), ['review' => '  Muito bom.  ']);
 
     $reading = $book->currentReading()->first();
     expect($reading?->rating)->toBe(4)
         ->and($reading?->review)->toBe('Muito bom.')
         ->and($reading?->status)->toBe(ReadingStatus::Lido);
 
-    $this->patch(route('livros.leitura', $book), ['rating' => 9])->assertSessionHasErrors('rating');
+    $this->patch(route('books.reading', $book), ['rating' => 9])->assertSessionHasErrors('rating');
 });
 
 test('detalhe mostra o livro e a capa é servida do disco local', function () {
     $book = Book::factory()->withAuthors(['Machado de Assis'])->create(['title' => 'Dom Casmurro', 'cover_path' => 'covers/1.jpg']);
     Storage::disk('local')->put('covers/1.jpg', 'imagem');
 
-    $this->get(route('livros.show', $book))
+    $this->get(route('books.show', $book))
         ->assertInertia(fn (Assert $page) => $page
             ->component('book')
             ->where('book.title', 'Dom Casmurro')
             ->where('book.authors', 'Machado de Assis')
             ->where('slug', 'dom-casmurro')
-            ->where('book.cover_url', fn (string $url) => str_starts_with($url, '/biblioteca/'.$book->id.'/capa')));
+            ->where('book.cover_url', fn (string $url) => str_starts_with($url, '/library/'.$book->id.'/cover')));
 
-    $this->get(route('livros.capa', $book))->assertOk();
+    $this->get(route('books.cover', $book))->assertOk();
 });
 
 test('remover apaga o livro, as leituras e a capa', function () {
     $book = Book::factory()->onShelf(ReadingStatus::Lido)->create(['cover_path' => 'covers/1.jpg']);
     Storage::disk('local')->put('covers/1.jpg', 'imagem');
 
-    $this->delete(route('livros.destroy', $book))->assertRedirect(route('biblioteca'));
+    $this->delete(route('books.destroy', $book))->assertRedirect(route('library.index'));
 
     expect(Book::count())->toBe(0)->and(Reading::count())->toBe(0);
     Storage::disk('local')->assertMissing('covers/1.jpg');
@@ -183,7 +183,7 @@ test('resultados de busca marcam o que já está na biblioteca', function () {
     Http::fake(['openlibrary.org/search.json*' => apiFixture('open-library/search-torto-arado.json')]);
     $book = Book::factory()->create(['isbn_13' => '9786580309313']);
 
-    $this->get(route('adicionar', ['q' => 'torto arado']))
+    $this->get(route('books.create', ['q' => 'torto arado']))
         ->assertInertia(fn (Assert $page) => $page
             ->component('add-book')
             ->where('results.0.title', 'Torto Arado')
@@ -193,7 +193,7 @@ test('resultados de busca marcam o que já está na biblioteca', function () {
 test('a contagem de livros vai para a barra lateral', function () {
     Book::factory()->count(3)->create();
 
-    $this->get(route('inicio'))->assertInertia(fn (Assert $page) => $page->where('counts.books', 3));
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->where('counts.books', 3));
 });
 
 test('lista as edições de uma obra marcando as que já estão na biblioteca', function () {
@@ -203,7 +203,7 @@ test('lista as edições de uma obra marcando as que já estão na biblioteca', 
     ]);
     $book = Book::factory()->create(['isbn_13' => '9788582850350']);
 
-    $this->get(route('adicionar', ['q' => 'dom casmurro', 'obra' => 'OL1003040W', 'editora' => 'penguin']))
+    $this->get(route('books.create', ['q' => 'dom casmurro', 'obra' => 'OL1003040W', 'editora' => 'penguin']))
         ->assertInertia(fn (Assert $page) => $page
             ->where('editions.work_key', 'OL1003040W')
             ->where('editions.items', fn ($items) => collect($items)->contains(

@@ -6,19 +6,19 @@ use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\ReadingController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'home')->name('inicio');
+Route::inertia('/', 'home')->name('home');
 
-Route::get('/biblioteca', [LibraryController::class, 'index'])->name('biblioteca');
-Route::get('/biblioteca/adicionar', [BookController::class, 'create'])->name('adicionar');
-Route::post('/biblioteca', [BookController::class, 'store'])->name('livros.store');
-Route::get('/biblioteca/{book}', [BookController::class, 'show'])->whereNumber('book')->name('livros.show');
-Route::delete('/biblioteca/{book}', [BookController::class, 'destroy'])->whereNumber('book')->name('livros.destroy');
-Route::patch('/biblioteca/{book}/leitura', [ReadingController::class, 'update'])->whereNumber('book')->name('livros.leitura');
-Route::get('/biblioteca/{book}/capa', BookCoverController::class)->whereNumber('book')->name('livros.capa');
+Route::get('/library', [LibraryController::class, 'index'])->name('library.index');
+Route::get('/library/add', [BookController::class, 'create'])->name('books.create');
+Route::post('/library', [BookController::class, 'store'])->name('books.store');
+Route::get('/library/{book}', [BookController::class, 'show'])->whereNumber('book')->name('books.show');
+Route::delete('/library/{book}', [BookController::class, 'destroy'])->whereNumber('book')->name('books.destroy');
+Route::patch('/library/{book}/reading', [ReadingController::class, 'update'])->whereNumber('book')->name('books.reading');
+Route::get('/library/{book}/cover', BookCoverController::class)->whereNumber('book')->name('books.cover');
 
-Route::inertia('/notas', 'notes')->name('notas');
-Route::inertia('/fila', 'queue')->name('fila');
-Route::inertia('/perfil', 'profile')->name('perfil');
-Route::inertia('/estatisticas', 'stats')->name('estatisticas');
-Route::inertia('/wrapped', 'wrapped')->name('wrapped');
-Route::inertia('/sugestoes', 'suggestions')->name('sugestoes');
+Route::inertia('/notes', 'notes')->name('notes.index');
+Route::inertia('/queue', 'queue')->name('queue.index');
+Route::inertia('/profile', 'profile')->name('profile.show');
+Route::inertia('/stats', 'stats')->name('stats.index');
+Route::inertia('/wrapped', 'wrapped')->name('wrapped.show');
+Route::inertia('/suggestions', 'suggestions')->name('suggestions.index');

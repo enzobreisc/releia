@@ -6,8 +6,8 @@ import { buttonClass, Field, Input, Select } from '@/components/form';
 import { PlusIcon } from '@/components/icons';
 import { PageHeader } from '@/components/page-header';
 import { cn } from '@/lib/utils';
-import { adicionar, biblioteca } from '@/routes';
-import { show } from '@/routes/livros';
+import { create as addBook, show } from '@/routes/books';
+import { index as libraryIndex } from '@/routes/library';
 import type { BookCard, Shelf } from '@/types';
 
 type Filters = {
@@ -45,7 +45,7 @@ export default function Library({
         const next = { ...filters, q: search, ...changes };
 
         router.get(
-            biblioteca.url(),
+            libraryIndex.url(),
             {
                 q: next.q || undefined,
                 genero: next.genero || undefined,
@@ -211,7 +211,7 @@ function EmptyLibrary({ filtered }: { filtered: boolean }) {
                     : '## sua biblioteca está vazia'}
             </p>
             {!filtered && (
-                <Link href={adicionar.url()} className={buttonClass()}>
+                <Link href={addBook.url()} className={buttonClass()}>
                     <PlusIcon /> Adicionar o primeiro livro
                 </Link>
             )}

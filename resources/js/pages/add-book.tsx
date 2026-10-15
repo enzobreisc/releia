@@ -6,8 +6,7 @@ import { Button, Field, Input, Select, Textarea } from '@/components/form';
 import { SearchIcon } from '@/components/icons';
 import { PageHeader, SectionTitle } from '@/components/page-header';
 import { cn } from '@/lib/utils';
-import { adicionar } from '@/routes';
-import { show, store } from '@/routes/livros';
+import { create as addBook, show, store } from '@/routes/books';
 import type { Candidate, Editions, Option } from '@/types';
 
 type AddBookProps = {
@@ -122,7 +121,7 @@ export default function AddBook({
         setSelected(null);
         setOpenWork(null);
         router.get(
-            adicionar.url(),
+            addBook.url(),
             {
                 q: search.trim() || undefined,
                 editora: publisherFilter.trim() || undefined,

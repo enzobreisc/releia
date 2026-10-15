@@ -25,7 +25,7 @@ class BookController extends Controller
     ) {}
 
     /**
-     * Adicionar livro. `q` (e `editora`, opcional) busca nas fontes externas;
+     * Adicionar livro. `q` (e `publisher`, opcional) busca nas fontes externas;
      * `obra` lista as edições de uma obra e `isbn` carrega os detalhes de uma
      * edição para a prévia. Os dois últimos chegam por recarga parcial.
      */
@@ -56,7 +56,7 @@ class BookController extends Controller
 
         $book = $this->library->add($data);
 
-        return to_route('livros.show', $book);
+        return to_route('books.show', $book);
     }
 
     public function show(Book $book): Response
@@ -74,7 +74,7 @@ class BookController extends Controller
     {
         $this->library->remove($book);
 
-        return to_route('biblioteca');
+        return to_route('library.index');
     }
 
     /**

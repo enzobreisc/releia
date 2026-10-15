@@ -7,13 +7,13 @@ test('cada tela abre com o componente certo', function (string $route, string $c
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component($component));
 })->with([
-    ['inicio', 'home'],
-    ['biblioteca', 'library'],
-    ['adicionar', 'add-book'],
-    ['notas', 'notes'],
-    ['fila', 'queue'],
-    ['perfil', 'profile'],
-    ['estatisticas', 'stats'],
-    ['wrapped', 'wrapped'],
-    ['sugestoes', 'suggestions'],
+    ['home', 'home'],
+    ['library.index', 'library'],
+    ['books.create', 'add-book'],
+    ['notes.index', 'notes'],
+    ['queue.index', 'queue'],
+    ['profile.show', 'profile'],
+    ['stats.index', 'stats'],
+    ['wrapped.show', 'wrapped'],
+    ['suggestions.index', 'suggestions'],
 ]);

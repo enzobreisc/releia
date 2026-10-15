@@ -5,8 +5,8 @@ import { BookCover } from '@/components/book-cover';
 import { Button, Field, Select, Textarea } from '@/components/form';
 import { PageHeader, SectionTitle } from '@/components/page-header';
 import { StarRating } from '@/components/star-rating';
-import { biblioteca } from '@/routes';
-import { destroy, leitura } from '@/routes/livros';
+import { destroy, reading as readingRoute } from '@/routes/books';
+import { index as libraryIndex } from '@/routes/library';
 import type { BookDetail, Option } from '@/types';
 
 type BookProps = {
@@ -21,7 +21,7 @@ export default function Book({ book, slug, statuses }: BookProps) {
 
     // Estante e nota salvam na hora; a resenha tem botão próprio.
     function update(data: { status?: string; rating?: number | null }) {
-        router.visit(leitura(book.id), {
+        router.visit(readingRoute(book.id), {
             data,
             preserveScroll: true,
             preserveState: true,
@@ -52,7 +52,7 @@ export default function Book({ book, slug, statuses }: BookProps) {
         <>
             <PageHeader title={book.title} crumb={['biblioteca', slug]} />
             <Link
-                href={biblioteca.url()}
+                href={libraryIndex.url()}
                 className="-mt-4 self-start text-sm text-muted hover:text-text"
             >
                 ← Voltar para a biblioteca
@@ -178,7 +178,7 @@ function ReviewForm({ bookId, review }: { bookId: number; review: string }) {
 
     function save(event: FormEvent) {
         event.preventDefault();
-        form.submit(leitura(bookId), {
+        form.submit(readingRoute(bookId), {
             preserveScroll: true,
             onSuccess: () => form.setDefaults(),
         });

@@ -74,6 +74,6 @@ final class BookPresenter
     {
         return $book->cover_path === null
             ? null
-            : route('livros.capa', ['book' => $book, 'v' => $book->updated_at?->timestamp], absolute: false);
+            : route('books.cover', ['book' => $book, 'v' => $book->updated_at?->timestamp], absolute: false);
     }
 }

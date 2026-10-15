@@ -9,43 +9,41 @@ import {
     StatsIcon,
     WrappedIcon,
 } from '@/components/icons';
-import {
-    adicionar,
-    biblioteca,
-    estatisticas,
-    fila,
-    inicio,
-    notas,
-    perfil,
-    sugestoes,
-    wrapped,
-} from '@/routes';
+import { home } from '@/routes';
+import { create as addBook } from '@/routes/books';
+import { index as libraryIndex } from '@/routes/library';
+import { index as notesIndex } from '@/routes/notes';
+import { index as queueIndex } from '@/routes/queue';
+import { show as profileShow } from '@/routes/profile';
+import { index as statsIndex } from '@/routes/stats';
+import { show as wrappedShow } from '@/routes/wrapped';
+import { index as suggestionsIndex } from '@/routes/suggestions';
 import type { NavItem } from '@/types';
 
 /** Grupos da barra lateral, na ordem do escopo (seção 3). */
 export const navGroups: NavItem[][] = [
     [
-        { title: 'Início', href: inicio.url(), icon: HomeIcon },
+        { title: 'Início', href: home.url(), icon: HomeIcon },
         {
             title: 'Biblioteca',
-            href: biblioteca.url(),
+            href: libraryIndex.url(),
             icon: LibraryIcon,
             count: 'books',
         },
-        { title: 'Notas', href: notas.url(), icon: NotesIcon },
-        { title: 'Fila', href: fila.url(), icon: QueueIcon },
+        { title: 'Notas', href: notesIndex.url(), icon: NotesIcon },
+        { title: 'Fila', href: queueIndex.url(), icon: QueueIcon },
     ],
     [
-        { title: 'Perfil', href: perfil.url(), icon: ProfileIcon },
-        { title: 'Estatísticas', href: estatisticas.url(), icon: StatsIcon },
-        { title: 'Wrapped', href: wrapped.url(), icon: WrappedIcon },
+        { title: 'Perfil', href: profileShow.url(), icon: ProfileIcon },
+        { title: 'Estatísticas', href: statsIndex.url(), icon: StatsIcon },
+        { title: 'Wrapped', href: wrappedShow.url(), icon: WrappedIcon },
     ],
-    [{ title: 'Sugestões', href: sugestoes.url(), icon: SparkleIcon }],
+    [{ title: 'Sugestões', href: suggestionsIndex.url(), icon: SparkleIcon }],
 ];
 
 export const addBookItem: NavItem = {
     title: 'Adicionar livro',
-    href: adicionar.url(),
+    href: addBook.url(),
     icon: PlusIcon,
 };
 
