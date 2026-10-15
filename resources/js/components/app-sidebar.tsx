@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Fragment } from 'react';
 import { LogoMark, SearchIcon, SidebarIcon } from '@/components/icons';
+import { SidebarReadingCard } from '@/components/sidebar-reading';
 import { addBookItem, isActive, navGroups } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types';
@@ -82,6 +83,10 @@ export function AppSidebar({
             ))}
 
             <div className="min-h-4 flex-1" />
+
+            {!collapsed && props.reading_now && (
+                <SidebarReadingCard reading={props.reading_now} />
+            )}
 
             <Link
                 href={addBookItem.href}
