@@ -1,14 +1,7 @@
+import { heatClass } from '@/components/heat-map';
 import { ProgressBar } from '@/components/reading-progress';
 import { cn } from '@/lib/utils';
 import type { SidebarReading } from '@/types';
-
-const heatClass = [
-    'bg-heat-0',
-    'bg-heat-1',
-    'bg-heat-2',
-    'bg-heat-3',
-    'bg-heat-4',
-];
 
 /** Mini cartão "lendo agora" da barra lateral: título, barra, mapa da semana e sequência. */
 export function SidebarReadingCard({ reading }: { reading: SidebarReading }) {
@@ -26,7 +19,7 @@ export function SidebarReadingCard({ reading }: { reading: SidebarReading }) {
                     <span
                         key={index}
                         aria-label={`nível ${level}`}
-                        className={cn('size-3 rounded-[2px]', heatClass[level])}
+                        className={cn('size-3 rounded-[2px]', heatClass(level))}
                     />
                 ))}
                 <span className="ml-1.5 font-mono text-[11px] text-muted">

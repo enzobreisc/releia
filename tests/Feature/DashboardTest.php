@@ -52,7 +52,7 @@ test('sequência conta dias seguidos e mantém hoje sem leitura até o fim do di
 
 test('o nível do mapa de calor cresce com as páginas do dia', function (int $pages, int $level) {
     expect(ReadingActivity::level($pages))->toBe($level);
-})->with([[0, 0], [1, 1], [19, 1], [20, 2], [39, 2], [40, 3], [79, 3], [80, 4], [500, 4]]);
+})->with([[0, 0], [1, 1], [20, 1], [21, 2], [40, 2], [41, 3], [70, 3], [71, 4], [500, 4]]);
 
 test('páginas por dia somam todas as leituras e a última semana tem sete níveis', function () {
     sessionOn('2026-10-14', 1, 25);
@@ -129,7 +129,7 @@ test('mini cartão da barra lateral mostra a leitura atual e a sequência', func
             ->where('reading_now.title', 'Torto Arado')
             ->where('reading_now.percent', 20)
             ->where('reading_now.streak', 2)
-            ->where('reading_now.week', [0, 0, 0, 0, 0, 1, 2]));
+            ->where('reading_now.week', [0, 0, 0, 0, 0, 1, 1]));
 });
 
 test('tela do registro rápido lista só leituras em andamento', function () {

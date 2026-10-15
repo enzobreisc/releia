@@ -61,16 +61,13 @@ class ReadingActivity
         return $levels;
     }
 
-    /** Nível 0 (sem leitura) a 4, pela quantidade de páginas no dia. */
+    /**
+     * Nível 0 (sem leitura) a 4, pela quantidade de páginas no dia. Usa a mesma
+     * escala das estatísticas, para o mini mapa e o calendário baterem.
+     */
     public static function level(int $pages): int
     {
-        return match (true) {
-            $pages <= 0 => 0,
-            $pages < 20 => 1,
-            $pages < 40 => 2,
-            $pages < 80 => 3,
-            default => 4,
-        };
+        return StatsService::heatLevel($pages);
     }
 
     /**
