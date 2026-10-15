@@ -17,9 +17,9 @@ import {
     inicio,
     notas,
     perfil,
-    sugestoes,
     wrapped,
 } from '@/routes';
+import suggestions from '@/routes/suggestions';
 import type { NavItem } from '@/types';
 
 /** Grupos da barra lateral, na ordem do escopo (seção 3). */
@@ -40,7 +40,7 @@ export const navGroups: NavItem[][] = [
         { title: 'Estatísticas', href: estatisticas.url(), icon: StatsIcon },
         { title: 'Wrapped', href: wrapped.url(), icon: WrappedIcon },
     ],
-    [{ title: 'Sugestões', href: sugestoes.url(), icon: SparkleIcon }],
+    [{ title: 'Sugestões', href: suggestions.index.url(), icon: SparkleIcon }],
 ];
 
 export const addBookItem: NavItem = {
