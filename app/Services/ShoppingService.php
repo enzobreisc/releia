@@ -7,6 +7,7 @@ use App\Enums\ReadingStatus;
 use App\Models\Book;
 use App\Models\ShoppingItem;
 use App\Services\BookLookup\BookCandidate;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
 /** Lista de compras. Comprar um item cria o livro na biblioteca, na estante "quero ler". */
@@ -19,11 +20,20 @@ class ShoppingService
     ) {}
 
     /**
-     * @param  array{title: string, author?: string, isbn?: string|null, store_type: string, estimated_price_cents?: int|null}  $data
+     * @param  array{title: string, author?: string, isbn?: string|null, cover_url?: string|null, url?: string|null, store_type: string, estimated_price_cents?: int|null, price_checked_at?: CarbonInterface|null}  $data
      */
     public function add(array $data): ShoppingItem
     {
         return ShoppingItem::create($data);
+    }
+
+    /** Preço anotado de novo: guarda o valor e a data em que você conferiu. */
+    public function updatePrice(ShoppingItem $item, ?int $cents): void
+    {
+        $item->forceFill([
+            'estimated_price_cents' => $cents,
+            'price_checked_at' => $cents === null ? null : now(),
+        ])->save();
     }
 
     /**
@@ -79,6 +89,7 @@ class ShoppingService
             'title' => $item->title,
             'authors' => $item->author !== '' ? [$item->author] : [],
             'isbn_13' => $item->isbn,
+            'cover_url' => $item->cover_url,
             'source' => BookSource::Manual->value,
             'status' => ReadingStatus::WantToRead->value,
         ]);

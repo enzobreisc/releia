@@ -55,6 +55,8 @@ Route::post('/queue/books', [QueueController::class, 'store'])->name('queue.stor
 Route::patch('/queue/order', [QueueController::class, 'reorder'])->name('queue.reorder');
 Route::delete('/queue/{queueItem}', [QueueController::class, 'destroy'])->whereNumber('queueItem')->name('queue.destroy');
 Route::post('/queue/shopping', [ShoppingController::class, 'store'])->name('shopping.store');
+Route::patch('/queue/shopping/{shoppingItem}', [ShoppingController::class, 'update'])->whereNumber('shoppingItem')->name('shopping.update');
+Route::post('/queue/shopping/{shoppingItem}/open', [ShoppingController::class, 'open'])->whereNumber('shoppingItem')->name('shopping.open');
 Route::delete('/queue/shopping/{shoppingItem}', [ShoppingController::class, 'destroy'])->whereNumber('shoppingItem')->name('shopping.destroy');
 Route::post('/queue/shopping/{shoppingItem}/buy', [ShoppingController::class, 'buy'])->whereNumber('shoppingItem')->name('shopping.buy');
 

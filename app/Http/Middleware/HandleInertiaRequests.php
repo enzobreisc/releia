@@ -43,6 +43,8 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            // Dentro do app nativo, links externos abrem no navegador pelo servidor (Shell).
+            'native' => (bool) config('nativephp-internal.running'),
             'counts' => fn () => [
                 'books' => Book::count(),
                 'notes' => Note::count(),

@@ -253,3 +253,159 @@ test('money parsing aceita formatos brasileiros e recusa o que não é valor', f
         ->and(Money::parseReais('abc'))->toBeNull()
         ->and(StoreType::Online->label())->toBe('Online');
 });
+
+test('busca correspondência pelo ISBN só na recarga parcial e marca o que já está na biblioteca', function () {
+    fakeMetadataSources();
+    Book::factory()->create(['isbn_13' => '9786580309313']);
+
+    $this->get(route('queue.index', ['match' => '978-65-80309-31-3']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->missing('matches')
+            ->reloadOnly('matches', fn (Assert $reload) => $reload
+                ->where('matches.query', '978-65-80309-31-3')
+                ->has('matches.items', 1)
+                ->where('matches.items.0.title', 'Torto Arado')
+                ->whereNot('matches.items.0.library_id', null)));
+});
+
+test('link da Amazon colado vira busca pelo ISBN do ASIN', function () {
+    fakeMetadataSources();
+
+    $this->get(route('queue.index', ['match' => 'https://www.amazon.com.br/Torto-Arado/dp/6580309318/ref=sr_1_1']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->reloadOnly('matches', fn (Assert $reload) => $reload
+                ->where('matches.isbn_from_url', '9786580309313')
+                ->where('matches.items.0.isbn_13', '9786580309313')));
+});
+
+test('link sem ISBN não busca nada nas fontes', function (string $url) {
+    Http::preventStrayRequests();
+
+    $this->get(route('queue.index', ['match' => $url]))
+        ->assertInertia(fn (Assert $page) => $page
+            ->reloadOnly('matches', fn (Assert $reload) => $reload
+                ->where('matches.isbn_from_url', null)
+                ->has('matches.items', 0)));
+})->with([
+    'Amazon sem ASIN de livro' => 'https://www.amazon.com.br/dp/B0ABCDEFGH',
+    'outra loja' => 'https://www.estantevirtual.com.br/livros/itamar-vieira-junior/torto-arado',
+]);
+
+test('item guarda capa, link colado e a data do preço; o ISBN sai do link da Amazon', function () {
+    $this->post(route('shopping.store'), [
+        'title' => 'Torto Arado',
+        'store_type' => 'online',
+        'cover_url' => 'https://covers.openlibrary.org/b/id/1-M.jpg',
+        'url' => 'https://www.amazon.com.br/dp/6580309318',
+        'estimated_price' => '49,90',
+    ])->assertRedirect();
+
+    $item = ShoppingItem::sole();
+
+    expect($item->isbn)->toBe('9786580309313')
+        ->and($item->cover_url)->toBe('https://covers.openlibrary.org/b/id/1-M.jpg')
+        ->and($item->price_checked_at?->toDateString())->toBe('2026-10-14')
+        ->and($item->shopUrl())->toBe('https://www.amazon.com.br/dp/6580309318');
+});
+
+test('sem link colado, o item aponta para a busca na Amazon', function () {
+    $withIsbn = ShoppingItem::factory()->create(['isbn' => '9786580309313']);
+    $withoutIsbn = ShoppingItem::factory()->create(['title' => 'Memórias', 'author' => 'Fulana']);
+
+    expect($withIsbn->shopUrl())->toBe('https://www.amazon.com.br/s?k=9786580309313&i=stripbooks')
+        ->and($withoutIsbn->shopUrl())->toBe('https://www.amazon.com.br/s?k=Mem%C3%B3rias+Fulana&i=stripbooks');
+
+    $this->get(route('queue.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('shopping.0.link', $withIsbn->shopUrl())
+            ->where('shopping.0.link_label', 'Ver na Amazon'));
+});
+
+test('atualizar o preço grava a data em que foi conferido; vazio apaga os dois', function () {
+    $item = ShoppingItem::factory()->create(['estimated_price_cents' => 3000, 'price_checked_at' => '2026-09-01']);
+
+    $this->patch(route('shopping.update', $item), ['estimated_price' => '27,50'])->assertRedirect();
+
+    $item->refresh();
+    expect($item->estimated_price_cents)->toBe(2750)
+        ->and($item->price_checked_at?->toDateString())->toBe('2026-10-14');
+
+    $this->patch(route('shopping.update', $item), ['estimated_price' => '2,345'])->assertSessionHasErrors('estimated_price');
+    $this->patch(route('shopping.update', $item), ['estimated_price' => ''])->assertRedirect();
+
+    $item->refresh();
+    expect($item->estimated_price_cents)->toBeNull()
+        ->and($item->price_checked_at)->toBeNull();
+});
+
+test('fora do app nativo, abrir o link redireciona para ele', function () {
+    $item = ShoppingItem::factory()->create(['isbn' => '9786580309313']);
+
+    $this->post(route('shopping.open', $item), [], ['X-Inertia' => 'true'])
+        ->assertStatus(409)
+        ->assertHeader('X-Inertia-Location', $item->shopUrl());
+});
+
+test('recusa link que não é http', function () {
+    $this->post(route('shopping.store'), [
+        'title' => 'X',
+        'store_type' => 'online',
+        'url' => 'javascript:alert(1)',
+    ])->assertSessionHasErrors('url');
+});
+
+test('cada livro da fila tem a data prevista de término, somando os anteriores', function () {
+    $queue = app(QueueService::class);
+    $queue->add(wantToRead(['pages' => 200]));
+    $queue->add(wantToRead(['pages' => 100]));
+
+    // Ritmo padrão de 20 págs/dia: 10 dias e depois mais 5.
+    $this->get(route('queue.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('queue.0.finishes_on', '2026-10-24')
+            ->where('queue.1.finishes_on', '2026-10-29')
+            ->where('pace.queue_days', 15));
+
+    $queue->add(wantToRead(['pages' => null]));
+
+    $this->get(route('queue.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('queue.2.finishes_on', null)
+            ->where('pace.queue_days', null));
+});
+
+test('as abas de loja contam só os itens por comprar, sem o filtro atual', function () {
+    ShoppingItem::factory()->count(2)->create(['store_type' => StoreType::Online]);
+    ShoppingItem::factory()->create(['store_type' => StoreType::UsedBookstore]);
+    ShoppingItem::factory()->create(['store_type' => StoreType::Online, 'bought_at' => now()]);
+
+    $this->get(route('queue.index', ['store' => 'used_bookstore']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('stores.0.value', 'used_bookstore')
+            ->where('stores.0.count', 1)
+            ->where('stores.1.count', 0)
+            ->where('stores.2.count', 2));
+});
+
+test('preço anotado há mais de 30 dias aparece para conferir', function () {
+    ShoppingItem::factory()->create(['price_checked_at' => now()->subDays(31)]);
+    ShoppingItem::factory()->create(['price_checked_at' => now()->subDays(5)]);
+
+    $this->get(route('queue.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('shopping.0.price_stale', true)
+            ->where('shopping.1.price_stale', false));
+});
+
+test('começar a ler um livro tira ele da fila e reordena o resto', function () {
+    $queue = app(QueueService::class);
+    $first = wantToRead();
+    $second = wantToRead();
+    $queue->add($first);
+    $queue->add($second);
+
+    $this->patch(route('books.reading', $first), ['status' => 'reading'])->assertRedirect();
+
+    expect(QueueItem::query()->pluck('book_id')->all())->toBe([$second->id])
+        ->and(QueueItem::sole()->position)->toBe(1);
+});
