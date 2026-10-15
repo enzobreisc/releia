@@ -54,7 +54,14 @@ class DemoSeeder extends Seeder
                 'current_page' => $status === 'read' ? $pages : 0,
             ]);
 
-            $this->addSessions($reading, $status, $pages, $started, $finished);
+            // Livro ainda não começado não tem sessões.
+            if ($started !== null) {
+                $this->addSessions($reading, $status, $pages, $started, $finished);
+            }
+
+            // A página atual acompanha a última sessão, como no registro de verdade.
+            $lastPage = (int) $reading->sessions()->max('page_to');
+            $reading->update(['current_page' => max($reading->current_page, $lastPage)]);
         }
 
         Setting::put('yearly_goal', 12);
