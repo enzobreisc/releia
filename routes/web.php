@@ -5,10 +5,13 @@ use App\Http\Controllers\BookCoverController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryController;
+use App\Http\Controllers\NoteController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QueueController;
 use App\Http\Controllers\QuickLogController;
 use App\Http\Controllers\ReadingController;
 use App\Http\Controllers\ReadingSessionController;
+use App\Http\Controllers\ShoppingController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\WrappedController;
 use Illuminate\Support\Facades\Route;
@@ -23,8 +26,6 @@ Route::delete('/library/{book}', [BookController::class, 'destroy'])->whereNumbe
 Route::patch('/library/{book}/reading', [ReadingController::class, 'update'])->whereNumber('book')->name('books.reading');
 Route::get('/library/{book}/cover', BookCoverController::class)->whereNumber('book')->name('books.cover');
 
-Route::inertia('/notes', 'notes')->name('notes.index');
-Route::inertia('/queue', 'queue')->name('queue.index');
 Route::inertia('/suggestions', 'suggestions')->name('suggestions.index');
 
 // Fase 2
@@ -41,3 +42,18 @@ Route::post('/profile/pins', [ProfileController::class, 'pin'])->name('profile.p
 Route::delete('/profile/pins/{book}', [ProfileController::class, 'unpin'])->whereNumber('book')->name('profile.pins.destroy');
 Route::get('/stats', [StatsController::class, 'index'])->name('stats.index');
 Route::get('/wrapped', [WrappedController::class, 'show'])->name('wrapped.show');
+
+// Fase 3
+Route::get('/notes', [NoteController::class, 'index'])->name('notes.index');
+Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');
+Route::patch('/notes/{note}', [NoteController::class, 'update'])->whereNumber('note')->name('notes.update');
+Route::delete('/notes/{note}', [NoteController::class, 'destroy'])->whereNumber('note')->name('notes.destroy');
+Route::post('/notes/{note}/review', [NoteController::class, 'review'])->whereNumber('note')->name('notes.review');
+
+Route::get('/queue', [QueueController::class, 'index'])->name('queue.index');
+Route::post('/queue/books', [QueueController::class, 'store'])->name('queue.store');
+Route::patch('/queue/order', [QueueController::class, 'reorder'])->name('queue.reorder');
+Route::delete('/queue/{queueItem}', [QueueController::class, 'destroy'])->whereNumber('queueItem')->name('queue.destroy');
+Route::post('/queue/shopping', [ShoppingController::class, 'store'])->name('shopping.store');
+Route::delete('/queue/shopping/{shoppingItem}', [ShoppingController::class, 'destroy'])->whereNumber('shoppingItem')->name('shopping.destroy');
+Route::post('/queue/shopping/{shoppingItem}/buy', [ShoppingController::class, 'buy'])->whereNumber('shoppingItem')->name('shopping.buy');

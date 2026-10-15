@@ -2,11 +2,13 @@ import { Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { BookCover } from '@/components/book-cover';
+import { BookNotes } from '@/components/book-notes';
 import { Button, Field, Select, Textarea } from '@/components/form';
 import { PageHeader, SectionTitle } from '@/components/page-header';
 import { ProgressBar, progressText } from '@/components/reading-progress';
 import { SessionForm } from '@/components/session-form';
 import { SessionLog } from '@/components/session-log';
+import { QueueButton } from '@/components/queue-button';
 import { StarRating } from '@/components/star-rating';
 import { destroy, reading as readingRoute } from '@/routes/books';
 import { index as libraryIndex } from '@/routes/library';
@@ -16,6 +18,7 @@ import type {
     ReadingProgress,
     ReadingSession,
 } from '@/types';
+import type { NoteCard } from '@/types/notes';
 
 type BookProps = {
     book: BookDetail;
@@ -24,6 +27,8 @@ type BookProps = {
     progress: ReadingProgress | null;
     sessions: ReadingSession[];
     can_log: boolean;
+    notes: NoteCard[];
+    queued: boolean;
 };
 
 export default function Book({
@@ -33,6 +38,8 @@ export default function Book({
     progress,
     sessions,
     can_log,
+    notes,
+    queued,
 }: BookProps) {
     const reading = book.reading;
     const [saving, setSaving] = useState(false);
@@ -107,6 +114,9 @@ export default function Book({
                         />
                     </div>
                     <ReadingDates reading={reading} />
+                    {reading?.status === 'want_to_read' && (
+                        <QueueButton bookId={book.id} queued={queued} />
+                    )}
                 </aside>
 
                 <section className="flex min-w-0 flex-[999_1_380px] flex-col gap-5.5">
@@ -170,6 +180,8 @@ export default function Book({
                             <SessionLog sessions={sessions} />
                         </section>
                     )}
+
+                    <BookNotes bookId={book.id} notes={notes} />
 
                     <ReviewForm
                         bookId={book.id}

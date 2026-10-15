@@ -30,8 +30,18 @@ export const navGroups: NavItem[][] = [
             icon: LibraryIcon,
             count: 'books',
         },
-        { title: 'Notas', href: notesIndex.url(), icon: NotesIcon },
-        { title: 'Fila', href: queueIndex.url(), icon: QueueIcon },
+        {
+            title: 'Notas',
+            href: notesIndex.url(),
+            icon: NotesIcon,
+            count: 'notes',
+        },
+        {
+            title: 'Fila',
+            href: queueIndex.url(),
+            icon: QueueIcon,
+            count: 'queue',
+        },
     ],
     [
         { title: 'Perfil', href: profileShow.url(), icon: ProfileIcon },

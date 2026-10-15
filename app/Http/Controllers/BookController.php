@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Enums\ReadingStatus;
 use App\Http\Presenters\BookPresenter;
+use App\Http\Presenters\NotePresenter;
 use App\Http\Presenters\ReadingPresenter;
 use App\Http\Requests\StoreBookRequest;
 use App\Models\Book;
+use App\Models\Note;
+use App\Models\QueueItem;
 use App\Services\BookLookup\BookCandidate;
 use App\Services\BookLookup\OpenLibraryProvider;
 use App\Services\BookLookupService;
@@ -79,6 +82,15 @@ class BookController extends Controller
                 ->values(),
             // Sessões só entram em livros "quero ler" ou "lendo" (ver ReadingService).
             'can_log' => $reading !== null && in_array($reading->status, [ReadingStatus::WantToRead, ReadingStatus::Reading], true),
+            // Fase 3: notas do livro e se ele já está na fila.
+            'notes' => fn () => Note::query()
+                ->with(['book:id,title', 'tags:id,name'])
+                ->where('book_id', $book->id)
+                ->latest('updated_at')
+                ->get()
+                ->map(NotePresenter::card(...))
+                ->values(),
+            'queued' => fn () => QueueItem::query()->where('book_id', $book->id)->exists(),
         ]);
     }
 
