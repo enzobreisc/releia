@@ -37,6 +37,7 @@ Route::post('/quick-log', [QuickLogController::class, 'store'])->name('quick-log
 
 // Fase 4
 Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 Route::post('/profile/pins', [ProfileController::class, 'pin'])->name('profile.pins.store');
 Route::delete('/profile/pins/{book}', [ProfileController::class, 'unpin'])->whereNumber('book')->name('profile.pins.destroy');
 Route::get('/stats', [StatsController::class, 'index'])->name('stats.index');

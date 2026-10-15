@@ -21,6 +21,9 @@ class ProfileService
 
     private const SETTING = 'pinned_books';
 
+    /** Nome e frase do leitor, editáveis no perfil (o nome também aparece no cumprimento do Início). */
+    private const READER_SETTING = 'reader';
+
     /**
      * Livros fixados, na ordem em que foram fixados. Ids de livros excluídos são ignorados.
      *
@@ -44,6 +47,28 @@ class ProfileService
             ->map(fn (int $id) => $books->get($id))
             ->filter()
             ->values();
+    }
+
+    /**
+     * @return array{name: string|null, bio: string|null}
+     */
+    public function reader(): array
+    {
+        $stored = Setting::get(self::READER_SETTING, []);
+        $stored = is_array($stored) ? $stored : [];
+
+        return [
+            'name' => is_string($stored['name'] ?? null) ? $stored['name'] : null,
+            'bio' => is_string($stored['bio'] ?? null) ? $stored['bio'] : null,
+        ];
+    }
+
+    public function updateReader(?string $name, ?string $bio): void
+    {
+        Setting::put(self::READER_SETTING, [
+            'name' => $name === null || trim($name) === '' ? null : trim($name),
+            'bio' => $bio === null || trim($bio) === '' ? null : trim($bio),
+        ]);
     }
 
     /** Fixa um livro. Retorna false se já estiver no limite. */

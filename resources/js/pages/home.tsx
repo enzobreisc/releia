@@ -15,6 +15,7 @@ import {
 import type { BookCard, ReadingSummary, Suggestion, YearGoal } from '@/types';
 
 type HomeProps = {
+    reader_name: string | null;
     reading: ReadingSummary[];
     goal: YearGoal;
     recent: BookCard[];
@@ -29,11 +30,19 @@ function greeting(hour: number): string {
     return hour >= 12 && hour < 18 ? 'Boa tarde' : 'Boa noite';
 }
 
-export default function Home({ reading, goal, recent, suggestion }: HomeProps) {
+export default function Home({
+    reader_name,
+    reading,
+    goal,
+    recent,
+    suggestion,
+}: HomeProps) {
+    const hello = greeting(new Date().getHours());
+
     return (
         <>
             <PageHeader
-                title={greeting(new Date().getHours())}
+                title={reader_name ? `${hello}, ${reader_name}` : hello}
                 headTitle="Início"
                 crumb="início"
                 description="Um resumo rápido da sua leitura"
