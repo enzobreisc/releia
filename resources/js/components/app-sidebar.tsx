@@ -4,6 +4,7 @@ import { LogoMark, SearchIcon, SidebarIcon } from '@/components/icons';
 import { SidebarReadingCard } from '@/components/sidebar-reading';
 import { addBookItem, isActive, navGroups } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
+import { home } from '@/routes';
 import type { NavItem } from '@/types';
 
 type AppSidebarProps = {
@@ -30,17 +31,21 @@ export function AppSidebar({
             {/* Faixa arrastável sob os botões de janela do macOS. */}
             <div className="h-9 shrink-0 app-drag" />
 
-            <div
+            {/* O logo leva ao Início, como em qualquer app. */}
+            <Link
+                href={home.url()}
+                aria-label="releia: ir para o Início"
+                title="Início"
                 className={cn(
-                    'flex items-center gap-2.5 pb-4.5',
-                    collapsed ? 'justify-center' : 'px-3',
+                    'mb-4.5 flex items-center gap-2.5 self-start rounded-sm',
+                    collapsed ? 'self-center' : 'px-3',
                 )}
             >
                 <LogoMark />
                 {!collapsed && (
                     <span className="font-mono text-lg font-bold">releia</span>
                 )}
-            </div>
+            </Link>
 
             <button
                 type="button"
