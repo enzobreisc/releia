@@ -5,9 +5,12 @@ use App\Http\Controllers\BookCoverController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuickLogController;
 use App\Http\Controllers\ReadingController;
 use App\Http\Controllers\ReadingSessionController;
+use App\Http\Controllers\StatsController;
+use App\Http\Controllers\WrappedController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -22,9 +25,6 @@ Route::get('/library/{book}/cover', BookCoverController::class)->whereNumber('bo
 
 Route::inertia('/notes', 'notes')->name('notes.index');
 Route::inertia('/queue', 'queue')->name('queue.index');
-Route::inertia('/profile', 'profile')->name('profile.show');
-Route::inertia('/stats', 'stats')->name('stats.index');
-Route::inertia('/wrapped', 'wrapped')->name('wrapped.show');
 Route::inertia('/suggestions', 'suggestions')->name('suggestions.index');
 
 // Fase 2
@@ -34,3 +34,10 @@ Route::patch('/sessions/{session}', [ReadingSessionController::class, 'update'])
 Route::delete('/sessions/{session}', [ReadingSessionController::class, 'destroy'])->whereNumber('session')->name('sessions.destroy');
 Route::get('/quick-log', [QuickLogController::class, 'show'])->name('quick-log');
 Route::post('/quick-log', [QuickLogController::class, 'store'])->name('quick-log.store');
+
+// Fase 4
+Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+Route::post('/profile/pins', [ProfileController::class, 'pin'])->name('profile.pins.store');
+Route::delete('/profile/pins/{book}', [ProfileController::class, 'unpin'])->whereNumber('book')->name('profile.pins.destroy');
+Route::get('/stats', [StatsController::class, 'index'])->name('stats.index');
+Route::get('/wrapped', [WrappedController::class, 'show'])->name('wrapped.show');

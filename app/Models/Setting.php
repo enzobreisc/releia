@@ -35,7 +35,10 @@ class Setting extends Model
 
     public static function get(string $key, mixed $default = null): mixed
     {
-        return static::query()->find($key)->value ?? $default;
+        // Chave ausente retorna o padrão (a busca devolve null nesse caso).
+        $setting = static::query()->whereKey($key)->first();
+
+        return $setting === null ? $default : ($setting->value ?? $default);
     }
 
     public static function put(string $key, mixed $value): void
