@@ -115,6 +115,44 @@ export function PlusIcon(props: IconProps) {
     );
 }
 
+export function PencilIcon(props: IconProps) {
+    return (
+        <LineIcon {...props}>
+            <path d="M10.5 2.5l3 3-8 8H2.5v-3z" />
+        </LineIcon>
+    );
+}
+
+export function ClockIcon(props: IconProps) {
+    return (
+        <LineIcon {...props}>
+            <circle cx="8" cy="8" r="6" />
+            <path d="M8 5v3.5l2 1.5" />
+        </LineIcon>
+    );
+}
+
+/** Alça de arrastar: seis pontos, preenchidos. */
+export function GripIcon(props: IconProps) {
+    return (
+        <svg
+            aria-hidden="true"
+            width="12"
+            height="16"
+            viewBox="0 0 12 16"
+            fill="currentColor"
+            className="shrink-0"
+            {...props}
+        >
+            {[3, 8, 13].flatMap((y) =>
+                [3.5, 8.5].map((x) => (
+                    <circle key={`${x}-${y}`} cx={x} cy={y} r="1.2" />
+                )),
+            )}
+        </svg>
+    );
+}
+
 export function SidebarIcon(props: IconProps) {
     return (
         <LineIcon {...props}>
