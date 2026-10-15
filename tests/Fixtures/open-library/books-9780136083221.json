@@ -1,0 +1,54 @@
+{
+    "ISBN:9780136083221": {
+        "url": "http://openlibrary.org/books/OL35570045M/Clean_Code",
+        "key": "/books/OL35570045M",
+        "title": "Clean Code",
+        "subtitle": "A Handbook of Agile Software Craftsmanship",
+        "authors": [
+            {
+                "url": "http://openlibrary.org/authors/OL2653686A/Robert_C._Martin",
+                "name": "Robert C. Martin"
+            }
+        ],
+        "pagination": "464",
+        "weight": "0.001",
+        "identifiers": {
+            "isbn_13": ["9780136083221"],
+            "openlibrary": ["OL35570045M"]
+        },
+        "publishers": [{ "name": "Pearson Education, Limited" }],
+        "subjects": [
+            {
+                "name": "Agile software development",
+                "url": "https://openlibrary.org/subjects/agile_software_development"
+            },
+            {
+                "name": "Reliability",
+                "url": "https://openlibrary.org/subjects/reliability"
+            },
+            {
+                "name": "Computer software",
+                "url": "https://openlibrary.org/subjects/computer_software"
+            },
+            {
+                "name": "Computer software, development",
+                "url": "https://openlibrary.org/subjects/computer_software,_development"
+            },
+            {
+                "name": "Coding theory",
+                "url": "https://openlibrary.org/subjects/coding_theory"
+            }
+        ],
+        "excerpts": [
+            {
+                "text": "You are reading this book for two reasons. First, you are a programmer. Second, you want to be a better programmer. Good. We need better programmers.",
+                "comment": "",
+                "first_sentence": true
+            },
+            {
+                "text": "You are reading this book for two reasons. First, you are a programmer. Second, you want to be a better programmer. Good. We need better programmers.",
+                "comment": ""
+            }
+        ]
+    }
+}

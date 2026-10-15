@@ -1,0 +1,81 @@
+{
+    "ISBN:9786580309313": {
+        "url": "http://openlibrary.org/books/OL35663926M/Torto_Arado",
+        "key": "/books/OL35663926M",
+        "title": "Torto Arado",
+        "authors": [
+            {
+                "url": "http://openlibrary.org/authors/OL9081057A/Itamar_Vieira_Junior",
+                "name": "Itamar Vieira Junior"
+            },
+            {
+                "url": "http://openlibrary.org/authors/OL10795389A/Itamar_Vieira_J\u00fanior",
+                "name": "Itamar Vieira J\u00fanior"
+            }
+        ],
+        "identifiers": {
+            "isbn_10": ["6580309318"],
+            "isbn_13": ["9786580309313"],
+            "openlibrary": ["OL35663926M"]
+        },
+        "publishers": [{ "name": "Todavia" }],
+        "subjects": [
+            {
+                "name": "Magic realism (Literature)",
+                "url": "https://openlibrary.org/subjects/magic_realism_(literature)"
+            },
+            {
+                "name": "Accidents",
+                "url": "https://openlibrary.org/subjects/accidents"
+            },
+            {
+                "name": "Domestic fiction",
+                "url": "https://openlibrary.org/subjects/domestic_fiction"
+            },
+            {
+                "name": "Families",
+                "url": "https://openlibrary.org/subjects/families"
+            },
+            {
+                "name": "farmers",
+                "url": "https://openlibrary.org/subjects/farmers"
+            },
+            {
+                "name": "fiction",
+                "url": "https://openlibrary.org/subjects/fiction"
+            },
+            {
+                "name": "novels",
+                "url": "https://openlibrary.org/subjects/novels"
+            },
+            {
+                "name": "sisters",
+                "url": "https://openlibrary.org/subjects/sisters"
+            },
+            {
+                "name": "Romance fiction",
+                "url": "https://openlibrary.org/subjects/romance_fiction"
+            },
+            {
+                "name": "Portuguese fiction",
+                "url": "https://openlibrary.org/subjects/portuguese_fiction"
+            }
+        ],
+        "subject_places": [
+            {
+                "name": "Brazil",
+                "url": "https://openlibrary.org/subjects/place:brazil"
+            },
+            {
+                "name": "Bahia",
+                "url": "https://openlibrary.org/subjects/place:bahia"
+            }
+        ],
+        "notes": "Source title: Torto Arado (Em Portugues do Brasil)",
+        "cover": {
+            "small": "https://covers.openlibrary.org/b/id/12369648-S.jpg",
+            "medium": "https://covers.openlibrary.org/b/id/12369648-M.jpg",
+            "large": "https://covers.openlibrary.org/b/id/12369648-L.jpg"
+        }
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "ISBN:9788535933390": {
+        "url": "http://openlibrary.org/books/OL38222370M/O_Avesso_da_Pele",
+        "key": "/books/OL38222370M",
+        "title": "O Avesso da Pele",
+        "authors": [
+            {
+                "url": "http://openlibrary.org/authors/OL10432462A/Jeferson_Ten\u00f3rio",
+                "name": "Jeferson Ten\u00f3rio"
+            }
+        ],
+        "identifiers": {
+            "goodreads": ["54278521"],
+            "amazon": ["8535933395"],
+            "isbn_10": ["8535933395"],
+            "isbn_13": ["9788535933390"],
+            "openlibrary": ["OL38222370M"]
+        },
+        "publishers": [{ "name": "Companhia das Letras" }],
+        "publish_places": [{ "name": "Brazil" }],
+        "publish_date": "2020",
+        "cover": {
+            "small": "https://covers.openlibrary.org/b/id/12769862-S.jpg",
+            "medium": "https://covers.openlibrary.org/b/id/12769862-M.jpg",
+            "large": "https://covers.openlibrary.org/b/id/12769862-L.jpg"
+        }
+    }
+}
