@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Enums\ReadingStatus;
 use App\Http\Presenters\BookPresenter;
+use App\Http\Presenters\NotePresenter;
 use App\Http\Requests\StoreBookRequest;
 use App\Models\Book;
+use App\Models\Note;
+use App\Models\QueueItem;
 use App\Services\BookLookup\BookCandidate;
 use App\Services\BookLookupService;
 use App\Services\LibraryService;
@@ -58,6 +61,15 @@ class BookController extends Controller
             'book' => BookPresenter::detail($book),
             'slug' => Str::slug($book->title),
             'statuses' => ReadingStatus::options(),
+            // Fase 3: notas do livro e se ele já está na fila.
+            'notes' => fn () => Note::query()
+                ->with(['book:id,title', 'tags:id,name'])
+                ->where('book_id', $book->id)
+                ->latest('updated_at')
+                ->get()
+                ->map(NotePresenter::card(...))
+                ->values(),
+            'queued' => fn () => QueueItem::query()->where('book_id', $book->id)->exists(),
         ]);
     }
 
