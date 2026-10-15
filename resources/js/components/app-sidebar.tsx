@@ -16,7 +16,7 @@ export function AppSidebar({
     onToggle,
     onOpenCommand,
 }: AppSidebarProps) {
-    const { url } = usePage();
+    const { url, props } = usePage();
 
     return (
         <nav
@@ -71,6 +71,11 @@ export function AppSidebar({
                             item={item}
                             active={isActive(url, item.href)}
                             collapsed={collapsed}
+                            count={
+                                item.count
+                                    ? props.counts[item.count]
+                                    : undefined
+                            }
                         />
                     ))}
                 </Fragment>
@@ -116,10 +121,12 @@ function SidebarLink({
     item,
     active,
     collapsed,
+    count,
 }: {
     item: NavItem;
     active: boolean;
     collapsed: boolean;
+    count?: number;
 }) {
     return (
         <Link
@@ -137,6 +144,11 @@ function SidebarLink({
         >
             <item.icon />
             {!collapsed && <span>{item.title}</span>}
+            {!collapsed && count !== undefined && (
+                <span className="ml-auto font-mono text-[11px] font-normal text-faint">
+                    {count}
+                </span>
+            )}
         </Link>
     );
 }

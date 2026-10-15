@@ -5,8 +5,8 @@ type PageHeaderProps = {
     title: string;
     /** Título da janela. Padrão: o próprio título. */
     headTitle?: string;
-    /** Trecho da trilha depois de "releia /". Padrão: título em minúsculas. */
-    crumb?: string;
+    /** Trilha depois de "releia /". Padrão: título em minúsculas. */
+    crumb?: string | string[];
     description?: string;
     actions?: ReactNode;
 };
@@ -22,8 +22,16 @@ export function PageHeader({
         <>
             <Head title={headTitle ?? title} />
             <div className="font-mono text-[13px] text-muted">
-                releia <span className="text-faint">/</span>{' '}
-                {crumb ?? title.toLowerCase()}
+                {['releia', ...[crumb ?? title.toLowerCase()].flat()].map(
+                    (part, index) => (
+                        <span key={index}>
+                            {index > 0 && (
+                                <span className="text-faint"> / </span>
+                            )}
+                            {part}
+                        </span>
+                    ),
+                )}
             </div>
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>

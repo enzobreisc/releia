@@ -26,7 +26,12 @@ import type { NavItem } from '@/types';
 export const navGroups: NavItem[][] = [
     [
         { title: 'Início', href: inicio.url(), icon: HomeIcon },
-        { title: 'Biblioteca', href: biblioteca.url(), icon: LibraryIcon },
+        {
+            title: 'Biblioteca',
+            href: biblioteca.url(),
+            icon: LibraryIcon,
+            count: 'books',
+        },
         { title: 'Notas', href: notas.url(), icon: NotesIcon },
         { title: 'Fila', href: fila.url(), icon: QueueIcon },
     ],
