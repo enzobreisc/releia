@@ -34,6 +34,12 @@ Route::patch('/sessions/{session}', [ReadingSessionController::class, 'update'])
 Route::delete('/sessions/{session}', [ReadingSessionController::class, 'destroy'])->whereNumber('session')->name('sessions.destroy');
 Route::get('/quick-log', [QuickLogController::class, 'show'])->name('quick-log');
 Route::post('/quick-log', [QuickLogController::class, 'store'])->name('quick-log.store');
+Route::post('/quick-log/timer', [QuickLogController::class, 'start'])->name('quick-log.timer.start');
+Route::post('/quick-log/timer/pause', [QuickLogController::class, 'pause'])->name('quick-log.timer.pause');
+Route::post('/quick-log/timer/resume', [QuickLogController::class, 'resume'])->name('quick-log.timer.resume');
+Route::post('/quick-log/timer/finish', [QuickLogController::class, 'finish'])->name('quick-log.timer.finish');
+Route::delete('/quick-log/timer', [QuickLogController::class, 'discard'])->name('quick-log.timer.discard');
+Route::post('/quick-log/books', [QuickLogController::class, 'startBook'])->name('quick-log.books');
 
 // Fase 4
 Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');

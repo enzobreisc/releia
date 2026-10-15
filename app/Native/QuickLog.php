@@ -24,17 +24,17 @@ final class QuickLog
     }
 
     /**
-     * A janela de 360×340 carrega a página do registro rápido. O ícone
+     * A janela de 360×560 carrega a leitura do dia (timer e página). O ícone
      * "Template" se adapta ao tema claro ou escuro do macOS.
      */
     public static function installMenuBar(): void
     {
         MenuBar::create()
             ->icon(public_path('menubar/releiaTemplate.png'))
-            ->tooltip('Registro rápido')
+            ->tooltip('Leitura do dia')
             ->url(url('/quick-log'))
             ->width(360)
-            ->height(340)
+            ->height(560)
             ->resizable(false)
             // Sem isso o app some do Dock ao virar só ícone de barra de menu.
             ->showDockIcon();
