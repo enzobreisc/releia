@@ -15,7 +15,10 @@ use Illuminate\Support\Facades\Log;
  */
 class OpenLibraryProvider implements MetadataProvider
 {
-    private const SEARCH_FIELDS = 'key,title,subtitle,author_name,first_publish_year,isbn,number_of_pages_median,subject,cover_i';
+    private const SEARCH_FIELDS = 'key,title,subtitle,author_name,first_publish_year,isbn,number_of_pages_median,subject,cover_i,edition_count';
+
+    /** Obras populares têm dezenas de edições; 200 cobre quase todas numa chamada. */
+    private const EDITIONS_LIMIT = 200;
 
     public function findByIsbn(string $isbn13): ?BookCandidate
     {
@@ -66,13 +69,15 @@ class OpenLibraryProvider implements MetadataProvider
         return $candidate;
     }
 
-    public function search(string $query): array
+    public function search(string $query, ?string $publisher = null): array
     {
-        $docs = $this->get('/search.json', [
+        $docs = $this->get('/search.json', array_filter([
             'q' => $query,
+            // Filtra obras que têm alguma edição dessa editora (ignora acentos).
+            'publisher' => $publisher,
             'fields' => self::SEARCH_FIELDS,
             'limit' => 10,
-        ])['docs'] ?? [];
+        ]))['docs'] ?? [];
 
         $candidates = [];
 
@@ -95,10 +100,60 @@ class OpenLibraryProvider implements MetadataProvider
                 pages: BookCandidate::positiveInt($doc['number_of_pages_median'] ?? null),
                 genre: BookCandidate::nonEmptyString($doc['subject'][0] ?? null),
                 coverUrl: $coverId ? "https://covers.openlibrary.org/b/id/{$coverId}-L.jpg" : null,
+                workKey: self::workKey($doc['key'] ?? null),
+                editionCount: BookCandidate::positiveInt($doc['edition_count'] ?? null),
             );
         }
 
         return $candidates;
+    }
+
+    /**
+     * Edições de uma obra. As edições não trazem o nome dos autores (só
+     * referências), por isso quem chama completa com os autores da obra.
+     *
+     * @return list<BookCandidate>
+     */
+    public function editions(string $workKey): array
+    {
+        $entries = $this->get("/works/{$workKey}/editions.json", ['limit' => self::EDITIONS_LIMIT])['entries'] ?? [];
+        $editions = [];
+
+        foreach (is_array($entries) ? $entries : [] as $entry) {
+            if (! is_array($entry) || ! is_string($entry['title'] ?? null)) {
+                continue;
+            }
+
+            $isbns = array_merge(
+                is_array($entry['isbn_13'] ?? null) ? $entry['isbn_13'] : [],
+                is_array($entry['isbn_10'] ?? null) ? $entry['isbn_10'] : [],
+            );
+            $isbn13 = $this->pickIsbn($isbns);
+            $coverId = BookCandidate::positiveInt($entry['covers'][0] ?? null);
+            $language = $entry['languages'][0]['key'] ?? null;
+
+            $editions[] = new BookCandidate(
+                title: $entry['title'],
+                source: BookSource::OpenLibrary,
+                isbn13: $isbn13,
+                isbn10: $isbn13 ? Isbn::toIsbn10($isbn13) : null,
+                subtitle: BookCandidate::nonEmptyString($entry['subtitle'] ?? null),
+                publisher: BookCandidate::nonEmptyString($entry['publishers'][0] ?? null),
+                publishedYear: BookCandidate::yearFrom($entry['publish_date'] ?? null),
+                pages: BookCandidate::positiveInt($entry['number_of_pages'] ?? null),
+                coverUrl: $coverId ? "https://covers.openlibrary.org/b/id/{$coverId}-L.jpg" : null,
+                workKey: $workKey,
+                language: is_string($language) ? basename($language) : null,
+            );
+        }
+
+        return $editions;
+    }
+
+    /** "/works/OL1003040W" vira "OL1003040W". */
+    public static function workKey(mixed $key): ?string
+    {
+        return is_string($key) && preg_match('#^/works/(OL\d+W)$#', $key, $match) ? $match[1] : null;
     }
 
     /**

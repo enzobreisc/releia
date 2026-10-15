@@ -23,9 +23,9 @@ class GoogleBooksProvider implements MetadataProvider
         return null;
     }
 
-    public function search(string $query): array
+    public function search(string $query, ?string $publisher = null): array
     {
-        return $this->volumes($query, 10);
+        return $this->volumes($publisher ? "{$query} inpublisher:{$publisher}" : $query, 10);
     }
 
     /**

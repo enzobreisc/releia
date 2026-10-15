@@ -5,7 +5,11 @@ namespace App\Services\BookLookup;
 use App\Enums\BookSource;
 use Illuminate\Support\Str;
 
-/** Metadados de um livro como vieram de uma fonte, já normalizados. */
+/**
+ * Metadados de um livro como vieram de uma fonte, já normalizados.
+ *
+ * @phpstan-type CandidateArray array{isbn_13: string|null, isbn_10: string|null, title: string, subtitle: string|null, authors: list<string>, publisher: string|null, published_year: int|null, pages: int|null, genre: string|null, description: string|null, cover_url: string|null, source: string, work_key?: string|null, edition_count?: int|null, language?: string|null}
+ */
 final readonly class BookCandidate
 {
     /**
@@ -24,6 +28,11 @@ final readonly class BookCandidate
         public ?string $genre = null,
         public ?string $description = null,
         public ?string $coverUrl = null,
+        // Obra da Open Library: a busca devolve obras, cada uma com várias edições.
+        public ?string $workKey = null,
+        public ?int $editionCount = null,
+        // Código MARC do idioma da edição (por, eng…), quando a fonte informa.
+        public ?string $language = null,
     ) {}
 
     /** Completa os campos vazios com os de outra fonte, sem sobrescrever nada. */
@@ -42,6 +51,9 @@ final readonly class BookCandidate
             genre: $this->genre ?? $other->genre,
             description: $this->description ?? $other->description,
             coverUrl: $this->coverUrl ?? $other->coverUrl,
+            workKey: $this->workKey ?? $other->workKey,
+            editionCount: $this->editionCount ?? $other->editionCount,
+            language: $this->language ?? $other->language,
         );
     }
 
@@ -51,7 +63,7 @@ final readonly class BookCandidate
     }
 
     /**
-     * @return array{isbn_13: string|null, isbn_10: string|null, title: string, subtitle: string|null, authors: list<string>, publisher: string|null, published_year: int|null, pages: int|null, genre: string|null, description: string|null, cover_url: string|null, source: string}
+     * @return CandidateArray
      */
     public function toArray(): array
     {
@@ -68,11 +80,14 @@ final readonly class BookCandidate
             'description' => $this->description,
             'cover_url' => $this->coverUrl,
             'source' => $this->source->value,
+            'work_key' => $this->workKey,
+            'edition_count' => $this->editionCount,
+            'language' => $this->language,
         ];
     }
 
     /**
-     * @param  array{isbn_13: string|null, isbn_10: string|null, title: string, subtitle: string|null, authors: list<string>, publisher: string|null, published_year: int|null, pages: int|null, genre: string|null, description: string|null, cover_url: string|null, source: string}  $data
+     * @param  CandidateArray  $data
      */
     public static function fromArray(array $data): self
     {
@@ -89,6 +104,9 @@ final readonly class BookCandidate
             genre: $data['genre'],
             description: $data['description'],
             coverUrl: $data['cover_url'],
+            workKey: $data['work_key'] ?? null,
+            editionCount: $data['edition_count'] ?? null,
+            language: $data['language'] ?? null,
         );
     }
 

@@ -57,5 +57,15 @@ export type Candidate = {
     description: string | null;
     cover_url: string | null;
     source: string;
+    /** Obra da Open Library; a busca por título devolve obras. */
+    work_key?: string | null;
+    edition_count?: number | null;
+    /** Código do idioma da edição (por, eng…). */
+    language?: string | null;
     library_id: number | null;
+};
+
+export type Editions = {
+    work_key: string;
+    items: Candidate[];
 };

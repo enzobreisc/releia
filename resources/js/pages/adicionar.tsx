@@ -8,11 +8,13 @@ import { PageHeader, SectionTitle } from '@/components/page-header';
 import { cn } from '@/lib/utils';
 import { adicionar } from '@/routes';
 import { show, store } from '@/routes/livros';
-import type { Candidate, Option } from '@/types';
+import type { Candidate, Editions, Option } from '@/types';
 
 type AdicionarProps = {
     query: string;
+    publisher: string;
     results: Candidate[];
+    editions: Editions | null;
     preview: Candidate | null;
     statuses: Option[];
 };
@@ -69,15 +71,26 @@ const SOURCE_LABELS: Record<string, string> = {
     manual: 'cadastro manual',
 };
 
+/** Identifica um resultado ou edição na lista, para marcar o selecionado. */
+function keyOf(candidate: Candidate): string {
+    return candidate.isbn_13 ?? `${candidate.work_key}-${candidate.title}`;
+}
+
 export default function Adicionar({
     query,
+    publisher,
     results,
+    editions,
     preview,
     statuses,
 }: AdicionarProps) {
     const [search, setSearch] = useState(query);
+    const [publisherFilter, setPublisherFilter] = useState(publisher);
     const [searching, setSearching] = useState(false);
-    const [selected, setSelected] = useState<number | null>(null);
+    const [selected, setSelected] = useState<string | null>(null);
+    const [openWork, setOpenWork] = useState<string | null>(
+        editions?.work_key ?? null,
+    );
     const [showMore, setShowMore] = useState(false);
     const form = useForm<BookForm>(emptyForm);
 
@@ -107,20 +120,49 @@ export default function Adicionar({
     function onSearch(event: FormEvent) {
         event.preventDefault();
         setSelected(null);
+        setOpenWork(null);
         router.get(
             adicionar.url(),
-            { q: search.trim() || undefined },
+            {
+                q: search.trim() || undefined,
+                editora: publisherFilter.trim() || undefined,
+            },
             {
                 preserveState: true,
                 replace: true,
                 onStart: () => setSearching(true),
                 onFinish: () => setSearching(false),
+                // Com editora, o que interessa é a edição: abre as do primeiro resultado.
+                onSuccess: (page) => {
+                    const first = (page.props.results as Candidate[])[0];
+
+                    if (publisherFilter.trim() && first?.work_key) {
+                        openEditions(first.work_key);
+                    }
+                },
             },
         );
     }
 
-    function select(candidate: Candidate, index: number) {
-        setSelected(index);
+    function openEditions(workKey: string) {
+        setOpenWork(workKey);
+        router.reload({
+            only: ['editions'],
+            data: { obra: workKey },
+            replace: true,
+        });
+    }
+
+    function toggleEditions(workKey: string) {
+        if (openWork === workKey) {
+            setOpenWork(null);
+        } else {
+            openEditions(workKey);
+        }
+    }
+
+    function select(candidate: Candidate) {
+        setSelected(keyOf(candidate));
         form.clearErrors();
         form.setData({ ...toForm(candidate), status: form.data.status });
 
@@ -158,10 +200,13 @@ export default function Adicionar({
 
             <div className="flex flex-wrap items-start gap-8">
                 <section className="flex min-w-0 flex-[1_1_340px] flex-col gap-4">
-                    <form onSubmit={onSearch} className="flex items-end gap-2">
+                    <form
+                        onSubmit={onSearch}
+                        className="flex flex-wrap items-end gap-2"
+                    >
                         <Field
                             label="Buscar por ISBN ou título"
-                            className="flex-1"
+                            className="flex-[2_1_200px]"
                         >
                             <Input
                                 autoFocus
@@ -171,6 +216,20 @@ export default function Adicionar({
                                     setSearch(event.target.value)
                                 }
                                 placeholder="Digite o ISBN ou o título"
+                                className="h-12 text-base"
+                            />
+                        </Field>
+                        <Field
+                            label="Editora (opcional)"
+                            className="flex-[1_1_140px]"
+                        >
+                            <Input
+                                type="search"
+                                value={publisherFilter}
+                                onChange={(event) =>
+                                    setPublisherFilter(event.target.value)
+                                }
+                                placeholder="Ex.: Penguin"
                                 className="h-12 text-base"
                             />
                         </Field>
@@ -193,12 +252,51 @@ export default function Adicionar({
                             </SectionTitle>
                             <div className="flex flex-col gap-2.5">
                                 {results.map((result, index) => (
-                                    <ResultRow
-                                        key={`${result.isbn_13 ?? result.title}-${index}`}
-                                        result={result}
-                                        selected={selected === index}
-                                        onSelect={() => select(result, index)}
-                                    />
+                                    <div
+                                        key={`${keyOf(result)}-${index}`}
+                                        className="flex flex-col gap-2"
+                                    >
+                                        <ResultRow
+                                            result={result}
+                                            selected={
+                                                selected === keyOf(result)
+                                            }
+                                            onSelect={() => select(result)}
+                                            editionsOpen={
+                                                openWork === result.work_key
+                                            }
+                                            onToggleEditions={
+                                                result.work_key &&
+                                                (result.edition_count ?? 0) > 1
+                                                    ? () =>
+                                                          toggleEditions(
+                                                              result.work_key!,
+                                                          )
+                                                    : undefined
+                                            }
+                                        />
+                                        {result.work_key &&
+                                            openWork === result.work_key && (
+                                                <EditionList
+                                                    editions={
+                                                        editions?.work_key ===
+                                                        result.work_key
+                                                            ? editions.items
+                                                            : null
+                                                    }
+                                                    publisher={publisher}
+                                                    selected={selected}
+                                                    onSelect={(edition) =>
+                                                        select({
+                                                            ...edition,
+                                                            // As edições não trazem autores; vêm da obra.
+                                                            authors:
+                                                                result.authors,
+                                                        })
+                                                    }
+                                                />
+                                            )}
+                                    </div>
                                 ))}
                                 {!searching && results.length === 0 && (
                                     <p className="text-sm text-muted">
@@ -344,10 +442,14 @@ function ResultRow({
     result,
     selected,
     onSelect,
+    editionsOpen,
+    onToggleEditions,
 }: {
     result: Candidate;
     selected: boolean;
     onSelect: () => void;
+    editionsOpen: boolean;
+    onToggleEditions?: () => void;
 }) {
     const meta = [
         result.authors.join(', ') || 'Autor desconhecido',
@@ -379,6 +481,17 @@ function ResultRow({
                         ISBN {result.isbn_13}
                     </div>
                 )}
+                {onToggleEditions && (
+                    <button
+                        type="button"
+                        onClick={onToggleEditions}
+                        aria-expanded={editionsOpen}
+                        className="self-start font-mono text-xs text-accent hover:underline"
+                    >
+                        {editionsOpen ? '−' : '+'} {result.edition_count}{' '}
+                        edições
+                    </button>
+                )}
             </div>
             {result.library_id ? (
                 <Link
@@ -397,6 +510,93 @@ function ResultRow({
                 </button>
             )}
         </div>
+    );
+}
+
+function EditionList({
+    editions,
+    publisher,
+    selected,
+    onSelect,
+}: {
+    editions: Candidate[] | null;
+    publisher: string;
+    selected: string | null;
+    onSelect: (edition: Candidate) => void;
+}) {
+    if (editions === null) {
+        return (
+            <p className="ml-6 font-mono text-xs text-muted">
+                carregando edições…
+            </p>
+        );
+    }
+
+    if (editions.length === 0) {
+        return (
+            <p className="ml-6 text-sm text-muted">
+                {publisher
+                    ? `Nenhuma edição com ISBN da editora "${publisher}".`
+                    : 'Nenhuma edição com ISBN.'}
+            </p>
+        );
+    }
+
+    return (
+        <ul
+            aria-label="Edições"
+            className="ml-6 flex max-h-96 flex-col gap-1.5 overflow-y-auto border-l pl-3"
+        >
+            {editions.map((edition) => {
+                const isSelected = selected === keyOf(edition);
+                const meta = [
+                    edition.publisher,
+                    edition.published_year,
+                    edition.pages && `${edition.pages} págs.`,
+                ].filter(Boolean);
+
+                return (
+                    <li
+                        key={keyOf(edition)}
+                        className={cn(
+                            'flex items-center gap-3 rounded-sm border bg-surface p-2',
+                            isSelected && 'border-primary',
+                        )}
+                    >
+                        <BookCover
+                            src={edition.cover_url}
+                            title={edition.title}
+                            className="w-9"
+                        />
+                        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                            <div className="line-clamp-1 text-[13px]">
+                                {meta.join(' · ') || edition.title}
+                            </div>
+                            <div className="font-mono text-[11px] text-faint">
+                                {edition.language && `${edition.language} · `}
+                                ISBN {edition.isbn_13}
+                            </div>
+                        </div>
+                        {edition.library_id ? (
+                            <Link
+                                href={show.url(edition.library_id)}
+                                className="shrink-0 rounded-sm border px-3 py-2 text-xs text-accent hover:bg-active"
+                            >
+                                Na biblioteca
+                            </Link>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => onSelect(edition)}
+                                className="shrink-0 rounded-sm border px-3 py-2 text-xs hover:bg-active"
+                            >
+                                {isSelected ? 'Selecionada' : 'Selecionar'}
+                            </button>
+                        )}
+                    </li>
+                );
+            })}
+        </ul>
     );
 }
 

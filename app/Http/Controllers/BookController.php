@@ -7,6 +7,7 @@ use App\Http\Presenters\BookPresenter;
 use App\Http\Requests\StoreBookRequest;
 use App\Models\Book;
 use App\Services\BookLookup\BookCandidate;
+use App\Services\BookLookup\OpenLibraryProvider;
 use App\Services\BookLookupService;
 use App\Services\LibraryService;
 use App\Support\Isbn;
@@ -24,17 +25,25 @@ class BookController extends Controller
     ) {}
 
     /**
-     * Adicionar livro. `q` busca nas fontes externas; `isbn` carrega os
-     * detalhes completos de um resultado para a prévia (recarga parcial).
+     * Adicionar livro. `q` (e `editora`, opcional) busca nas fontes externas;
+     * `obra` lista as edições de uma obra e `isbn` carrega os detalhes de uma
+     * edição para a prévia. Os dois últimos chegam por recarga parcial.
      */
     public function create(Request $request): Response
     {
         $query = trim((string) $request->string('q'));
+        $publisher = trim((string) $request->string('editora'));
+        $work = OpenLibraryProvider::workKey('/works/'.$request->string('obra'));
         $isbn = Isbn::toIsbn13((string) $request->string('isbn'));
 
         return Inertia::render('adicionar', [
             'query' => $query,
-            'results' => fn () => $query === '' ? [] : $this->candidates($this->lookup->search($query)),
+            'publisher' => $publisher,
+            'results' => fn () => $query === '' ? [] : $this->candidates($this->lookup->search($query, $publisher)),
+            'editions' => fn () => $work === null ? null : [
+                'work_key' => $work,
+                'items' => $this->candidates($this->lookup->editions($work, publisher: $publisher)),
+            ],
             'preview' => fn () => $isbn === null ? null : $this->preview($isbn),
             'statuses' => ReadingStatus::options(),
         ]);

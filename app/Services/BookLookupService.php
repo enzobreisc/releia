@@ -7,8 +7,11 @@ use App\Services\BookLookup\GoogleBooksProvider;
 use App\Services\BookLookup\OpenLibraryProvider;
 use App\Support\Isbn;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
+ * @phpstan-import-type CandidateArray from BookCandidate
+ *
  * Busca e normaliza metadados: Open Library primeiro, Google Books para
  * completar ou como reserva. Resultados ficam em cache para não repetir chamadas.
  */
@@ -26,9 +29,10 @@ class BookLookupService
      *
      * @return list<BookCandidate>
      */
-    public function search(string $query): array
+    public function search(string $query, ?string $publisher = null): array
     {
         $query = trim($query);
+        $publisher = self::normalize($publisher ?? '') ?: null;
 
         if ($query === '') {
             return [];
@@ -42,12 +46,12 @@ class BookLookupService
             return $book ? [$book] : [];
         }
 
-        /** @var list<array{isbn_13: string|null, isbn_10: string|null, title: string, subtitle: string|null, authors: list<string>, publisher: string|null, published_year: int|null, pages: int|null, genre: string|null, description: string|null, cover_url: string|null, source: string}> $cached */
-        $cached = $this->remember('search:'.mb_strtolower($query), function () use ($query) {
-            $results = $this->openLibrary->search($query);
+        /** @var list<CandidateArray> $cached */
+        $cached = $this->remember('search:v2:'.mb_strtolower($query).'|'.$publisher, function () use ($query, $publisher) {
+            $results = $this->openLibrary->search($query, $publisher);
 
             if ($results === []) {
-                $results = $this->googleBooks->search($query);
+                $results = $this->googleBooks->search($query, $publisher);
             }
 
             return array_map(fn (BookCandidate $book) => $book->toArray(), $results);
@@ -56,9 +60,64 @@ class BookLookupService
         return array_map(BookCandidate::fromArray(...), $cached);
     }
 
+    /**
+     * Edições de uma obra com ISBN, sem repetidas, na ordem em que interessam:
+     * brasileiras primeiro, depois com capa, depois as mais recentes.
+     *
+     * @param  list<string>  $authors  autores da obra (as edições não trazem)
+     * @param  string|null  $publisher  filtra pelo nome da editora, sem acento
+     * @return list<BookCandidate>
+     */
+    public function editions(string $workKey, array $authors = [], ?string $publisher = null): array
+    {
+        /** @var list<CandidateArray> $cached */
+        $cached = $this->remember("editions:{$workKey}", function () use ($workKey) {
+            $unique = [];
+
+            foreach ($this->openLibrary->editions($workKey) as $edition) {
+                if ($edition->isbn13 !== null) {
+                    $unique[$edition->isbn13] ??= $edition;
+                }
+            }
+
+            $editions = array_values($unique);
+
+            usort($editions, fn (BookCandidate $a, BookCandidate $b) => [
+                Isbn::isBrazilian((string) $b->isbn13),
+                $b->coverUrl !== null,
+                $b->publishedYear ?? 0,
+            ] <=> [
+                Isbn::isBrazilian((string) $a->isbn13),
+                $a->coverUrl !== null,
+                $a->publishedYear ?? 0,
+            ]);
+
+            return array_map(fn (BookCandidate $edition) => $edition->toArray(), $editions);
+        });
+
+        $publisher = self::normalize($publisher ?? '');
+
+        if ($publisher !== '') {
+            $cached = array_values(array_filter(
+                $cached,
+                fn (array $edition) => str_contains(self::normalize($edition['publisher'] ?? ''), $publisher),
+            ));
+        }
+
+        return array_map(
+            fn (array $edition) => BookCandidate::fromArray(['authors' => $authors] + $edition),
+            $cached,
+        );
+    }
+
+    private static function normalize(string $value): string
+    {
+        return Str::of($value)->ascii()->lower()->squish()->toString();
+    }
+
     public function findByIsbn(string $isbn13): ?BookCandidate
     {
-        /** @var array{isbn_13: string|null, isbn_10: string|null, title: string, subtitle: string|null, authors: list<string>, publisher: string|null, published_year: int|null, pages: int|null, genre: string|null, description: string|null, cover_url: string|null, source: string}|null $cached */
+        /** @var CandidateArray|null $cached */
         $cached = $this->remember("isbn:{$isbn13}", function () use ($isbn13) {
             $book = $this->openLibrary->findByIsbn($isbn13);
 

@@ -10,5 +10,5 @@ interface MetadataProvider
     /**
      * @return list<BookCandidate>
      */
-    public function search(string $query): array;
+    public function search(string $query, ?string $publisher = null): array;
 }
