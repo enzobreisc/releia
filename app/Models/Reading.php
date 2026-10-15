@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Enums\ReadingStatus;
 use Database\Factories\ReadingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -66,5 +68,16 @@ class Reading extends Model
     public function sessions(): HasMany
     {
         return $this->hasMany(ReadingSession::class);
+    }
+
+    /**
+     * Só a leitura mais recente de cada livro (releituras não contam duas vezes).
+     *
+     * @param  Builder<Reading>  $query
+     */
+    #[Scope]
+    protected function current(Builder $query): void
+    {
+        $query->whereIn('id', static::query()->selectRaw('max(id)')->groupBy('book_id'));
     }
 }

@@ -16,4 +16,5 @@ test('cada tela abre com o componente certo', function (string $route, string $c
     ['stats.index', 'stats'],
     ['wrapped.show', 'wrapped'],
     ['suggestions.index', 'suggestions'],
+    ['quick-log', 'quick-log'],
 ]);

@@ -70,7 +70,7 @@ final class BookPresenter
         ];
     }
 
-    private static function coverUrl(Book $book): ?string
+    public static function coverUrl(Book $book): ?string
     {
         return $book->cover_path === null
             ? null

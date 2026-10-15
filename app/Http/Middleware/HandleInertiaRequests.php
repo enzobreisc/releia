@@ -3,7 +3,9 @@
 namespace App\Http\Middleware;
 
 use App\Models\Book;
+use App\Services\DashboardService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -42,6 +44,8 @@ class HandleInertiaRequests extends Middleware
             'counts' => fn () => [
                 'books' => Book::count(),
             ],
+            // Mini cartão "lendo agora" da barra lateral; null quando nada está em andamento.
+            'reading_now' => fn () => app(DashboardService::class)->sidebarCard(Carbon::today()),
         ];
     }
 }

@@ -4,18 +4,36 @@ import type { FormEvent } from 'react';
 import { BookCover } from '@/components/book-cover';
 import { Button, Field, Select, Textarea } from '@/components/form';
 import { PageHeader, SectionTitle } from '@/components/page-header';
+import { ProgressBar, progressText } from '@/components/reading-progress';
+import { SessionForm } from '@/components/session-form';
+import { SessionLog } from '@/components/session-log';
 import { StarRating } from '@/components/star-rating';
 import { destroy, reading as readingRoute } from '@/routes/books';
 import { index as libraryIndex } from '@/routes/library';
-import type { BookDetail, Option } from '@/types';
+import type {
+    BookDetail,
+    Option,
+    ReadingProgress,
+    ReadingSession,
+} from '@/types';
 
 type BookProps = {
     book: BookDetail;
     slug: string;
     statuses: Option[];
+    progress: ReadingProgress | null;
+    sessions: ReadingSession[];
+    can_log: boolean;
 };
 
-export default function Book({ book, slug, statuses }: BookProps) {
+export default function Book({
+    book,
+    slug,
+    statuses,
+    progress,
+    sessions,
+    can_log,
+}: BookProps) {
     const reading = book.reading;
     const [saving, setSaving] = useState(false);
 
@@ -114,13 +132,44 @@ export default function Book({ book, slug, statuses }: BookProps) {
                         </p>
                     )}
 
-                    <section className="flex flex-col gap-3.5 rounded-md border bg-surface p-5">
-                        <SectionTitle>progresso</SectionTitle>
-                        <p className="text-sm text-muted">
-                            Página atual e sessões de leitura entram na fase 2,
-                            junto com o registro rápido pela barra de menu.
-                        </p>
-                    </section>
+                    {progress && (
+                        <section className="flex flex-col gap-3.5 rounded-md border bg-surface p-5">
+                            <SectionTitle>progresso</SectionTitle>
+                            <ProgressBar percent={progress.percent} />
+                            <p className="text-sm text-muted">
+                                {progressText(progress)}
+                            </p>
+                            {progress.finish_suggested && (
+                                <div className="flex flex-wrap items-center gap-3 rounded-sm border border-primary bg-elevated p-3 text-sm">
+                                    <span>Você chegou à última página.</span>
+                                    <Button
+                                        variant="outline"
+                                        disabled={saving}
+                                        onClick={() =>
+                                            update({ status: 'read' })
+                                        }
+                                    >
+                                        Marcar como lido
+                                    </Button>
+                                </div>
+                            )}
+                            {can_log ? (
+                                <SessionForm
+                                    bookId={book.id}
+                                    progress={progress}
+                                />
+                            ) : (
+                                <p className="text-sm text-muted">
+                                    Para registrar sessões, mude a estante para
+                                    "Lendo".
+                                </p>
+                            )}
+                            <SectionTitle>
+                                sessões de leitura · log
+                            </SectionTitle>
+                            <SessionLog sessions={sessions} />
+                        </section>
+                    )}
 
                     <ReviewForm
                         bookId={book.id}
