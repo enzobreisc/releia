@@ -12,6 +12,11 @@ const HEAT_CLASSES = [
     'bg-heat-4',
 ];
 
+/** Classe de cor para um nível do mapa de calor (0 = sem leitura, 4 = mais). */
+export function heatClass(level: number): string {
+    return HEAT_CLASSES[level] ?? HEAT_CLASSES[0];
+}
+
 function formatDate(date: string) {
     return new Date(`${date}T00:00:00`).toLocaleDateString('pt-BR', {
         day: '2-digit',
@@ -20,19 +25,48 @@ function formatDate(date: string) {
     });
 }
 
+function dayTitle(day: CalendarDay) {
+    return `${formatDate(day.date)} · ${day.pages} ${day.pages === 1 ? 'página' : 'páginas'}`;
+}
+
 /**
- * Mapa de calor de dias lidos, no estilo do GitHub: uma coluna por semana,
- * uma linha por dia da semana. A cor vem do nível (0 = sem leitura, 1 a 4).
+ * Mapa de calor de dias lidos.
+ *
+ * Padrão: estilo GitHub, uma coluna por semana e uma linha por dia da semana.
+ * `compact`: uma linha só, sem rótulos e sem preenchimento (ex.: 7 dias na barra lateral).
  */
 export function HeatMap({
     days,
     showLegend = false,
+    compact = false,
     className,
 }: {
     days: CalendarDay[];
     showLegend?: boolean;
+    compact?: boolean;
     className?: string;
 }) {
+    if (compact) {
+        return (
+            <div
+                role="img"
+                aria-label="Mapa de calor de dias lidos"
+                className={cn('flex gap-[3px]', className)}
+            >
+                {days.map((day) => (
+                    <span
+                        key={day.date}
+                        title={dayTitle(day)}
+                        className={cn(
+                            'size-3 rounded-[2px]',
+                            heatClass(day.level),
+                        )}
+                    />
+                ))}
+            </div>
+        );
+    }
+
     // Preenche o começo da primeira semana com células vazias para alinhar os dias.
     const firstWeekday =
         days.length > 0 ? new Date(`${days[0].date}T00:00:00`).getDay() : 0;
@@ -68,10 +102,10 @@ export function HeatMap({
                         ) : (
                             <span
                                 key={day.date}
-                                title={`${formatDate(day.date)} · ${day.pages} ${day.pages === 1 ? 'página' : 'páginas'}`}
+                                title={dayTitle(day)}
                                 className={cn(
                                     'size-3 rounded-[2px]',
-                                    HEAT_CLASSES[day.level],
+                                    heatClass(day.level),
                                 )}
                             />
                         ),
@@ -86,7 +120,7 @@ export function HeatMap({
                             key={level}
                             className={cn(
                                 'size-3 rounded-[2px]',
-                                HEAT_CLASSES[level],
+                                heatClass(level),
                             )}
                         />
                     ))}
