@@ -1,45 +1,48 @@
 import { router } from '@inertiajs/react';
+import { cn } from '@/lib/utils';
 import { store } from '@/routes/queue';
+import { destroy as removeBook } from '@/routes/queue/books';
 
-/** Põe o livro no fim da fila. Idempotente no servidor, então clicar de novo não duplica. */
+/**
+ * Alterna o livro na fila. Fora dela: "+ fila" põe no fim. Dentro: mostra a
+ * posição ("na fila · 2º") e clicar tira da fila; o aviso oferece desfazer.
+ */
 export function QueueButton({
     bookId,
-    queued = false,
+    position,
     className,
 }: {
     bookId: number;
-    queued?: boolean;
+    position: number | null;
     className?: string;
 }) {
-    if (queued) {
-        return (
-            <span
-                className={
-                    className ??
-                    'self-start rounded-[10px] bg-elevated px-2 py-0.5 font-mono text-[11px] text-muted'
-                }
-            >
-                na fila
-            </span>
-        );
-    }
+    const queued = position !== null;
 
     return (
         <button
             type="button"
+            aria-pressed={queued}
+            title={queued ? 'Tirar da fila' : 'Pôr no fim da fila'}
             onClick={() =>
-                router.post(
-                    store.url(),
-                    { book_id: bookId },
-                    { preserveScroll: true },
-                )
+                queued
+                    ? router.delete(removeBook(bookId).url, {
+                          preserveScroll: true,
+                      })
+                    : router.post(
+                          store.url(),
+                          { book_id: bookId },
+                          { preserveScroll: true },
+                      )
             }
-            className={
-                className ??
-                'h-9 self-start rounded-sm border bg-surface px-3 text-[13px] text-accent hover:bg-active'
-            }
+            className={cn(
+                'h-9 self-start rounded-sm border px-3 text-[13px]',
+                queued
+                    ? 'border-strong bg-active text-nav hover:text-text'
+                    : 'bg-surface text-accent hover:bg-active',
+                className,
+            )}
         >
-            + fila
+            {queued ? `na fila · ${position}º` : '+ fila'}
         </button>
     );
 }
