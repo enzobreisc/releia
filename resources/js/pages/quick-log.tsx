@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react';
 import { BookCover } from '@/components/book-cover';
 import { heatClass } from '@/components/heat-map';
 import { LogoMark } from '@/components/icons';
+import { StarRating } from '@/components/star-rating';
+import { Toaster } from '@/components/toaster';
 import { cn } from '@/lib/utils';
+import { reading as readingRoute } from '@/routes/books';
 import { books as startBook } from '@/routes/quick-log';
 import {
     discard,
@@ -25,11 +28,17 @@ type Timer = {
 type Saved = {
     hash: string;
     title: string;
+    book_id: number;
     page_from: number;
     page_to: number;
     pages: number;
     minutes: number | null;
     streak: number;
+    /** A sessão chegou à última página: o livro foi marcado como lido. */
+    finished: boolean;
+    days: number | null;
+    /** Próximo da fila, para começar daqui. */
+    next: { id: number; title: string } | null;
 };
 
 type QuickLogProps = {
@@ -122,9 +131,12 @@ export default function QuickLog({
     );
     // "Terminar" pausa o timer e abre a página final; só some ao salvar ou descartar.
     const [finishing, setFinishing] = useState(false);
-    const [showSaved, setShowSaved] = useState(saved !== null);
+    // Cópia local do resumo: dar a nota recarrega a página, e o flash não volta.
+    const [done, setDone] = useState<Saved | null>(saved);
 
-    useEffect(() => setShowSaved(saved !== null), [saved]);
+    if (saved && saved.hash !== done?.hash) {
+        setDone(saved);
+    }
 
     const activeId = timer?.book_id ?? bookId;
     const selected =
@@ -134,13 +146,11 @@ export default function QuickLog({
 
     let body;
 
-    if (showSaved && saved) {
-        body = (
-            <DonePhase
-                saved={saved}
-                week={week}
-                onClose={() => setShowSaved(false)}
-            />
+    if (done) {
+        body = done.finished ? (
+            <FinishedPhase saved={done} onClose={() => setDone(null)} />
+        ) : (
+            <DonePhase saved={done} week={week} onClose={() => setDone(null)} />
         );
     } else if (selected === null) {
         body = <EmptyPhase available={available} />;
@@ -192,7 +202,7 @@ export default function QuickLog({
                 </div>
             </header>
 
-            {selected && !(showSaved && saved) && (
+            {selected && !done && (
                 <BookPicker
                     readings={readings}
                     available={available}
@@ -203,6 +213,8 @@ export default function QuickLog({
             )}
 
             {body}
+
+            <Toaster variant="bar" />
 
             <footer className="flex justify-between border-t border-elevated px-4 py-2 font-mono text-[10px] text-faint">
                 <span>{formatShortcut(shortcut)} abre isto</span>
@@ -722,6 +734,70 @@ function DonePhase({
                 autoFocus
                 onClick={onClose}
                 className="mt-2 h-10 rounded-md border bg-surface px-4.5 text-[13px] hover:bg-active"
+            >
+                Fechar
+            </button>
+        </div>
+    );
+}
+
+/** Sessão que chegou à última página: o livro termina aqui, com a nota e o próximo da fila. */
+function FinishedPhase({
+    saved,
+    onClose,
+}: {
+    saved: Saved;
+    onClose: () => void;
+}) {
+    const [rating, setRating] = useState<number | null>(null);
+
+    return (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 pt-4.5 pb-4 text-center">
+            <span className="flex size-10 items-center justify-center rounded-full bg-accent text-lg font-bold text-bg">
+                ✓
+            </span>
+            <div className="font-mono text-[17px] font-bold">Terminou!</div>
+            <div className="text-xs text-muted">
+                {saved.title}
+                {saved.days !== null &&
+                    ` · ${saved.days} ${saved.days === 1 ? 'dia' : 'dias'}`}{' '}
+                · +{saved.pages} págs hoje
+            </div>
+            <StarRating
+                value={rating}
+                size={24}
+                onChange={(value) => {
+                    setRating(value);
+                    router.patch(
+                        readingRoute.url(saved.book_id),
+                        { rating: value },
+                        { preserveState: true, preserveScroll: true },
+                    );
+                }}
+            />
+            <span className="text-[11px] text-faint">
+                a data é hoje; ajuste no app se precisar
+            </span>
+            {saved.next && (
+                <button
+                    type="button"
+                    autoFocus
+                    onClick={() => {
+                        router.post(startBook.url(), {
+                            book_id: saved.next!.id,
+                        });
+                        onClose();
+                    }}
+                    className="mt-1 h-11 w-full rounded-md bg-primary text-[13px] font-semibold text-white hover:bg-primary/90"
+                >
+                    Começar {saved.next.title}, o próximo
+                </button>
+            )}
+            <button
+                type="button"
+                autoFocus={!saved.next}
+                onClick={onClose}
+                className="h-9 rounded-md px-4 text-xs text-muted hover:text-text"
             >
                 Fechar
             </button>

@@ -5,6 +5,7 @@ import { BookCover } from '@/components/book-cover';
 import { Field, Input, Segmented, Textarea } from '@/components/form';
 import { LibraryIcon, PencilIcon, SearchIcon } from '@/components/icons';
 import { PageHeader, SectionTitle } from '@/components/page-header';
+import { today } from '@/lib/dates';
 import { cn } from '@/lib/utils';
 import { create as addBook, show, store } from '@/routes/books';
 import type { Candidate, Editions, Option } from '@/types';
@@ -31,6 +32,8 @@ type BookForm = {
     cover_url: string;
     source: string;
     status: string;
+    /** Só para "lido": quando terminou. */
+    finished_on: string;
 };
 
 const emptyForm: BookForm = {
@@ -46,9 +49,12 @@ const emptyForm: BookForm = {
     cover_url: '',
     source: 'manual',
     status: 'want_to_read',
+    finished_on: '',
 };
 
-function toForm(candidate: Candidate): Omit<BookForm, 'status'> {
+function toForm(
+    candidate: Candidate,
+): Omit<BookForm, 'status' | 'finished_on'> {
     return {
         title: candidate.title,
         subtitle: candidate.subtitle ?? '',
@@ -166,7 +172,11 @@ export default function AddBook({
         setSelected(keyOf(candidate));
         setManualMode(false);
         form.clearErrors();
-        form.setData({ ...toForm(candidate), status: form.data.status });
+        form.setData({
+            ...toForm(candidate),
+            status: form.data.status,
+            finished_on: form.data.finished_on,
+        });
 
         if (candidate.isbn_13) {
             router.reload({
@@ -186,6 +196,7 @@ export default function AddBook({
             ...emptyForm,
             title: search.trim(),
             status: form.data.status,
+            finished_on: form.data.finished_on,
         });
     }
 
@@ -463,13 +474,41 @@ export default function AddBook({
                                     options={statuses}
                                     value={form.data.status}
                                     onChange={(value) =>
-                                        form.setData('status', value)
+                                        form.setData((data) => ({
+                                            ...data,
+                                            status: value,
+                                            finished_on:
+                                                value === 'read' &&
+                                                data.finished_on === ''
+                                                    ? today()
+                                                    : data.finished_on,
+                                        }))
                                     }
                                 />
                                 {form.errors.status && (
-                                    <span className="text-xs text-red-300">
+                                    <span className="text-xs text-danger">
                                         {form.errors.status}
                                     </span>
+                                )}
+                                {form.data.status === 'read' && (
+                                    <Field
+                                        label="Terminou em"
+                                        error={form.errors.finished_on}
+                                        className="mt-1.5 max-w-52"
+                                    >
+                                        <Input
+                                            type="date"
+                                            max={today()}
+                                            value={form.data.finished_on}
+                                            onChange={(event) =>
+                                                form.setData(
+                                                    'finished_on',
+                                                    event.target.value,
+                                                )
+                                            }
+                                            className="h-10 bg-bg"
+                                        />
+                                    </Field>
                                 )}
                             </fieldset>
                         </div>

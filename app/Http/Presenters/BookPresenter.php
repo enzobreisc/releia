@@ -9,9 +9,11 @@ use App\Services\BookLookup\BookCandidate;
 final class BookPresenter
 {
     /**
-     * @return array{id: int, title: string, authors: string, cover_url: string|null, status: string|null, status_label: string|null, rating: int|null}
+     * Cartão de livro. Na Biblioteca vêm também a posição na fila e o número de leituras.
+     *
+     * @return array{id: int, title: string, authors: string, cover_url: string|null, status: string|null, status_label: string|null, rating: int|null, queue_position: int|null, readings_count: int|null}
      */
-    public static function card(Book $book): array
+    public static function card(Book $book, ?int $queuePosition = null): array
     {
         return [
             'id' => $book->id,
@@ -21,6 +23,8 @@ final class BookPresenter
             'status' => $book->currentReading?->status->value,
             'status_label' => $book->currentReading?->status->label(),
             'rating' => $book->currentReading?->rating,
+            'queue_position' => $queuePosition,
+            'readings_count' => isset($book->readings_count) ? (int) $book->readings_count : null,
         ];
     }
 
@@ -45,7 +49,9 @@ final class BookPresenter
             'cover_url' => self::coverUrl($book),
             'source_label' => $book->source->label(),
             'reading' => $reading === null ? null : [
+                'id' => $reading->id,
                 'status' => $reading->status->value,
+                'abandon_reason' => $reading->abandon_reason,
                 'rating' => $reading->rating,
                 'review' => $reading->review,
                 'started_at' => $reading->started_at?->toDateString(),

@@ -24,9 +24,19 @@ Route::get('/library', [LibraryController::class, 'index'])->name('library.index
 Route::get('/library/add', [BookController::class, 'create'])->name('books.create');
 Route::post('/library', [BookController::class, 'store'])->name('books.store');
 Route::get('/library/{book}', [BookController::class, 'show'])->whereNumber('book')->name('books.show');
+Route::patch('/library/{book}', [BookController::class, 'update'])->whereNumber('book')->name('books.update');
 Route::delete('/library/{book}', [BookController::class, 'destroy'])->whereNumber('book')->name('books.destroy');
 Route::patch('/library/{book}/reading', [ReadingController::class, 'update'])->whereNumber('book')->name('books.reading');
 Route::get('/library/{book}/cover', BookCoverController::class)->whereNumber('book')->name('books.cover');
+Route::post('/library/{book}/start', [ReadingController::class, 'start'])->whereNumber('book')->name('books.start');
+Route::post('/library/{book}/reread', [ReadingController::class, 'reread'])->whereNumber('book')->name('books.reread');
+
+// Onda 1: ciclo de cada leitura e desfazer
+Route::post('/readings/{reading}/finish', [ReadingController::class, 'finish'])->whereNumber('reading')->name('readings.finish');
+Route::post('/readings/{reading}/abandon', [ReadingController::class, 'abandon'])->whereNumber('reading')->name('readings.abandon');
+Route::post('/readings/{reading}/reopen', [ReadingController::class, 'reopen'])->whereNumber('reading')->name('readings.reopen');
+Route::patch('/readings/{reading}/dates', [ReadingController::class, 'dates'])->whereNumber('reading')->name('readings.dates');
+Route::delete('/readings/{reading}', [ReadingController::class, 'destroy'])->whereNumber('reading')->name('readings.destroy');
 Route::post('/undo/{token}', UndoController::class)->where('token', '[A-Za-z0-9]+')->name('undo');
 
 // Fase 2

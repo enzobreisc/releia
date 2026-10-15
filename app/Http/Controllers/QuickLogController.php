@@ -6,6 +6,8 @@ use App\Enums\ReadingStatus;
 use App\Http\Presenters\ReadingPresenter;
 use App\Http\Requests\QuickLogRequest;
 use App\Models\Book;
+use App\Models\QueueItem;
+use App\Models\ReadingSession;
 use App\Native\QuickLog;
 use App\Services\DashboardService;
 use App\Services\ReadingActivity;
@@ -62,12 +64,14 @@ class QuickLogController extends Controller
     {
         $book = Book::query()->findOrFail($request->integer('book_id'));
 
-        $this->readings->registerSession(
+        $session = $this->readings->registerSession(
             $this->readings->readingFor($book),
             $request->integer('page_to'),
             $request->integer('minutes') ?: null,
             Carbon::today(),
         );
+
+        $this->flashSaved($request, $session);
 
         return to_route('quick-log');
     }
@@ -109,14 +113,37 @@ class QuickLogController extends Controller
         $session = $this->timer->finish((int) $data['page_to']);
 
         if ($session !== null) {
-            $request->session()->flash('quick_log_saved', [
-                ...ReadingPresenter::session($session),
-                'title' => $session->reading->book->title,
-                'streak' => $this->dashboard->streak(Carbon::today()),
-            ]);
+            $this->flashSaved($request, $session);
         }
 
         return to_route('quick-log');
+    }
+
+    /**
+     * Resumo para a tela "feito". Se a sessão chegou à última página, o livro
+     * termina aqui mesmo (data de hoje) e a tela oferece a nota e o próximo da fila.
+     */
+    private function flashSaved(Request $request, ReadingSession $session): void
+    {
+        $reading = $session->reading;
+        $book = $reading->book;
+        $finished = $book->pages !== null && $session->page_to >= $book->pages;
+
+        if ($finished) {
+            $this->readings->finish($reading, Carbon::today());
+        }
+
+        $next = $finished ? QueueItem::query()->with('book')->orderBy('position')->first()?->book : null;
+
+        $request->session()->flash('quick_log_saved', [
+            ...ReadingPresenter::session($session),
+            'title' => $book->title,
+            'book_id' => $book->id,
+            'streak' => $this->dashboard->streak(Carbon::today()),
+            'finished' => $finished,
+            'days' => $finished && $reading->started_at !== null ? (int) $reading->started_at->diffInDays($reading->finished_at) + 1 : null,
+            'next' => $next === null ? null : ['id' => $next->id, 'title' => $next->title],
+        ]);
     }
 
     public function discard(): RedirectResponse
