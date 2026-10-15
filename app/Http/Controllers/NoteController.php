@@ -10,6 +10,8 @@ use App\Models\Note;
 use App\Models\Tag;
 use App\Services\NoteReviewService;
 use App\Services\NoteService;
+use App\Services\UndoService;
+use App\Support\Toast;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -89,6 +91,8 @@ class NoteController extends Controller
     {
         $note = $this->notes->create($request->payload());
 
+        Toast::success('Nota criada', $note->book->title.($note->page === null ? '' : " · p. {$note->page}"));
+
         return to_route('notes.index', ['note' => $note->id]);
     }
 
@@ -96,14 +100,25 @@ class NoteController extends Controller
     {
         $this->notes->update($note, $request->payload());
 
+        Toast::success('Nota salva');
+
         return back();
     }
 
-    public function destroy(Note $note): RedirectResponse
+    public function destroy(Note $note, UndoService $undo): RedirectResponse
     {
+        $snapshot = $undo->capture([
+            UndoService::scope('notes', ['id' => $note->id]),
+            UndoService::scope('note_tag', ['note_id' => $note->id], null),
+        ]);
+        $where = $note->book->title.($note->page === null ? '' : " · p. {$note->page}");
+
         $this->notes->delete($note);
 
-        return to_route('notes.index');
+        Toast::success('Nota excluída', $where, null, $undo->remember($snapshot));
+
+        // Excluída do Detalhe do livro, continua lá; da tela de Notas, o editor fecha.
+        return str_contains(url()->previous(), '/library/') ? back() : to_route('notes.index');
     }
 
     /** Marca a nota como revista hoje e reagenda. */

@@ -6,13 +6,18 @@ import { destroy, update } from '@/routes/sessions';
 import type { ReadingSession } from '@/types';
 
 /** Log de sessões no estilo de um histórico de commits: mais recente primeiro. */
-export function SessionLog({ sessions }: { sessions: ReadingSession[] }) {
+export function SessionLog({
+    sessions,
+    emptyText = 'Nenhuma sessão ainda. Registre a página em que você parou.',
+    readOnly = false,
+}: {
+    sessions: ReadingSession[];
+    emptyText?: string;
+    /** Leituras antigas (aba Leituras): só para ver. */
+    readOnly?: boolean;
+}) {
     if (sessions.length === 0) {
-        return (
-            <p className="py-4 text-sm text-muted">
-                Nenhuma sessão ainda. Registre a página em que você parou.
-            </p>
-        );
+        return <p className="py-4 text-sm text-muted">{emptyText}</p>;
     }
 
     // A barrinha de cada sessão é proporcional à maior sessão do livro.
@@ -25,6 +30,7 @@ export function SessionLog({ sessions }: { sessions: ReadingSession[] }) {
                     key={session.id}
                     session={session}
                     share={session.pages / most}
+                    readOnly={readOnly}
                 />
             ))}
         </ol>
@@ -34,9 +40,11 @@ export function SessionLog({ sessions }: { sessions: ReadingSession[] }) {
 function SessionRow({
     session,
     share,
+    readOnly,
 }: {
     session: ReadingSession;
     share: number;
+    readOnly: boolean;
 }) {
     const [editing, setEditing] = useState(false);
 
@@ -51,12 +59,9 @@ function SessionRow({
         );
     }
 
+    // Apaga na hora: o aviso oferece desfazer (sessão e página voltam).
     function remove() {
-        if (
-            confirm('Apagar esta sessão? O progresso do livro é recalculado.')
-        ) {
-            router.delete(destroy(session.id).url, { preserveScroll: true });
-        }
+        router.delete(destroy(session.id).url, { preserveScroll: true });
     }
 
     return (
@@ -78,22 +83,24 @@ function SessionRow({
             <span className="w-14 text-right text-muted">
                 {session.minutes === null ? '—' : `${session.minutes} min`}
             </span>
-            <span className="flex gap-3 text-xs opacity-60 group-hover:opacity-100 focus-within:opacity-100">
-                <button
-                    type="button"
-                    onClick={() => setEditing(true)}
-                    className="text-muted hover:text-text"
-                >
-                    editar
-                </button>
-                <button
-                    type="button"
-                    onClick={remove}
-                    className="text-muted hover:text-red-300"
-                >
-                    apagar
-                </button>
-            </span>
+            {!readOnly && (
+                <span className="flex gap-3 text-xs opacity-60 group-hover:opacity-100 focus-within:opacity-100">
+                    <button
+                        type="button"
+                        onClick={() => setEditing(true)}
+                        className="text-muted hover:text-text"
+                    >
+                        editar
+                    </button>
+                    <button
+                        type="button"
+                        onClick={remove}
+                        className="text-muted hover:text-red-300"
+                    >
+                        apagar
+                    </button>
+                </span>
+            )}
         </li>
     );
 }

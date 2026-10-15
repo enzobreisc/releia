@@ -19,7 +19,7 @@ class ProfileService
 {
     public const MAX_PINS = 6;
 
-    private const SETTING = 'pinned_books';
+    public const PINS_SETTING = 'pinned_books';
 
     /** Nome e frase do leitor, editáveis no perfil (o nome também aparece no cumprimento do Início). */
     private const READER_SETTING = 'reader';
@@ -85,14 +85,14 @@ class ProfileService
         }
 
         $ids[] = $book->id;
-        Setting::put(self::SETTING, $ids);
+        Setting::put(self::PINS_SETTING, $ids);
 
         return true;
     }
 
     public function unpin(Book $book): void
     {
-        Setting::put(self::SETTING, array_values(array_filter(
+        Setting::put(self::PINS_SETTING, array_values(array_filter(
             $this->pinnedIds(),
             fn (int $id) => $id !== $book->id,
         )));
@@ -105,7 +105,7 @@ class ProfileService
      */
     public function pinnedIds(): array
     {
-        $stored = Setting::get(self::SETTING, []);
+        $stored = Setting::get(self::PINS_SETTING, []);
 
         if (! is_array($stored)) {
             return [];

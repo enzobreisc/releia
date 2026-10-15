@@ -6,7 +6,9 @@ use App\Http\Presenters\BookPresenter;
 use App\Models\Book;
 use App\Services\ProfileService;
 use App\Services\StatsService;
+use App\Services\UndoService;
 use App\Support\StatsPeriod;
+use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -78,6 +80,8 @@ class ProfileController extends Controller
 
         $this->profile->updateReader($data['name'] ?? null, $data['bio'] ?? null);
 
+        Toast::success('Perfil salvo');
+
         return back();
     }
 
@@ -88,16 +92,23 @@ class ProfileController extends Controller
             'book_id' => ['required', 'integer', 'exists:books,id'],
         ]);
 
-        $pinned = $this->profile->pin(Book::query()->whereKey($data['book_id'])->firstOrFail());
+        $book = Book::query()->whereKey($data['book_id'])->firstOrFail();
 
-        return $pinned
-            ? back()
-            : back()->withErrors(['book_id' => 'Você pode fixar até '.ProfileService::MAX_PINS.' livros.']);
+        if (! $this->profile->pin($book)) {
+            return back()->withErrors(['book_id' => 'Você pode fixar até '.ProfileService::MAX_PINS.' livros.']);
+        }
+
+        Toast::success('Fixado no perfil', $book->title);
+
+        return back();
     }
 
-    public function unpin(Book $book): RedirectResponse
+    public function unpin(Book $book, UndoService $undo): RedirectResponse
     {
+        $snapshot = $undo->capture([UndoService::scope('settings', ['key' => ProfileService::PINS_SETTING], 'key')]);
         $this->profile->unpin($book);
+
+        Toast::success('Desafixado', $book->title, null, $undo->remember($snapshot));
 
         return back();
     }

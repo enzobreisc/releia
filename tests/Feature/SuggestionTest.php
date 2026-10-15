@@ -271,7 +271,7 @@ test('buscar pela tela gera sugestões e avisa o resultado', function () {
 
     $this->post(route('suggestions.generate'))
         ->assertRedirect(route('suggestions.index'))
-        ->assertSessionHas('message', fn (string $message) => str_contains($message, 'sugestões novas'));
+        ->assertSessionHas('toast', fn (array $toast) => str_contains($toast['title'], 'sugest'));
 
     expect(Recommendation::count())->toBeGreaterThan(0);
 });

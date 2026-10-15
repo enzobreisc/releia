@@ -11,13 +11,11 @@ import type { Suggestion } from '@/types';
 type SuggestionsProps = {
     suggestions: Suggestion[];
     hasSources: boolean;
-    message: string | null;
 };
 
 export default function Suggestions({
     suggestions,
     hasSources,
-    message,
 }: SuggestionsProps) {
     const [busy, setBusy] = useState(false);
 
@@ -42,10 +40,6 @@ export default function Suggestions({
                     </Button>
                 }
             />
-
-            {message && (
-                <p className="font-mono text-xs text-muted">{message}</p>
-            )}
 
             {!hasSources && (
                 <EmptyState>

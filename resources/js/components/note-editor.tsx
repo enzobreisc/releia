@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Markdown } from '@/components/markdown';
 import { Button, Field, Input, Select, Textarea } from '@/components/form';
@@ -58,8 +58,9 @@ export function NoteEditor({
         }
     }
 
+    // Exclui na hora: o aviso oferece desfazer (texto, tags e página voltam).
     function remove() {
-        if (note && confirm('Excluir esta nota? Não dá para desfazer.')) {
+        if (note) {
             router.delete(destroy.url(note.id));
         }
     }
@@ -178,12 +179,12 @@ export function NoteEditor({
                 </Button>
                 {note && (
                     <>
-                        <a
+                        <Link
                             href={show.url(note.book_id)}
                             className="text-sm text-muted hover:text-text"
                         >
                             Ver no livro
-                        </a>
+                        </Link>
                         <span className="ml-auto" />
                         <Button variant="danger" onClick={remove}>
                             Excluir
