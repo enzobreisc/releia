@@ -68,14 +68,16 @@ export default function Wrapped({
 }: WrappedProps) {
     const exportRef = useRef<HTMLDivElement>(null);
     const [exporting, setExporting] = useState(false);
+    const [exportError, setExportError] = useState<string | null>(null);
 
-    /** Gera o PNG do conteúdo e dispara o download. */
+    /** Gera o PNG do conteúdo e dispara o download. Falhas aparecem na tela. */
     async function exportImage() {
         if (!exportRef.current) {
             return;
         }
 
         setExporting(true);
+        setExportError(null);
 
         try {
             const dataUrl = await toPng(exportRef.current, {
@@ -86,6 +88,9 @@ export default function Wrapped({
             link.href = dataUrl;
             link.download = `releia-wrapped-${year}.png`;
             link.click();
+        } catch {
+            // Fontes externas de outra origem costumam impedir a leitura do CSS.
+            setExportError('Não foi possível gerar a imagem. Tente de novo.');
         } finally {
             setExporting(false);
         }
@@ -122,6 +127,11 @@ export default function Wrapped({
                 >
                     {exporting ? 'Gerando imagem…' : 'Exportar como imagem'}
                 </button>
+                {exportError && (
+                    <p role="alert" className="text-sm text-red-300">
+                        {exportError}
+                    </p>
+                )}
             </div>
 
             <div
