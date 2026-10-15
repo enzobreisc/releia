@@ -23,7 +23,8 @@ type PinnedBook = {
 type ActivityItem =
     | { type: 'finished'; title: string; date: string; rating: number | null }
     | { type: 'session'; title: string; date: string; pages: number }
-    | { type: 'added'; title: string; date: string };
+    | { type: 'added'; title: string; date: string }
+    | { type: 'reread'; title: string; date: string };
 
 type ProfileProps = {
     reader: { name: string | null; bio: string | null };
@@ -118,6 +119,13 @@ function describe(item: ActivityItem) {
                 done: false,
                 verb: 'Adicionou',
                 extra: ' à biblioteca',
+            };
+        case 'reread':
+            return {
+                icon: '↻',
+                done: false,
+                verb: 'Começou a reler',
+                extra: '',
             };
     }
 }

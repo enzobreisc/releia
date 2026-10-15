@@ -120,7 +120,7 @@ class ProfileService
     /**
      * Eventos recentes: leituras terminadas, sessões registradas e livros adicionados.
      *
-     * Cada evento tem type (finished, session ou added), title e date, mais o que o tipo precisa.
+     * Cada evento tem type (finished, session, added ou reread), title e date, mais o que o tipo precisa.
      *
      * @return list<array<string, mixed>>
      */
@@ -154,6 +154,9 @@ class ProfileService
                 'pages' => $session->pages(),
             ]);
 
+        // Cada leitura nova é um evento: a primeira do livro é "adicionou", as outras são releituras.
+        $firstReadings = Reading::query()->selectRaw('min(id) AS id')->groupBy('book_id')->pluck('id')->map(fn ($id) => (int) $id)->all();
+
         $added = Reading::query()
             ->with('book')
             ->orderByDesc('created_at')
@@ -161,7 +164,7 @@ class ProfileService
             ->limit($limit)
             ->get()
             ->map(fn (Reading $reading) => [
-                'type' => 'added',
+                'type' => in_array($reading->id, $firstReadings, true) ? 'added' : 'reread',
                 'title' => $reading->book->title,
                 'date' => $reading->created_at->toDateString(),
             ]);

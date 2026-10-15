@@ -50,7 +50,7 @@ class StatsService
      * Indicadores do período. Páginas por dia usam os dias decorridos; a média
      * "com leitura" usa só os dias com sessão.
      *
-     * @return array{books_read: int, pages_read: int, pages_per_day: float|null, pages_per_reading_day: float|null, reading_days: int, days_per_book: float|null}
+     * @return array{books_read: int, rereads: int, pages_read: int, pages_per_day: float|null, pages_per_reading_day: float|null, reading_days: int, days_per_book: float|null}
      */
     public function indicators(StatsPeriod $period): array
     {
@@ -61,6 +61,8 @@ class StatsService
 
         return [
             'books_read' => $this->concluded($period)->count(),
+            // Releituras já estão em books_read; o número aparece como nota ao lado.
+            'rereads' => $this->rereads($period)->count(),
             'pages_read' => $pages,
             'pages_per_day' => $this->ratio($pages, $period->elapsedDays()),
             'pages_per_reading_day' => $this->ratio($sessionPages, $daysWithReading),
@@ -317,7 +319,7 @@ class StatsService
     /**
      * Tudo o que o Wrapped mostra para um ano.
      *
-     * @return array{indicators: array<string, mixed>, genre: array{label: string, count: int}|null, author: array{label: string, count: int}|null, extremes: array{fastest: Reading|null, longest: Reading|null}, best_month: array{month: string, count: int}|null, streak: array{current: int, longest: int}, top: Collection<int, Reading>}
+     * @return array{indicators: array<string, mixed>, genre: array{label: string, count: int}|null, author: array{label: string, count: int}|null, extremes: array{fastest: Reading|null, longest: Reading|null}, best_month: array{month: string, count: int}|null, streak: array{current: int, longest: int}, top: Collection<int, Reading>, rereads: list<string>}
      */
     public function wrapped(int $year): array
     {
@@ -331,7 +333,23 @@ class StatsService
             'best_month' => $this->bestMonth($period),
             'streak' => $this->streaks($period),
             'top' => $this->topRated($period),
+            'rereads' => array_values($this->rereads($period)->with('book')->orderBy('finished_at')->get()
+                ->map(fn (Reading $reading) => $reading->book->title)->all()),
         ];
+    }
+
+    /**
+     * Releituras concluídas no período: leituras com outra mais antiga do mesmo livro.
+     *
+     * @return Builder<Reading>
+     */
+    public function rereads(StatsPeriod $period): Builder
+    {
+        return $this->concluded($period)->whereExists(fn ($query) => $query
+            ->selectRaw('1')
+            ->from('readings AS earlier')
+            ->whereColumn('earlier.book_id', 'readings.book_id')
+            ->whereColumn('earlier.id', '<', 'readings.id'));
     }
 
     /**

@@ -18,6 +18,8 @@ type WrappedProps = {
     best_month: { label: string; count: number } | null;
     streak: number;
     top: ReadingRef[];
+    /** Títulos relidos e terminados no ano. */
+    rereads: string[];
 };
 
 const card =
@@ -65,6 +67,7 @@ export default function Wrapped({
     best_month,
     streak,
     top,
+    rereads,
 }: WrappedProps) {
     const exportRef = useRef<HTMLDivElement>(null);
     const [exporting, setExporting] = useState(false);
@@ -199,6 +202,13 @@ export default function Wrapped({
                         label="maior sequência"
                         value={`${streak} ${streak === 1 ? 'dia' : 'dias'}`}
                     />
+                    {rereads.length > 0 && (
+                        <Highlight
+                            label="releituras do ano"
+                            value={`↻ ${rereads.length}`}
+                            note={rereads.join(' · ')}
+                        />
+                    )}
                 </div>
 
                 <section className="flex flex-col gap-4 rounded-md border bg-surface p-5">

@@ -39,6 +39,7 @@ class WrappedController extends Controller
             ],
             'streak' => $wrapped['streak']['longest'],
             'top' => $wrapped['top']->map(fn ($reading) => StatsPresenter::reading($reading))->values(),
+            'rereads' => $wrapped['rereads'],
         ]);
     }
 }

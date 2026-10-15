@@ -29,6 +29,8 @@ export type MonthlyBar = {
 
 export type Indicators = {
     books_read: number;
+    /** Releituras já contadas em books_read. */
+    rereads: number;
     pages_read: number;
     pages_per_day: number | null;
     pages_per_reading_day: number | null;
