@@ -75,42 +75,46 @@ export function HeatMap({
         ...days,
     ];
 
+    // As colunas dividem a largura disponível: o mapa nunca rola de lado.
+    // Cada célula cresce até 16 px; acima disso o mapa só para de esticar.
+    const weeks = Math.ceil(cells.length / 7);
+
     return (
         <div className={cn('flex flex-col gap-3', className)}>
-            <div className="flex gap-2">
-                <div className="grid grid-rows-7 gap-[3px] pt-px font-mono text-[10px] text-faint">
-                    {WEEKDAYS.map((weekday, index) => (
+            <div
+                role="img"
+                aria-label="Mapa de calor de dias lidos"
+                className="grid grid-flow-col grid-rows-7 gap-[3px]"
+                style={{
+                    gridTemplateColumns: `auto repeat(${weeks}, minmax(0, 1fr))`,
+                    maxWidth: `${weeks * 19 + 32}px`,
+                }}
+            >
+                {WEEKDAYS.map((weekday, index) => (
+                    <span
+                        key={weekday}
+                        className={cn(
+                            'flex items-center pr-1.5 font-mono text-[10px] leading-none text-faint',
+                            index % 2 === 1 ? '' : 'invisible',
+                        )}
+                    >
+                        {weekday}
+                    </span>
+                ))}
+                {cells.map((day, index) =>
+                    day === null ? (
+                        <span key={`pad-${index}`} className="aspect-square" />
+                    ) : (
                         <span
-                            key={weekday}
+                            key={day.date}
+                            title={dayTitle(day)}
                             className={cn(
-                                'flex h-3 items-center',
-                                index % 2 === 1 ? '' : 'invisible',
+                                'aspect-square rounded-[2px]',
+                                heatClass(day.level),
                             )}
-                        >
-                            {weekday}
-                        </span>
-                    ))}
-                </div>
-                <div
-                    role="img"
-                    aria-label="Mapa de calor de dias lidos"
-                    className="grid auto-cols-[12px] grid-flow-col grid-rows-7 gap-[3px] overflow-x-auto"
-                >
-                    {cells.map((day, index) =>
-                        day === null ? (
-                            <span key={`pad-${index}`} className="size-3" />
-                        ) : (
-                            <span
-                                key={day.date}
-                                title={dayTitle(day)}
-                                className={cn(
-                                    'size-3 rounded-[2px]',
-                                    heatClass(day.level),
-                                )}
-                            />
-                        ),
-                    )}
-                </div>
+                        />
+                    ),
+                )}
             </div>
             {showLegend && (
                 <div className="flex items-center justify-end gap-1.5 font-mono text-xs text-muted">
