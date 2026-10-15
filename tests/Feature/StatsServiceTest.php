@@ -80,6 +80,7 @@ test('indicadores do ano batem com o cálculo manual', function () {
 
     expect(app(StatsService::class)->indicators(StatsPeriod::year(2026)))->toBe([
         'books_read' => 4,
+        'rereads' => 1,
         'pages_read' => 770,
         'pages_per_day' => 2.7,                  // 770 ÷ 287 dias decorridos
         'pages_per_reading_day' => 47.0,         // 470 de sessão ÷ 10 dias com leitura

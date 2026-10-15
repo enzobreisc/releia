@@ -6,6 +6,7 @@ import { buttonClass, Field, Input, Select } from '@/components/form';
 import { PlusIcon } from '@/components/icons';
 import { PageHeader } from '@/components/page-header';
 import { QueueButton } from '@/components/queue-button';
+import { StatusBadge } from '@/components/status';
 import { cn } from '@/lib/utils';
 import { create as addBook, show } from '@/routes/books';
 import { index as libraryIndex } from '@/routes/library';
@@ -172,31 +173,46 @@ export default function Library({
             {books.length > 0 ? (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(128px,1fr))] gap-x-5 gap-y-6">
                     {books.map((book) => (
-                        // Fase 3: o botão "+ fila" fica fora do Link, que não pode conter botões.
+                        // O botão da fila fica fora do Link, que não pode conter botões.
                         <div key={book.id} className="flex flex-col gap-2">
                             <Link
                                 href={show.url(book.id)}
                                 className="group flex flex-col gap-2"
                             >
-                                <BookCover
-                                    src={book.cover_url}
-                                    title={book.title}
-                                    className="w-full transition group-hover:border-primary"
-                                />
+                                <span className="relative">
+                                    <BookCover
+                                        src={book.cover_url}
+                                        title={book.title}
+                                        className="w-full transition group-hover:border-primary"
+                                    />
+                                    {(book.readings_count ?? 0) > 1 && (
+                                        <span
+                                            title={`${book.readings_count} leituras`}
+                                            className="absolute top-1.5 right-1.5 rounded-full bg-bg/90 px-1.5 py-0.5 font-mono text-[10px] text-nav"
+                                        >
+                                            ↻ {book.readings_count}
+                                        </span>
+                                    )}
+                                </span>
                                 <div className="line-clamp-2 text-sm font-semibold">
                                     {book.title}
                                 </div>
                                 <div className="line-clamp-1 text-[13px] text-muted">
                                     {book.authors || 'Autor desconhecido'}
                                 </div>
-                                {book.status_label && (
-                                    <span className="self-start rounded-[10px] bg-elevated px-2 py-0.5 font-mono text-[11px]">
-                                        {book.status_label}
-                                    </span>
+                                {book.status && book.status_label && (
+                                    <StatusBadge
+                                        status={book.status}
+                                        label={book.status_label}
+                                    />
                                 )}
                             </Link>
                             {book.status === 'want_to_read' && (
-                                <QueueButton bookId={book.id} />
+                                <QueueButton
+                                    bookId={book.id}
+                                    position={book.queue_position}
+                                    className="h-8 px-2.5 text-xs"
+                                />
                             )}
                         </div>
                     ))}

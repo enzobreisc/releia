@@ -143,3 +143,29 @@ function pagesSample2026(): void
         $reading->sessions()->create(['read_on' => $day, 'page_from' => $from, 'page_to' => $to]);
     }
 }
+
+test('perfil guarda nome e frase do leitor, e o nome aparece no Início', function () {
+    $this->put(route('profile.update'), ['name' => '  Ana  ', 'bio' => 'Romances brasileiros'])->assertRedirect();
+
+    $this->get(route('profile.show'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('reader.name', 'Ana')
+            ->where('reader.bio', 'Romances brasileiros')
+            ->has('avatar', 25));
+
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->where('reader_name', 'Ana'));
+
+    $this->put(route('profile.update'), ['name' => '', 'bio' => ''])->assertRedirect();
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->where('reader_name', null));
+
+    $this->put(route('profile.update'), ['name' => str_repeat('a', 61)])->assertSessionHasErrors('name');
+});
+
+test('o calendário do perfil troca de ano só entre anos com atividade', function () {
+    $current = (int) now()->year;
+
+    $this->get(route('profile.show', ['year' => 1999]))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('year', $current)
+            ->where('years', [$current]));
+});

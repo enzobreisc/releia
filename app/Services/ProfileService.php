@@ -19,7 +19,10 @@ class ProfileService
 {
     public const MAX_PINS = 6;
 
-    private const SETTING = 'pinned_books';
+    public const PINS_SETTING = 'pinned_books';
+
+    /** Nome e frase do leitor, editáveis no perfil (o nome também aparece no cumprimento do Início). */
+    private const READER_SETTING = 'reader';
 
     /**
      * Livros fixados, na ordem em que foram fixados. Ids de livros excluídos são ignorados.
@@ -46,6 +49,28 @@ class ProfileService
             ->values();
     }
 
+    /**
+     * @return array{name: string|null, bio: string|null}
+     */
+    public function reader(): array
+    {
+        $stored = Setting::get(self::READER_SETTING, []);
+        $stored = is_array($stored) ? $stored : [];
+
+        return [
+            'name' => is_string($stored['name'] ?? null) ? $stored['name'] : null,
+            'bio' => is_string($stored['bio'] ?? null) ? $stored['bio'] : null,
+        ];
+    }
+
+    public function updateReader(?string $name, ?string $bio): void
+    {
+        Setting::put(self::READER_SETTING, [
+            'name' => $name === null || trim($name) === '' ? null : trim($name),
+            'bio' => $bio === null || trim($bio) === '' ? null : trim($bio),
+        ]);
+    }
+
     /** Fixa um livro. Retorna false se já estiver no limite. */
     public function pin(Book $book): bool
     {
@@ -60,14 +85,14 @@ class ProfileService
         }
 
         $ids[] = $book->id;
-        Setting::put(self::SETTING, $ids);
+        Setting::put(self::PINS_SETTING, $ids);
 
         return true;
     }
 
     public function unpin(Book $book): void
     {
-        Setting::put(self::SETTING, array_values(array_filter(
+        Setting::put(self::PINS_SETTING, array_values(array_filter(
             $this->pinnedIds(),
             fn (int $id) => $id !== $book->id,
         )));
@@ -80,7 +105,7 @@ class ProfileService
      */
     public function pinnedIds(): array
     {
-        $stored = Setting::get(self::SETTING, []);
+        $stored = Setting::get(self::PINS_SETTING, []);
 
         if (! is_array($stored)) {
             return [];
@@ -95,7 +120,7 @@ class ProfileService
     /**
      * Eventos recentes: leituras terminadas, sessões registradas e livros adicionados.
      *
-     * Cada evento tem type (finished, session ou added), title e date, mais o que o tipo precisa.
+     * Cada evento tem type (finished, session, added ou reread), title e date, mais o que o tipo precisa.
      *
      * @return list<array<string, mixed>>
      */
@@ -129,6 +154,9 @@ class ProfileService
                 'pages' => $session->pages(),
             ]);
 
+        // Cada leitura nova é um evento: a primeira do livro é "adicionou", as outras são releituras.
+        $firstReadings = Reading::query()->selectRaw('min(id) AS id')->groupBy('book_id')->pluck('id')->map(fn ($id) => (int) $id)->all();
+
         $added = Reading::query()
             ->with('book')
             ->orderByDesc('created_at')
@@ -136,7 +164,7 @@ class ProfileService
             ->limit($limit)
             ->get()
             ->map(fn (Reading $reading) => [
-                'type' => 'added',
+                'type' => in_array($reading->id, $firstReadings, true) ? 'added' : 'reread',
                 'title' => $reading->book->title,
                 'date' => $reading->created_at->toDateString(),
             ]);

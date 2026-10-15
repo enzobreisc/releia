@@ -25,12 +25,13 @@ use Illuminate\Support\Collection;
  * @property int $current_page
  * @property int|null $rating
  * @property string|null $review
+ * @property string|null $abandon_reason
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Book $book
  * @property-read Collection<int, ReadingSession> $sessions
  */
-#[Fillable(['status', 'started_at', 'finished_at', 'current_page', 'rating', 'review'])]
+#[Fillable(['status', 'started_at', 'finished_at', 'current_page', 'rating', 'review', 'abandon_reason'])]
 class Reading extends Model
 {
     /** @use HasFactory<ReadingFactory> */

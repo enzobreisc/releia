@@ -36,6 +36,16 @@ class QueueService
         });
     }
 
+    /** Tira o livro da fila, se estiver nela (ao começar a ler, por exemplo). */
+    public function removeBook(Book $book): void
+    {
+        $item = QueueItem::query()->where('book_id', $book->id)->first();
+
+        if ($item !== null) {
+            $this->remove($item);
+        }
+    }
+
     public function remove(QueueItem $item): void
     {
         DB::transaction(function () use ($item) {

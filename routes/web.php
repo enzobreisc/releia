@@ -14,6 +14,7 @@ use App\Http\Controllers\ReadingSessionController;
 use App\Http\Controllers\ShoppingController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\SuggestionController;
+use App\Http\Controllers\UndoController;
 use App\Http\Controllers\WrappedController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,9 +24,20 @@ Route::get('/library', [LibraryController::class, 'index'])->name('library.index
 Route::get('/library/add', [BookController::class, 'create'])->name('books.create');
 Route::post('/library', [BookController::class, 'store'])->name('books.store');
 Route::get('/library/{book}', [BookController::class, 'show'])->whereNumber('book')->name('books.show');
+Route::patch('/library/{book}', [BookController::class, 'update'])->whereNumber('book')->name('books.update');
 Route::delete('/library/{book}', [BookController::class, 'destroy'])->whereNumber('book')->name('books.destroy');
 Route::patch('/library/{book}/reading', [ReadingController::class, 'update'])->whereNumber('book')->name('books.reading');
 Route::get('/library/{book}/cover', BookCoverController::class)->whereNumber('book')->name('books.cover');
+Route::post('/library/{book}/start', [ReadingController::class, 'start'])->whereNumber('book')->name('books.start');
+Route::post('/library/{book}/reread', [ReadingController::class, 'reread'])->whereNumber('book')->name('books.reread');
+
+// Onda 1: ciclo de cada leitura e desfazer
+Route::post('/readings/{reading}/finish', [ReadingController::class, 'finish'])->whereNumber('reading')->name('readings.finish');
+Route::post('/readings/{reading}/abandon', [ReadingController::class, 'abandon'])->whereNumber('reading')->name('readings.abandon');
+Route::post('/readings/{reading}/reopen', [ReadingController::class, 'reopen'])->whereNumber('reading')->name('readings.reopen');
+Route::patch('/readings/{reading}/dates', [ReadingController::class, 'dates'])->whereNumber('reading')->name('readings.dates');
+Route::delete('/readings/{reading}', [ReadingController::class, 'destroy'])->whereNumber('reading')->name('readings.destroy');
+Route::post('/undo/{token}', UndoController::class)->where('token', '[A-Za-z0-9]+')->name('undo');
 
 // Fase 2
 Route::put('/goal', [GoalController::class, 'update'])->name('goal.update');
@@ -34,9 +46,16 @@ Route::patch('/sessions/{session}', [ReadingSessionController::class, 'update'])
 Route::delete('/sessions/{session}', [ReadingSessionController::class, 'destroy'])->whereNumber('session')->name('sessions.destroy');
 Route::get('/quick-log', [QuickLogController::class, 'show'])->name('quick-log');
 Route::post('/quick-log', [QuickLogController::class, 'store'])->name('quick-log.store');
+Route::post('/quick-log/timer', [QuickLogController::class, 'start'])->name('quick-log.timer.start');
+Route::post('/quick-log/timer/pause', [QuickLogController::class, 'pause'])->name('quick-log.timer.pause');
+Route::post('/quick-log/timer/resume', [QuickLogController::class, 'resume'])->name('quick-log.timer.resume');
+Route::post('/quick-log/timer/finish', [QuickLogController::class, 'finish'])->name('quick-log.timer.finish');
+Route::delete('/quick-log/timer', [QuickLogController::class, 'discard'])->name('quick-log.timer.discard');
+Route::post('/quick-log/books', [QuickLogController::class, 'startBook'])->name('quick-log.books');
 
 // Fase 4
 Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 Route::post('/profile/pins', [ProfileController::class, 'pin'])->name('profile.pins.store');
 Route::delete('/profile/pins/{book}', [ProfileController::class, 'unpin'])->whereNumber('book')->name('profile.pins.destroy');
 Route::get('/stats', [StatsController::class, 'index'])->name('stats.index');
@@ -53,9 +72,14 @@ Route::get('/queue', [QueueController::class, 'index'])->name('queue.index');
 Route::post('/queue/books', [QueueController::class, 'store'])->name('queue.store');
 Route::patch('/queue/order', [QueueController::class, 'reorder'])->name('queue.reorder');
 Route::delete('/queue/{queueItem}', [QueueController::class, 'destroy'])->whereNumber('queueItem')->name('queue.destroy');
+Route::delete('/queue/books/{book}', [QueueController::class, 'destroyBook'])->whereNumber('book')->name('queue.books.destroy');
 Route::post('/queue/shopping', [ShoppingController::class, 'store'])->name('shopping.store');
+Route::patch('/queue/shopping/{shoppingItem}', [ShoppingController::class, 'update'])->whereNumber('shoppingItem')->name('shopping.update');
+Route::post('/queue/shopping/{shoppingItem}/open', [ShoppingController::class, 'open'])->whereNumber('shoppingItem')->name('shopping.open');
 Route::delete('/queue/shopping/{shoppingItem}', [ShoppingController::class, 'destroy'])->whereNumber('shoppingItem')->name('shopping.destroy');
 Route::post('/queue/shopping/{shoppingItem}/buy', [ShoppingController::class, 'buy'])->whereNumber('shoppingItem')->name('shopping.buy');
+Route::post('/queue/shopping/{shoppingItem}/unbuy', [ShoppingController::class, 'unbuy'])->whereNumber('shoppingItem')->name('shopping.unbuy');
+Route::put('/queue/shopping/preference', [ShoppingController::class, 'preference'])->name('shopping.preference');
 
 // Fase 5
 Route::get('/suggestions', [SuggestionController::class, 'index'])->name('suggestions.index');

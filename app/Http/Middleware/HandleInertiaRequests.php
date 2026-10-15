@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Note;
 use App\Models\QueueItem;
 use App\Services\DashboardService;
+use App\Support\Toast;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Middleware;
@@ -43,11 +44,15 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            // Dentro do app nativo, links externos abrem no navegador pelo servidor (Shell).
+            'native' => (bool) config('nativephp-internal.running'),
             'counts' => fn () => [
                 'books' => Book::count(),
                 'notes' => Note::count(),
                 'queue' => QueueItem::count(),
             ],
+            // Aviso da última ação (App\Support\Toast), uma vez só.
+            'toast' => fn () => $request->session()->get(Toast::SESSION_KEY),
             // Mini cartão "lendo agora" da barra lateral; null quando nada está em andamento.
             'reading_now' => fn () => app(DashboardService::class)->sidebarCard(Carbon::today()),
         ];

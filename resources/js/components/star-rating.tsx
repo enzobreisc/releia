@@ -5,10 +5,12 @@ export function StarRating({
     value,
     onChange,
     disabled,
+    size = 28,
 }: {
     value: number | null;
     onChange: (value: number | null) => void;
     disabled?: boolean;
+    size?: number;
 }) {
     return (
         <div role="radiogroup" aria-label="Sua nota" className="flex gap-1">
@@ -25,8 +27,8 @@ export function StarRating({
                 >
                     <svg
                         aria-hidden="true"
-                        width="28"
-                        height="28"
+                        width={size}
+                        height={size}
                         viewBox="0 0 24 24"
                     >
                         <polygon

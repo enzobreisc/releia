@@ -143,7 +143,14 @@ export default function Stats({
     forecast,
 }: StatsProps) {
     const kpis = [
-        { label: 'livros lidos', value: formatNumber(indicators.books_read) },
+        {
+            label: 'livros lidos',
+            value: formatNumber(indicators.books_read),
+            note:
+                indicators.rereads > 0
+                    ? `inclui ${indicators.rereads} ${indicators.rereads === 1 ? 'releitura' : 'releituras'}`
+                    : undefined,
+        },
         { label: 'páginas lidas', value: formatNumber(indicators.pages_read) },
         {
             label: 'páginas por dia',

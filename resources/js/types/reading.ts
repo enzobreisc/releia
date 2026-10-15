@@ -40,3 +40,24 @@ export type YearGoal = {
     finished: number;
     projected: number;
 };
+
+/** Uma leitura do histórico do livro (aba Leituras). */
+export type ReadingHistory = {
+    id: number;
+    /** 1 para a primeira leitura, 2 para a releitura… */
+    number: number;
+    status: string;
+    status_label: string;
+    started_at: string | null;
+    finished_at: string | null;
+    days: number | null;
+    current_page: number;
+    pages_per_day: number | null;
+    rating: number | null;
+    review: string | null;
+    abandon_reason: string | null;
+    sessions_count: number;
+    first_session_on: string | null;
+    last_session_on: string | null;
+    sessions: ReadingSession[];
+};

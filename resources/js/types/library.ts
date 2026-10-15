@@ -11,6 +11,10 @@ export type BookCard = {
     status: string | null;
     status_label: string | null;
     rating: number | null;
+    /** Posição na fila (Biblioteca); null fora da fila ou em outras telas. */
+    queue_position: number | null;
+    /** Número de leituras do livro (Biblioteca); mais de uma é releitura. */
+    readings_count: number | null;
 };
 
 export type Shelf = {
@@ -33,7 +37,9 @@ export type BookDetail = {
     cover_url: string | null;
     source_label: string;
     reading: {
+        id: number;
         status: string;
+        abandon_reason: string | null;
         rating: number | null;
         review: string | null;
         started_at: string | null;

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ReadingStatus;
 use App\Http\Presenters\BookPresenter;
 use App\Models\Book;
+use App\Models\QueueItem;
 use App\Models\Reading;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -25,6 +26,7 @@ class LibraryController extends Controller
 
         $books = Book::query()
             ->with(['authors', 'currentReading'])
+            ->withCount('readings')
             ->addSelect(['current_rating' => $this->latestReading('rating')])
             ->when($search !== '', function (Builder $query) use ($search) {
                 foreach (explode(' ', $search) as $term) {
@@ -41,8 +43,11 @@ class LibraryController extends Controller
             ->latest('id')
             ->get();
 
+        /** @var array<int, int> $positions */
+        $positions = QueueItem::query()->pluck('position', 'book_id')->map(fn ($position) => (int) $position)->all();
+
         return Inertia::render('library', [
-            'books' => $books->map(BookPresenter::card(...)),
+            'books' => $books->map(fn (Book $book) => BookPresenter::card($book, $positions[$book->id] ?? null)),
             'shelves' => $this->shelves(),
             'genres' => Book::query()->whereNotNull('genre')->distinct()->orderBy('genre')->pluck('genre'),
             'filters' => [

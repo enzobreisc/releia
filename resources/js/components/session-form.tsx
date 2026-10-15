@@ -1,19 +1,23 @@
 import { useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
-import { Button, Field, Input } from '@/components/form';
+import { Button, Input } from '@/components/form';
 import { store } from '@/routes/sessions';
 import type { ReadingProgress } from '@/types';
 
+const BUMPS = [10, 20, 50];
+
 /**
- * Registro de hoje: página em que você parou e minutos opcionais.
+ * Registro de hoje: página em que você parou, atalhos de +páginas e minutos opcionais.
  * A chave pelo progresso faz o formulário recomeçar do valor novo depois de salvar.
  */
 export function SessionForm({
     bookId,
     progress,
+    onFinish,
 }: {
     bookId: number;
     progress: ReadingProgress;
+    onFinish?: () => void;
 }) {
     const form = useForm({
         page_to: String(progress.current_page),
@@ -28,43 +32,74 @@ export function SessionForm({
         });
     }
 
+    function bump(pages: number) {
+        const next = progress.current_page + pages;
+        form.setData(
+            'page_to',
+            String(progress.pages ? Math.min(progress.pages, next) : next),
+        );
+    }
+
     return (
         <form
             key={progress.current_page}
             onSubmit={save}
-            className="flex flex-wrap items-end gap-3"
+            className="flex flex-wrap items-end gap-2.5"
         >
-            <Field
-                label="Página atual"
-                error={form.errors.page_to}
-                className="flex-[1_1_120px]"
-            >
+            <label className="flex min-w-0 flex-[1_1_150px] flex-col gap-1 text-xs text-muted">
+                Parei na página
                 <Input
                     type="number"
                     min={1}
+                    max={progress.pages ?? undefined}
                     value={form.data.page_to}
                     onChange={(event) =>
                         form.setData('page_to', event.target.value)
                     }
+                    className="h-10.5 border-primary font-mono text-base"
                 />
-            </Field>
-            <Field
-                label="Minutos (opcional)"
-                error={form.errors.minutes}
-                className="flex-[1_1_120px]"
-            >
+            </label>
+            <div className="flex gap-1">
+                {BUMPS.map((pages) => (
+                    <button
+                        key={pages}
+                        type="button"
+                        onClick={() => bump(pages)}
+                        className="h-10.5 rounded-sm border bg-surface px-2.5 font-mono text-xs text-accent hover:bg-active"
+                    >
+                        +{pages}
+                    </button>
+                ))}
+            </div>
+            <label className="flex min-w-0 flex-[0_1_110px] flex-col gap-1 text-xs text-muted">
+                Minutos
                 <Input
                     type="number"
                     min={1}
+                    placeholder="opcional"
                     value={form.data.minutes}
                     onChange={(event) =>
                         form.setData('minutes', event.target.value)
                     }
+                    className="h-10.5 text-sm"
                 />
-            </Field>
-            <Button type="submit" disabled={form.processing}>
-                {form.processing ? 'Salvando…' : 'Salvar sessão'}
+            </label>
+            <Button type="submit" disabled={form.processing} className="h-10.5">
+                {form.processing ? 'Salvando…' : 'Registrar'}
+                <span className="font-mono text-[11px] font-medium opacity-85">
+                    ↵
+                </span>
             </Button>
+            {onFinish && (
+                <Button variant="ghost" onClick={onFinish} className="h-10.5">
+                    Terminei
+                </Button>
+            )}
+            {(form.errors.page_to || form.errors.minutes) && (
+                <p className="basis-full text-xs text-red-300">
+                    {form.errors.page_to ?? form.errors.minutes}
+                </p>
+            )}
         </form>
     );
 }

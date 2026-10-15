@@ -6,7 +6,9 @@ use App\Http\Presenters\BookPresenter;
 use App\Models\Book;
 use App\Services\ProfileService;
 use App\Services\StatsService;
+use App\Services\UndoService;
 use App\Support\StatsPeriod;
+use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,18 +21,34 @@ class ProfileController extends Controller
         private readonly StatsService $stats,
     ) {}
 
-    public function show(): Response
+    /** Avatar: os últimos 25 dias de leitura numa grade 5×5. */
+    private const AVATAR_DAYS = 25;
+
+    private const TOP_GENRES = 3;
+
+    public function show(Request $request): Response
     {
         $history = $this->stats->period(null);
         $indicators = $this->stats->indicators($history);
+        $streaks = $this->stats->streaks($history);
+
+        // Ano do calendário: só os anos com atividade; qualquer outro valor volta para o atual.
+        $years = $this->stats->years();
+        $year = in_array($request->integer('year'), $years, true) ? $request->integer('year') : $years[0];
+        $yearPeriod = StatsPeriod::year($year);
 
         return Inertia::render('profile', [
+            'reader' => $this->profile->reader(),
             'since' => $history->start->format('Y-m'),
             'totals' => [
                 'books_read' => $indicators['books_read'],
                 'pages_read' => $indicators['pages_read'],
-                'streak' => $this->stats->streaks($history)['current'],
+                'pages_per_day' => $indicators['pages_per_day'],
+                'streak' => $streaks['current'],
+                'longest_streak' => $streaks['longest'],
             ],
+            'genres' => $this->stats->genres($history, self::TOP_GENRES),
+            'avatar' => array_column($this->stats->heatmap(StatsPeriod::lastDays(self::AVATAR_DAYS)), 'level'),
             'pinned' => $this->profile->pinned()->map(fn (Book $book) => [
                 ...BookPresenter::card($book),
                 'genre' => $book->genre,
@@ -41,9 +59,30 @@ class ProfileController extends Controller
                 ->get(['id', 'title'])
                 ->map(fn (Book $book) => ['id' => $book->id, 'title' => $book->title]),
             'pin_limit' => ProfileService::MAX_PINS,
-            'calendar' => $this->stats->heatmap(StatsPeriod::year((int) now()->year)),
+            'year' => $year,
+            'years' => $years,
+            'calendar' => $this->stats->heatmap($yearPeriod),
+            'year_summary' => [
+                'reading_days' => $this->stats->indicators($yearPeriod)['reading_days'],
+                'longest_streak' => $this->stats->streaks($yearPeriod)['longest'],
+            ],
             'activity' => $this->profile->recentActivity(),
         ]);
+    }
+
+    /** Nome e frase do leitor. */
+    public function update(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['nullable', 'string', 'max:60'],
+            'bio' => ['nullable', 'string', 'max:160'],
+        ]);
+
+        $this->profile->updateReader($data['name'] ?? null, $data['bio'] ?? null);
+
+        Toast::success('Perfil salvo');
+
+        return back();
     }
 
     /** Fixa um livro na seção "Livros fixados". */
@@ -53,16 +92,23 @@ class ProfileController extends Controller
             'book_id' => ['required', 'integer', 'exists:books,id'],
         ]);
 
-        $pinned = $this->profile->pin(Book::query()->whereKey($data['book_id'])->firstOrFail());
+        $book = Book::query()->whereKey($data['book_id'])->firstOrFail();
 
-        return $pinned
-            ? back()
-            : back()->withErrors(['book_id' => 'Você pode fixar até '.ProfileService::MAX_PINS.' livros.']);
+        if (! $this->profile->pin($book)) {
+            return back()->withErrors(['book_id' => 'Você pode fixar até '.ProfileService::MAX_PINS.' livros.']);
+        }
+
+        Toast::success('Fixado no perfil', $book->title);
+
+        return back();
     }
 
-    public function unpin(Book $book): RedirectResponse
+    public function unpin(Book $book, UndoService $undo): RedirectResponse
     {
+        $snapshot = $undo->capture([UndoService::scope('settings', ['key' => ProfileService::PINS_SETTING], 'key')]);
         $this->profile->unpin($book);
+
+        Toast::success('Desafixado', $book->title, null, $undo->remember($snapshot));
 
         return back();
     }

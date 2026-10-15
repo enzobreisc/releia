@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import type { Option } from '@/types';
 
 const controlClass =
     'w-full rounded-sm border bg-surface px-3 text-[15px] text-text placeholder:text-muted focus:border-primary focus:outline-none disabled:opacity-60';
@@ -82,5 +83,48 @@ export function Button({
             className={buttonClass(variant, className)}
             {...props}
         />
+    );
+}
+
+/** Opções lado a lado, uma marcada (estante, loja). */
+export function Segmented({
+    options,
+    value,
+    onChange,
+    className,
+}: {
+    options: Option[];
+    value: string;
+    onChange: (value: string) => void;
+    className?: string;
+}) {
+    return (
+        <div
+            className={cn('grid gap-1 rounded-md border bg-bg p-1', className)}
+            style={{
+                gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
+            }}
+        >
+            {options.map((option) => {
+                const selected = option.value === value;
+
+                return (
+                    <button
+                        key={option.value}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => onChange(option.value)}
+                        className={cn(
+                            'h-10 rounded-[5px] text-[13px]',
+                            selected
+                                ? 'bg-active font-semibold text-accent'
+                                : 'text-nav hover:bg-surface',
+                        )}
+                    >
+                        {option.label}
+                    </button>
+                );
+            })}
+        </div>
     );
 }

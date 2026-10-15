@@ -58,6 +58,8 @@ class StoreBookRequest extends FormRequest
             'cover_url' => ['nullable', 'url:http,https', 'max:2048'],
             'source' => ['nullable', Rule::enum(BookSource::class)],
             'status' => ['required', Rule::enum(ReadingStatus::class)],
+            // Cadastrar como "lido": quando terminou. Sem data, vale hoje.
+            'finished_on' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
         ];
     }
 
@@ -71,6 +73,7 @@ class StoreBookRequest extends FormRequest
             'isbn_13.unique' => 'Esse livro já está na biblioteca.',
             'pages.between' => 'Número de páginas inválido.',
             'published_year.between' => 'Ano inválido.',
+            'finished_on.before_or_equal' => 'O término não pode ser depois de hoje.',
         ];
     }
 }

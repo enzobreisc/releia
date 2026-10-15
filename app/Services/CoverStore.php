@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Book;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -51,6 +52,24 @@ class CoverStore
 
         $path = "covers/{$book->id}.{$extension}";
         Storage::disk('local')->put($path, $response->body());
+        $book->update(['cover_path' => $path]);
+
+        return true;
+    }
+
+    /** Capa escolhida no Mac (arrastada ou pelo seletor de arquivos). */
+    public function store(Book $book, UploadedFile $file): bool
+    {
+        $extension = self::EXTENSIONS[(string) $file->getMimeType()] ?? null;
+
+        if ($extension === null) {
+            return false;
+        }
+
+        $this->delete($book);
+
+        $path = "covers/{$book->id}.{$extension}";
+        Storage::disk('local')->put($path, (string) $file->get());
         $book->update(['cover_path' => $path]);
 
         return true;
