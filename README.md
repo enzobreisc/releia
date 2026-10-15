@@ -35,12 +35,17 @@ Build do `.app`: `php artisan native:build mac`.
 
 ```
 app/
+  Enums/                                   ReadingStatus, BookSource
+  Http/Controllers/                        LibraryController, BookController, ReadingController…
+  Http/Presenters/                         BookPresenter (formato enviado às páginas)
+  Models/                                  Book, Reading, ReadingSession…
   Providers/NativeAppServiceProvider.php   janela, barra de menu, atalho global
-  Services/                                BookLookupService, ReadingService, StatsService…
+  Services/                                BookLookupService, LibraryService, ReadingService, StatsService…
 config/nativephp.php                       id do app, versão, updater (via NATIVEPHP_* no .env)
 resources/
   css/app.css                              tokens da identidade (cores, fontes, raios)
-  js/pages/                                uma página Inertia por tela
+  js/pages/                                uma página Inertia por tela, com nome em inglês
+                                           (home, library, add-book, book, notes…)
   js/layouts/                              layout com barra lateral
   js/components/                           componentes compartilhados
   images/                                  símbolo e wordmark em SVG
