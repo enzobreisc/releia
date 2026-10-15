@@ -17,6 +17,8 @@ use Illuminate\Validation\ValidationException;
  */
 class ReadingService
 {
+    public function __construct(private readonly QueueService $queue) {}
+
     public function changeStatus(Reading $reading, ReadingStatus $status): void
     {
         if ($reading->status === $status && $reading->exists) {
@@ -50,6 +52,11 @@ class ReadingService
         }
 
         $reading->save();
+
+        // A fila é do que vem a seguir: começar a ler tira o livro dela.
+        if ($status === ReadingStatus::Reading) {
+            $this->queue->removeBook($reading->book);
+        }
     }
 
     /** Leitura mais recente do livro; cria uma em "quero ler" se não houver nenhuma. */
