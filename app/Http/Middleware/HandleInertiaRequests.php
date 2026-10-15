@@ -3,6 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Models\Book;
+use App\Models\Note;
+use App\Models\QueueItem;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -41,6 +43,8 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'counts' => fn () => [
                 'books' => Book::count(),
+                'notes' => Note::count(),
+                'queue' => QueueItem::count(),
             ],
         ];
     }

@@ -13,13 +13,13 @@ import {
     adicionar,
     biblioteca,
     estatisticas,
-    fila,
     inicio,
-    notas,
     perfil,
     sugestoes,
     wrapped,
 } from '@/routes';
+import { index as notesIndex } from '@/routes/notes';
+import { index as queueIndex } from '@/routes/queue';
 import type { NavItem } from '@/types';
 
 /** Grupos da barra lateral, na ordem do escopo (seção 3). */
@@ -32,8 +32,18 @@ export const navGroups: NavItem[][] = [
             icon: LibraryIcon,
             count: 'books',
         },
-        { title: 'Notas', href: notas.url(), icon: NotesIcon },
-        { title: 'Fila', href: fila.url(), icon: QueueIcon },
+        {
+            title: 'Notas',
+            href: notesIndex.url(),
+            icon: NotesIcon,
+            count: 'notes',
+        },
+        {
+            title: 'Fila',
+            href: queueIndex.url(),
+            icon: QueueIcon,
+            count: 'queue',
+        },
     ],
     [
         { title: 'Perfil', href: perfil.url(), icon: ProfileIcon },
