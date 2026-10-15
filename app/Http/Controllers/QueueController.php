@@ -12,7 +12,10 @@ use App\Models\QueueItem;
 use App\Models\ShoppingItem;
 use App\Services\BookLookupService;
 use App\Services\QueueService;
+use App\Services\ShoppingService;
+use App\Services\UndoService;
 use App\Support\AmazonLink;
+use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -82,6 +85,8 @@ class QueueController extends Controller
                 'count' => (int) ($storeCounts[$option['value']] ?? 0),
             ], StoreType::options()),
             'filters' => ['store' => $store?->value],
+            // "Ao comprar": vai para quero ler e também para a fila? Fica salvo.
+            'queue_on_buy' => ShoppingService::queueOnBuy(),
             // Busca de correspondência (ISBN, título ou link da Amazon), só por recarga parcial.
             'matches' => Inertia::optional(fn () => $this->matches($request->string('match')->trim()->toString(), $lookup)),
             'totals' => [
@@ -111,13 +116,25 @@ class QueueController extends Controller
     }
 
     /** Coloca um livro no fim da fila. */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, UndoService $undo): RedirectResponse
     {
         $validated = $request->validate([
             'book_id' => ['required', 'integer', 'exists:books,id'],
         ]);
 
-        $this->queue->add(Book::query()->whereKey($validated['book_id'])->firstOrFail());
+        $book = Book::query()->whereKey($validated['book_id'])->firstOrFail();
+        $snapshot = $undo->capture([UndoService::scope('queue_items')]);
+        $item = $this->queue->add($book);
+
+        Toast::success(
+            'Adicionado à fila',
+            $book->title.' · entrou em '.Toast::ordinal($item->position),
+            // Na própria Fila o link não faz sentido.
+            str_contains(url()->previous(), '/queue')
+                ? null
+                : ['label' => 'Ver fila', 'method' => 'get', 'url' => route('queue.index', absolute: false)],
+            $undo->remember($snapshot),
+        );
 
         return back();
     }
@@ -129,9 +146,21 @@ class QueueController extends Controller
         return back();
     }
 
-    public function destroy(QueueItem $queueItem): RedirectResponse
+    /** Tira da fila pelo livro (botão "na fila · 2º" do Detalhe e da Biblioteca). */
+    public function destroyBook(Book $book, UndoService $undo): RedirectResponse
     {
+        return $this->destroy(QueueItem::query()->where('book_id', $book->id)->firstOrFail(), $undo);
+    }
+
+    public function destroy(QueueItem $queueItem, UndoService $undo): RedirectResponse
+    {
+        $snapshot = $undo->capture([UndoService::scope('queue_items')]);
+        $title = $queueItem->book->title;
+        $position = $queueItem->position;
+
         $this->queue->remove($queueItem);
+
+        Toast::success('Tirado da fila', $title.' · era o '.Toast::ordinal($position), null, $undo->remember($snapshot));
 
         return back();
     }

@@ -72,11 +72,14 @@ Route::get('/queue', [QueueController::class, 'index'])->name('queue.index');
 Route::post('/queue/books', [QueueController::class, 'store'])->name('queue.store');
 Route::patch('/queue/order', [QueueController::class, 'reorder'])->name('queue.reorder');
 Route::delete('/queue/{queueItem}', [QueueController::class, 'destroy'])->whereNumber('queueItem')->name('queue.destroy');
+Route::delete('/queue/books/{book}', [QueueController::class, 'destroyBook'])->whereNumber('book')->name('queue.books.destroy');
 Route::post('/queue/shopping', [ShoppingController::class, 'store'])->name('shopping.store');
 Route::patch('/queue/shopping/{shoppingItem}', [ShoppingController::class, 'update'])->whereNumber('shoppingItem')->name('shopping.update');
 Route::post('/queue/shopping/{shoppingItem}/open', [ShoppingController::class, 'open'])->whereNumber('shoppingItem')->name('shopping.open');
 Route::delete('/queue/shopping/{shoppingItem}', [ShoppingController::class, 'destroy'])->whereNumber('shoppingItem')->name('shopping.destroy');
 Route::post('/queue/shopping/{shoppingItem}/buy', [ShoppingController::class, 'buy'])->whereNumber('shoppingItem')->name('shopping.buy');
+Route::post('/queue/shopping/{shoppingItem}/unbuy', [ShoppingController::class, 'unbuy'])->whereNumber('shoppingItem')->name('shopping.unbuy');
+Route::put('/queue/shopping/preference', [ShoppingController::class, 'preference'])->name('shopping.preference');
 
 // Fase 5
 Route::get('/suggestions', [SuggestionController::class, 'index'])->name('suggestions.index');

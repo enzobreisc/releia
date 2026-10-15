@@ -17,11 +17,13 @@ import {
     buy,
     destroy as destroyShopping,
     open as openShopping,
+    preference,
     store as storeShopping,
+    unbuy,
     update as updateShopping,
 } from '@/routes/shopping';
 import type { Option } from '@/types';
-import { reading as readingRoute, show as showBook } from '@/routes/books';
+import { start as startBook } from '@/routes/books';
 import type { Candidate } from '@/types/library';
 import type { NoteBook } from '@/types/notes';
 import type {
@@ -40,6 +42,7 @@ type QueueProps = {
     stores: StoreOption[];
     filters: { store: string | null };
     totals: { pending_count: number; pending_cents: number };
+    queue_on_buy: boolean;
     matches?: ShoppingMatches;
 };
 
@@ -51,6 +54,7 @@ export default function Queue({
     stores,
     filters,
     totals,
+    queue_on_buy,
     matches,
 }: QueueProps) {
     return (
@@ -68,6 +72,7 @@ export default function Queue({
                     stores={stores}
                     storeFilter={filters.store}
                     totals={totals}
+                    queueOnBuy={queue_on_buy}
                     matches={matches}
                 />
             </div>
@@ -201,34 +206,29 @@ function QueueSection({
                                     {queueMeta(item)}
                                 </span>
                             </div>
-                            {index === 0 && (
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        router.patch(
-                                            readingRoute.url(item.id),
-                                            { status: 'reading' },
-                                            {
-                                                onSuccess: () =>
-                                                    router.visit(
-                                                        showBook.url(item.id),
-                                                    ),
-                                            },
-                                        )
-                                    }
-                                    className="shrink-0 rounded-sm bg-primary px-3.5 py-2.5 text-[13px] font-semibold text-white hover:bg-primary/90"
-                                >
-                                    Começar
-                                </button>
-                            )}
+                            {/* Começar vale para qualquer item; o primeiro fica em destaque. */}
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    router.post(startBook.url(item.id))
+                                }
+                                className={cn(
+                                    'shrink-0 rounded-sm px-3.5 py-2.5 text-[13px] font-semibold',
+                                    index === 0
+                                        ? 'bg-primary text-white hover:bg-primary/90'
+                                        : 'border text-nav hover:bg-bg hover:text-text',
+                                )}
+                            >
+                                Começar
+                            </button>
                             {/* Teclado: subir e descer, além do arrastar. */}
-                            <div className="flex shrink-0 flex-col">
+                            <div className="flex shrink-0 gap-0.5">
                                 <button
                                     type="button"
                                     aria-label={`Subir ${item.title}`}
                                     disabled={index === 0}
                                     onClick={() => move(index, -1)}
-                                    className="h-5 w-7 rounded-[4px] text-[11px] text-muted hover:bg-bg hover:text-text disabled:opacity-30"
+                                    className="size-8 rounded-sm text-[11px] text-muted hover:bg-bg hover:text-text disabled:opacity-30"
                                 >
                                     ▲
                                 </button>
@@ -237,7 +237,7 @@ function QueueSection({
                                     aria-label={`Descer ${item.title}`}
                                     disabled={index === items.length - 1}
                                     onClick={() => move(index, 1)}
-                                    className="h-5 w-7 rounded-[4px] text-[11px] text-muted hover:bg-bg hover:text-text disabled:opacity-30"
+                                    className="size-8 rounded-sm text-[11px] text-muted hover:bg-bg hover:text-text disabled:opacity-30"
                                 >
                                     ▼
                                 </button>
@@ -253,7 +253,7 @@ function QueueSection({
                                         { preserveScroll: true },
                                     )
                                 }
-                                className="size-9 shrink-0 rounded-sm border text-muted hover:bg-bg hover:text-text"
+                                className="ml-1.5 size-9 shrink-0 rounded-sm border text-muted hover:bg-bg hover:text-text"
                             >
                                 ×
                             </button>
@@ -372,15 +372,16 @@ function ShoppingSection({
     stores,
     storeFilter,
     totals,
+    queueOnBuy,
     matches,
 }: {
     shopping: ShoppingEntry[];
     stores: StoreOption[];
     storeFilter: string | null;
     totals: { pending_count: number; pending_cents: number };
+    queueOnBuy: boolean;
     matches?: ShoppingMatches;
 }) {
-    const [queueOnBuy, setQueueOnBuy] = useState(true);
     // Com uma busca em andamento (?match=), o formulário volta aberto.
     const [adding, setAdding] = useState(matches !== undefined);
     const allCount = stores.reduce((sum, store) => sum + store.count, 0);
@@ -399,7 +400,25 @@ function ShoppingSection({
             className="flex min-w-0 flex-[1.2_1_400px] flex-col rounded-md border bg-surface"
         >
             <div className="flex flex-wrap items-start justify-between gap-3 px-5 pt-4">
-                <SectionTitle>lista de compras</SectionTitle>
+                <div className="flex flex-col items-start gap-2">
+                    <SectionTitle>lista de compras</SectionTitle>
+                    {/* Preferência salva: vale para toda compra, até mudar. */}
+                    <button
+                        type="button"
+                        onClick={() =>
+                            router.put(
+                                preference.url(),
+                                { queue_on_buy: !queueOnBuy },
+                                { preserveScroll: true },
+                            )
+                        }
+                        title="Clique para alternar"
+                        className="h-7 rounded-full border px-2.5 text-xs text-nav hover:bg-active hover:text-text"
+                    >
+                        ao comprar:{' '}
+                        {queueOnBuy ? 'quero ler + fila' : 'só quero ler'} ⇄
+                    </button>
+                </div>
                 <div className="text-right">
                     <div className="font-mono text-[22px] font-bold">
                         {formatBRL(totals.pending_cents)}
@@ -453,11 +472,7 @@ function ShoppingSection({
             ) : (
                 <ul className="flex flex-col px-5">
                     {shopping.map((item) => (
-                        <ShoppingRow
-                            key={item.id}
-                            item={item}
-                            queueOnBuy={queueOnBuy}
-                        />
+                        <ShoppingRow key={item.id} item={item} />
                     ))}
                 </ul>
             )}
@@ -480,27 +495,12 @@ function ShoppingSection({
                 </button>
             )}
 
-            <label className="mx-5 mt-3.5 mb-4 flex items-center gap-2 text-xs text-muted">
-                <input
-                    type="checkbox"
-                    checked={queueOnBuy}
-                    onChange={(event) => setQueueOnBuy(event.target.checked)}
-                    className="size-4 accent-primary"
-                />
-                Ao marcar como comprado, o livro vai para "quero ler" e entra no
-                fim da fila
-            </label>
+            <div className="mb-4" />
         </section>
     );
 }
 
-function ShoppingRow({
-    item,
-    queueOnBuy,
-}: {
-    item: ShoppingEntry;
-    queueOnBuy: boolean;
-}) {
+function ShoppingRow({ item }: { item: ShoppingEntry }) {
     const { native } = usePage().props;
 
     // No app nativo o link abre no navegador pelo servidor; no navegador, numa aba nova.
@@ -521,11 +521,11 @@ function ShoppingRow({
                 type="checkbox"
                 aria-label={`Marcar como comprado: ${item.title}`}
                 checked={item.bought}
-                disabled={item.bought}
+                // Comprado tem volta (D10): desmarcar tira da fila o que entrou pela compra.
                 onChange={() =>
                     router.post(
-                        buy.url(item.id),
-                        { queue: queueOnBuy },
+                        item.bought ? unbuy.url(item.id) : buy.url(item.id),
+                        {},
                         { preserveScroll: true },
                     )
                 }

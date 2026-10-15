@@ -2,7 +2,7 @@
 
 namespace App\Support;
 
-/** Conversão de valores digitados em reais para centavos inteiros. */
+/** Valores em reais: do texto digitado para centavos inteiros, e de volta para exibir. */
 final class Money
 {
     /**
@@ -30,5 +30,11 @@ final class Money
         $centavos = str_pad(substr($centavos, 0, 2), 2, '0');
 
         return (int) $reais * 100 + (int) $centavos;
+    }
+
+    /** 3490 vira "R$ 34,90". */
+    public static function format(int $cents): string
+    {
+        return 'R$ '.number_format($cents / 100, 2, ',', '.');
     }
 }

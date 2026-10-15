@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Enums\BookSource;
 use App\Enums\ReadingStatus;
 use App\Models\Book;
+use App\Models\QueueItem;
+use App\Models\Setting;
 use App\Models\ShoppingItem;
 use App\Services\BookLookup\BookCandidate;
 use Carbon\CarbonInterface;
@@ -13,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 /** Lista de compras. Comprar um item cria o livro na biblioteca, na estante "quero ler". */
 class ShoppingService
 {
+    private const QUEUE_ON_BUY = 'shopping_queue_on_buy';
+
     public function __construct(
         private readonly LibraryService $library,
         private readonly BookLookupService $lookup,
@@ -55,6 +59,48 @@ class ShoppingService
                 $this->queue->add($book);
             }
         });
+    }
+
+    /**
+     * Desmarca a compra. O livro continua na biblioteca (e no item, para uma nova
+     * compra reaproveitá-lo); se ele entrou na fila por causa da compra e ainda não
+     * começou, sai da fila.
+     */
+    public function unbuy(ShoppingItem $item): void
+    {
+        if ($item->bought_at === null) {
+            return;
+        }
+
+        DB::transaction(function () use ($item) {
+            $book = $item->book;
+            $boughtAt = $item->bought_at;
+
+            $item->forceFill(['bought_at' => null])->save();
+
+            if ($book === null) {
+                return;
+            }
+
+            $queued = QueueItem::query()->where('book_id', $book->id)->first();
+            $notStarted = $book->currentReading?->status === ReadingStatus::WantToRead
+                && $book->currentReading->sessions()->doesntExist();
+
+            if ($queued !== null && $notStarted && $queued->added_at->greaterThanOrEqualTo($boughtAt->copy()->startOfSecond())) {
+                $this->queue->remove($queued);
+            }
+        });
+    }
+
+    /** Preferência "ao comprar, pôr na fila". Padrão: sim. */
+    public static function queueOnBuy(): bool
+    {
+        return (bool) Setting::get(self::QUEUE_ON_BUY, true);
+    }
+
+    public static function setQueueOnBuy(bool $value): void
+    {
+        Setting::put(self::QUEUE_ON_BUY, $value);
     }
 
     /**
