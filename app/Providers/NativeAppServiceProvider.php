@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Native\QuickLog;
 use Native\Desktop\Contracts\ProvidesPhpIni;
 use Native\Desktop\Facades\Window;
 
@@ -22,8 +23,8 @@ class NativeAppServiceProvider implements ProvidesPhpIni
             ->titleBarHiddenInset()
             ->rememberState();
 
-        // Fase 2: MenuBar::create() com public/menubar/releiaTemplate.png
-        // e GlobalShortcut configurável para o registro rápido.
+        // Ícone da barra de menu e atalho global do registro rápido (app/Native/QuickLog.php).
+        QuickLog::install();
     }
 
     /**
