@@ -13,6 +13,7 @@ use App\Http\Controllers\ReadingController;
 use App\Http\Controllers\ReadingSessionController;
 use App\Http\Controllers\ShoppingController;
 use App\Http\Controllers\StatsController;
+use App\Http\Controllers\SuggestionController;
 use App\Http\Controllers\WrappedController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,8 +26,6 @@ Route::get('/library/{book}', [BookController::class, 'show'])->whereNumber('boo
 Route::delete('/library/{book}', [BookController::class, 'destroy'])->whereNumber('book')->name('books.destroy');
 Route::patch('/library/{book}/reading', [ReadingController::class, 'update'])->whereNumber('book')->name('books.reading');
 Route::get('/library/{book}/cover', BookCoverController::class)->whereNumber('book')->name('books.cover');
-
-Route::inertia('/suggestions', 'suggestions')->name('suggestions.index');
 
 // Fase 2
 Route::put('/goal', [GoalController::class, 'update'])->name('goal.update');
@@ -57,3 +56,10 @@ Route::delete('/queue/{queueItem}', [QueueController::class, 'destroy'])->whereN
 Route::post('/queue/shopping', [ShoppingController::class, 'store'])->name('shopping.store');
 Route::delete('/queue/shopping/{shoppingItem}', [ShoppingController::class, 'destroy'])->whereNumber('shoppingItem')->name('shopping.destroy');
 Route::post('/queue/shopping/{shoppingItem}/buy', [ShoppingController::class, 'buy'])->whereNumber('shoppingItem')->name('shopping.buy');
+
+// Fase 5
+Route::get('/suggestions', [SuggestionController::class, 'index'])->name('suggestions.index');
+Route::post('/suggestions/generate', [SuggestionController::class, 'generate'])->name('suggestions.generate');
+Route::patch('/suggestions/{recommendation}/accept', [SuggestionController::class, 'accept'])->whereNumber('recommendation')->name('suggestions.accept');
+Route::patch('/suggestions/{recommendation}/already-read', [SuggestionController::class, 'alreadyRead'])->whereNumber('recommendation')->name('suggestions.already-read');
+Route::patch('/suggestions/{recommendation}/dismiss', [SuggestionController::class, 'dismiss'])->whereNumber('recommendation')->name('suggestions.dismiss');

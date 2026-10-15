@@ -1,0 +1,76 @@
+{
+    "numFound": 5,
+    "start": 0,
+    "numFoundExact": true,
+    "num_found": 5,
+    "documentation_url": "https://openlibrary.org/dev/docs/api/search",
+    "q": "",
+    "offset": null,
+    "docs": [
+        {
+            "author_name": ["Itamar Vieira Junior", "Itamar Vieira Júnior"],
+            "cover_i": 12369648,
+            "first_publish_year": 2019,
+            "isbn": [
+                "1839766409",
+                "9781839766428",
+                "9781839766404",
+                "6580309318",
+                "9786580309313",
+                "1839766425",
+                "9896605777",
+                "9789896605773"
+            ],
+            "key": "/works/OL24141556W",
+            "number_of_pages_median": 280,
+            "title": "Torto Arado",
+            "subject": [
+                "Magic realism (Literature)",
+                "Accidents",
+                "Domestic fiction",
+                "Families",
+                "farmers",
+                "fiction",
+                "novels",
+                "sisters",
+                "Romance fiction",
+                "Portuguese fiction"
+            ]
+        },
+        {
+            "author_name": ["Itamar Vieira Junior"],
+            "cover_i": 12369612,
+            "first_publish_year": 2019,
+            "isbn": ["6556921467", "9786556921464"],
+            "key": "/works/OL26414892W",
+            "subtitle": "Histórias",
+            "title": "Doramar ou a Odisseia"
+        },
+        {
+            "author_name": ["Itamar Vieira Junior"],
+            "cover_i": 14834499,
+            "first_publish_year": 2023,
+            "isbn": ["6556924172", "9786556924175"],
+            "key": "/works/OL39580661W",
+            "number_of_pages_median": 320,
+            "title": "Salvar o fogo"
+        },
+        {
+            "author_name": ["Itamar Vieira Junior"],
+            "cover_i": 15164623,
+            "first_publish_year": 2025,
+            "isbn": ["6556928771", "9786556928777"],
+            "key": "/works/OL44810601W",
+            "title": "Coração sem medo"
+        },
+        {
+            "author_name": ["Itamar Vieira Junior"],
+            "cover_i": 14848101,
+            "first_publish_year": 2023,
+            "isbn": ["8367503074", "9788367503075"],
+            "key": "/works/OL42654202W",
+            "number_of_pages_median": 280,
+            "title": "Krzywym pługiem"
+        }
+    ]
+}
