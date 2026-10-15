@@ -2,20 +2,31 @@ import { Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { BookCover } from '@/components/book-cover';
+import { BookNotes } from '@/components/book-notes';
 import { Button, Field, Select, Textarea } from '@/components/form';
 import { PageHeader, SectionTitle } from '@/components/page-header';
+import { QueueButton } from '@/components/queue-button';
 import { StarRating } from '@/components/star-rating';
 import { biblioteca } from '@/routes';
 import { destroy, leitura } from '@/routes/livros';
 import type { BookDetail, Option } from '@/types';
+import type { NoteCard } from '@/types/notes';
 
 type LivroProps = {
     book: BookDetail;
     slug: string;
     statuses: Option[];
+    notes: NoteCard[];
+    queued: boolean;
 };
 
-export default function Livro({ book, slug, statuses }: LivroProps) {
+export default function Livro({
+    book,
+    slug,
+    statuses,
+    notes,
+    queued,
+}: LivroProps) {
     const reading = book.reading;
     const [saving, setSaving] = useState(false);
 
@@ -89,6 +100,9 @@ export default function Livro({ book, slug, statuses }: LivroProps) {
                         />
                     </div>
                     <ReadingDates reading={reading} />
+                    {reading?.status === 'quero_ler' && (
+                        <QueueButton bookId={book.id} queued={queued} />
+                    )}
                 </aside>
 
                 <section className="flex min-w-0 flex-[999_1_380px] flex-col gap-5.5">
@@ -121,6 +135,8 @@ export default function Livro({ book, slug, statuses }: LivroProps) {
                             junto com o registro rápido pela barra de menu.
                         </p>
                     </section>
+
+                    <BookNotes bookId={book.id} notes={notes} />
 
                     <ReviewForm
                         bookId={book.id}

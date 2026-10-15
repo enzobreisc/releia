@@ -5,6 +5,7 @@ import { Kbd } from '@/components/app-sidebar';
 import { buttonClass, Field, Input, Select } from '@/components/form';
 import { PlusIcon } from '@/components/icons';
 import { PageHeader } from '@/components/page-header';
+import { QueueButton } from '@/components/queue-button';
 import { cn } from '@/lib/utils';
 import { adicionar, biblioteca } from '@/routes';
 import { show } from '@/routes/livros';
@@ -171,28 +172,33 @@ export default function Biblioteca({
             {books.length > 0 ? (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(128px,1fr))] gap-x-5 gap-y-6">
                     {books.map((book) => (
-                        <Link
-                            key={book.id}
-                            href={show.url(book.id)}
-                            className="group flex flex-col gap-2"
-                        >
-                            <BookCover
-                                src={book.cover_url}
-                                title={book.title}
-                                className="w-full transition group-hover:border-primary"
-                            />
-                            <div className="line-clamp-2 text-sm font-semibold">
-                                {book.title}
-                            </div>
-                            <div className="line-clamp-1 text-[13px] text-muted">
-                                {book.authors || 'Autor desconhecido'}
-                            </div>
-                            {book.status_label && (
-                                <span className="self-start rounded-[10px] bg-elevated px-2 py-0.5 font-mono text-[11px]">
-                                    {book.status_label}
-                                </span>
+                        // Fase 3: o botão "+ fila" fica fora do Link, que não pode conter botões.
+                        <div key={book.id} className="flex flex-col gap-2">
+                            <Link
+                                href={show.url(book.id)}
+                                className="group flex flex-col gap-2"
+                            >
+                                <BookCover
+                                    src={book.cover_url}
+                                    title={book.title}
+                                    className="w-full transition group-hover:border-primary"
+                                />
+                                <div className="line-clamp-2 text-sm font-semibold">
+                                    {book.title}
+                                </div>
+                                <div className="line-clamp-1 text-[13px] text-muted">
+                                    {book.authors || 'Autor desconhecido'}
+                                </div>
+                                {book.status_label && (
+                                    <span className="self-start rounded-[10px] bg-elevated px-2 py-0.5 font-mono text-[11px]">
+                                        {book.status_label}
+                                    </span>
+                                )}
+                            </Link>
+                            {book.status === 'quero_ler' && (
+                                <QueueButton bookId={book.id} />
                             )}
-                        </Link>
+                        </div>
                     ))}
                 </div>
             ) : (
