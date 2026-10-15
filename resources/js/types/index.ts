@@ -1,1 +1,1 @@
-export type * from './auth';
+export {};
