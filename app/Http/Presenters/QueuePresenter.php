@@ -5,6 +5,7 @@ namespace App\Http\Presenters;
 use App\Models\QueueItem;
 use App\Models\ShoppingItem;
 use App\Support\AmazonLink;
+use App\Support\StoreLinks;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
@@ -41,10 +42,15 @@ final class QueuePresenter
             'title' => $item->title,
             'author' => $item->author,
             'isbn' => $item->isbn,
-            'cover_url' => $item->cover_url,
+            'cover_url' => $item->cover_path === null
+                ? $item->cover_url
+                : route('shopping.cover', ['shoppingItem' => $item, 'v' => $item->updated_at?->timestamp], absolute: false),
             'link' => $item->shopUrl(),
             // Link gerado (busca na Amazon) ou colado à mão.
             'link_label' => $item->url === null || AmazonLink::isAmazon($item->url) ? 'Ver na Amazon' : 'Abrir link',
+            // Todas as lojas com busca pronta; o link colado, se houver, vai à parte.
+            'stores' => StoreLinks::all($item->isbn, $item->title, $item->author),
+            'saved_link' => $item->url,
             'store_type' => $item->store_type->value,
             'store_label' => $item->store_type->label(),
             'estimated_price_cents' => $item->estimated_price_cents,

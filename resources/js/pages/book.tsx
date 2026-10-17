@@ -25,8 +25,12 @@ import { STATUS_LABELS, StatusIcon, StatusMenu } from '@/components/status';
 import type { Status } from '@/components/status';
 import { monthYear, plural, shortDate } from '@/lib/dates';
 import { cn } from '@/lib/utils';
-import { reading as readingRoute } from '@/routes/books';
+import {
+    reading as readingRoute,
+    shopping as shoppingRoute,
+} from '@/routes/books';
 import { index as libraryIndex } from '@/routes/library';
+import { show as authorShow } from '@/routes/authors';
 import type {
     BookDetail,
     Candidate,
@@ -190,7 +194,19 @@ export default function Book({
                             </p>
                         )}
                         <p className="text-base text-nav">
-                            {book.authors || 'Autor desconhecido'}
+                            {book.author_links.length === 0
+                                ? 'Autor desconhecido'
+                                : book.author_links.map((author, index) => (
+                                      <span key={author.id}>
+                                          {index > 0 && ', '}
+                                          <Link
+                                              href={authorShow.url(author.id)}
+                                              className="hover:text-accent hover:underline"
+                                          >
+                                              {author.name}
+                                          </Link>
+                                      </span>
+                                  ))}
                         </p>
                     </div>
 
@@ -261,6 +277,23 @@ export default function Book({
                                         >
                                             Editar dados do livro
                                         </MenuItem>
+                                        {status === 'want_to_read' &&
+                                            readings.length <= 1 &&
+                                            sessions.length === 0 &&
+                                            notes.length === 0 && (
+                                                <MenuItem
+                                                    onClick={() => {
+                                                        closeMenu();
+                                                        router.post(
+                                                            shoppingRoute.url(
+                                                                book.id,
+                                                            ),
+                                                        );
+                                                    }}
+                                                >
+                                                    Mover para compras
+                                                </MenuItem>
+                                            )}
                                         {current &&
                                             status !== 'want_to_read' && (
                                                 <MenuItem

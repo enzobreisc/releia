@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\StoreType;
 use App\Support\AmazonLink;
+use App\Support\StoreLinks;
 use Database\Factories\ShoppingItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string $author
  * @property string|null $isbn
  * @property string|null $cover_url
+ * @property string|null $cover_path
  * @property string|null $url
  * @property StoreType $store_type
  * @property int|null $estimated_price_cents
@@ -29,7 +31,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read Book|null $book
  */
-#[Fillable(['book_id', 'title', 'author', 'isbn', 'cover_url', 'url', 'store_type', 'estimated_price_cents', 'price_checked_at', 'bought_at'])]
+#[Fillable(['book_id', 'title', 'author', 'isbn', 'cover_url', 'cover_path', 'url', 'store_type', 'estimated_price_cents', 'price_checked_at', 'bought_at'])]
 class ShoppingItem extends Model
 {
     /** @use HasFactory<ShoppingItemFactory> */
@@ -56,9 +58,18 @@ class ShoppingItem extends Model
         return $this->belongsTo(Book::class);
     }
 
-    /** Onde comprar: o link colado ou, sem ele, a busca na Amazon pelo ISBN ou título. */
-    public function shopUrl(): string
+    /**
+     * Onde comprar: a loja pedida; sem pedido, o link colado ou, sem ele,
+     * a busca na Amazon pelo ISBN ou título.
+     */
+    public function shopUrl(?string $store = null): string
     {
+        $link = $store === null ? null : StoreLinks::url($store, $this->isbn, $this->title, $this->author);
+
+        if ($link !== null) {
+            return $link;
+        }
+
         if ($this->url !== null) {
             return $this->url;
         }

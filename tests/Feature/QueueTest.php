@@ -9,6 +9,8 @@ use App\Models\ReadingSession;
 use App\Models\ShoppingItem;
 use App\Services\QueueService;
 use App\Support\Money;
+use App\Support\StoreLinks;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -34,6 +36,7 @@ function fakeMetadataSources(): void
     Http::fake([
         'openlibrary.org/api/books*' => apiFixture('open-library/books-9786580309313.json'),
         'openlibrary.org/search.json*' => apiFixture('open-library/search-isbn-9786580309313.json'),
+        'brasilapi.com.br/*' => Http::response([], 404),
         'www.googleapis.com/*' => Http::response([], 429),
         'covers.openlibrary.org/*' => Http::response(str_repeat('x', 4096), 200, ['Content-Type' => 'image/jpeg']),
     ]);
@@ -209,7 +212,7 @@ test('comprar um ISBN que já está na biblioteca reaproveita o livro', function
         ->and(ShoppingItem::sole()->book_id)->toBe($existing->id);
 });
 
-test('a tela de fila traz itens, estimativas e total só dos pendentes', function () {
+test('a fila traz itens e estimativas; as compras, a lista e o total só dos pendentes', function () {
     $book = wantToRead(['pages' => 200]);
     app(QueueService::class)->add($book);
 
@@ -223,12 +226,17 @@ test('a tela de fila traz itens, estimativas e total só dos pendentes', functio
             ->has('queue', 1)
             ->where('queue.0.estimated_days', 10)
             ->where('pace.pages_per_day', 20)
+            ->where('shopping_pending', 1));
+
+    $this->get(route('shopping.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('shopping')
             ->has('shopping', 2)
             ->where('totals.pending_count', 1)
             ->where('totals.pending_cents', 1000)
             ->where('shopping.1.bought', true));
 
-    $this->get(route('queue.index', ['store' => 'online']))
+    $this->get(route('shopping.index', ['store' => 'online']))
         ->assertInertia(fn (Assert $page) => $page->has('shopping', 1)->where('filters.store', 'online'));
 });
 
@@ -258,7 +266,7 @@ test('busca correspondência pelo ISBN só na recarga parcial e marca o que já 
     fakeMetadataSources();
     Book::factory()->create(['isbn_13' => '9786580309313']);
 
-    $this->get(route('queue.index', ['match' => '978-65-80309-31-3']))
+    $this->get(route('shopping.index', ['match' => '978-65-80309-31-3']))
         ->assertInertia(fn (Assert $page) => $page
             ->missing('matches')
             ->reloadOnly('matches', fn (Assert $reload) => $reload
@@ -271,7 +279,7 @@ test('busca correspondência pelo ISBN só na recarga parcial e marca o que já 
 test('link da Amazon colado vira busca pelo ISBN do ASIN', function () {
     fakeMetadataSources();
 
-    $this->get(route('queue.index', ['match' => 'https://www.amazon.com.br/Torto-Arado/dp/6580309318/ref=sr_1_1']))
+    $this->get(route('shopping.index', ['match' => 'https://www.amazon.com.br/Torto-Arado/dp/6580309318/ref=sr_1_1']))
         ->assertInertia(fn (Assert $page) => $page
             ->reloadOnly('matches', fn (Assert $reload) => $reload
                 ->where('matches.isbn_from_url', '9786580309313')
@@ -281,7 +289,7 @@ test('link da Amazon colado vira busca pelo ISBN do ASIN', function () {
 test('link sem ISBN não busca nada nas fontes', function (string $url) {
     Http::preventStrayRequests();
 
-    $this->get(route('queue.index', ['match' => $url]))
+    $this->get(route('shopping.index', ['match' => $url]))
         ->assertInertia(fn (Assert $page) => $page
             ->reloadOnly('matches', fn (Assert $reload) => $reload
                 ->where('matches.isbn_from_url', null)
@@ -315,7 +323,7 @@ test('sem link colado, o item aponta para a busca na Amazon', function () {
     expect($withIsbn->shopUrl())->toBe('https://www.amazon.com.br/s?k=9786580309313&i=stripbooks')
         ->and($withoutIsbn->shopUrl())->toBe('https://www.amazon.com.br/s?k=Mem%C3%B3rias+Fulana&i=stripbooks');
 
-    $this->get(route('queue.index'))
+    $this->get(route('shopping.index'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('shopping.0.link', $withIsbn->shopUrl())
             ->where('shopping.0.link_label', 'Ver na Amazon'));
@@ -344,6 +352,29 @@ test('fora do app nativo, abrir o link redireciona para ele', function () {
     $this->post(route('shopping.open', $item), [], ['X-Inertia' => 'true'])
         ->assertStatus(409)
         ->assertHeader('X-Inertia-Location', $item->shopUrl());
+});
+
+test('abrir uma loja específica leva à busca dela pelo ISBN', function () {
+    $item = ShoppingItem::factory()->create(['isbn' => '9786580309313']);
+
+    $this->post(route('shopping.open', $item), ['store' => 'estante_virtual'], ['X-Inertia' => 'true'])
+        ->assertStatus(409)
+        ->assertHeader('X-Inertia-Location', 'https://www.estantevirtual.com.br/busca?q=9786580309313');
+
+    $this->post(route('shopping.open', $item), ['store' => 'loja-inventada'])->assertSessionHasErrors('store');
+});
+
+test('cada item da lista traz a busca pronta nas lojas, por ISBN ou por título', function () {
+    expect(StoreLinks::all('9786580309313', 'Torto Arado', 'Itamar')[2])->toBe([
+        'key' => 'mercado_livre',
+        'label' => 'Mercado Livre',
+        'url' => 'https://lista.mercadolivre.com.br/9786580309313',
+    ])
+        ->and(StoreLinks::url('buscape', null, 'Torto Arado', 'Itamar Vieira Junior'))
+        ->toBe('https://www.buscape.com.br/search?q=Torto+Arado+Itamar+Vieira+Junior')
+        ->and(StoreLinks::url('mercado_livre', null, 'Dom Casmurro', 'Machado de Assis'))
+        ->toBe('https://lista.mercadolivre.com.br/dom-casmurro-machado-de-assis')
+        ->and(StoreLinks::url('nenhuma', '9786580309313', 'X'))->toBeNull();
 });
 
 test('recusa link que não é http', function () {
@@ -379,7 +410,7 @@ test('as abas de loja contam só os itens por comprar, sem o filtro atual', func
     ShoppingItem::factory()->create(['store_type' => StoreType::UsedBookstore]);
     ShoppingItem::factory()->create(['store_type' => StoreType::Online, 'bought_at' => now()]);
 
-    $this->get(route('queue.index', ['store' => 'used_bookstore']))
+    $this->get(route('shopping.index', ['store' => 'used_bookstore']))
         ->assertInertia(fn (Assert $page) => $page
             ->where('stores.0.value', 'used_bookstore')
             ->where('stores.0.count', 1)
@@ -391,7 +422,7 @@ test('preço anotado há mais de 30 dias aparece para conferir', function () {
     ShoppingItem::factory()->create(['price_checked_at' => now()->subDays(31)]);
     ShoppingItem::factory()->create(['price_checked_at' => now()->subDays(5)]);
 
-    $this->get(route('queue.index'))
+    $this->get(route('shopping.index'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('shopping.0.price_stale', true)
             ->where('shopping.1.price_stale', false));
@@ -408,4 +439,109 @@ test('começar a ler um livro tira ele da fila e reordena o resto', function () 
 
     expect(QueueItem::query()->pluck('book_id')->all())->toBe([$second->id])
         ->and(QueueItem::sole()->position)->toBe(1);
+});
+
+/** Página de busca da Estante Virtual com o estado embutido, como no site real. */
+function estanteVirtualPage(array $products): string
+{
+    $state = json_encode(['Newsletter' => [], 'SearchPage' => ['parentSkus' => $products]]);
+
+    return "<html><script>window.__INITIAL_STATE__={$state};window.__OTHER__={\"x\":1};</script></html>";
+}
+
+test('buscar preço guarda o menor preço da edição na Estante Virtual', function () {
+    Http::fake(['www.estantevirtual.com.br/*' => Http::response(estanteVirtualPage([
+        ['code' => 'grp-AAA-0001-000', 'name' => 'Outro livro', 'salePrice' => 500],
+        ['code' => '00Z-9950-000-BK', 'name' => 'Torto arado', 'salePrice' => 4000],
+    ]))]);
+    $item = ShoppingItem::factory()->create(['isbn' => '9786580309313', 'estimated_price_cents' => null]);
+
+    $this->post(route('shopping.price', $item))->assertRedirect();
+
+    $item->refresh();
+    expect($item->estimated_price_cents)->toBe(4000)
+        ->and($item->price_checked_at)->not->toBeNull();
+    Http::assertSent(fn (Request $request) => $request['q'] === '9786580309313');
+});
+
+test('buscar preço sem resultado ou com a página mudada mantém o preço anotado', function (string $body) {
+    Http::fake(['www.estantevirtual.com.br/*' => Http::response($body)]);
+    $item = ShoppingItem::factory()->create(['isbn' => '9786580309313', 'estimated_price_cents' => 3500]);
+
+    $this->post(route('shopping.price', $item))->assertRedirect();
+
+    expect($item->refresh()->estimated_price_cents)->toBe(3500);
+})->with([
+    'sem a entrada do catálogo' => [estanteVirtualPage([['code' => 'grp-AAA-0001-000', 'salePrice' => 500]])],
+    'página sem estado' => ['<html>mudou tudo</html>'],
+]);
+
+test('buscar preço exige ISBN', function () {
+    Http::fake();
+    $item = ShoppingItem::factory()->create(['isbn' => null]);
+
+    $this->post(route('shopping.price', $item))->assertRedirect();
+
+    Http::assertNothingSent();
+});
+
+test('fila e compras são telas separadas, cada uma só com os seus dados', function () {
+    $this->get(route('queue.index'))->assertInertia(fn (Assert $page) => $page
+        ->component('queue')
+        ->has('queue')
+        ->missing('shopping')
+        ->has('shopping_pending'));
+
+    $this->get(route('shopping.index'))->assertInertia(fn (Assert $page) => $page
+        ->component('shopping')
+        ->has('shopping')
+        ->missing('queue')
+        ->has('queue_count'));
+});
+
+test('o contador de compras da barra lateral conta só o que falta comprar', function () {
+    ShoppingItem::factory()->create(['bought_at' => null]);
+    ShoppingItem::factory()->create(['bought_at' => now()]);
+
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->where('counts.shopping', 1));
+});
+
+test('item novo com ISBN já entra com o preço de referência da Estante Virtual', function () {
+    Http::fake(['www.estantevirtual.com.br/*' => Http::response(estanteVirtualPage([
+        ['code' => '00Z-9950-000-BK', 'name' => 'Torto arado', 'salePrice' => 4000],
+    ]))]);
+
+    $this->post(route('shopping.store'), [
+        'title' => 'Torto Arado',
+        'isbn' => '9786580309313',
+        'store_type' => 'online',
+    ])->assertRedirect();
+
+    expect(ShoppingItem::sole()->estimated_price_cents)->toBe(4000);
+});
+
+test('preço digitado não é trocado pela busca automática', function () {
+    Http::fake();
+
+    $this->post(route('shopping.store'), [
+        'title' => 'Torto Arado',
+        'isbn' => '9786580309313',
+        'store_type' => 'online',
+        'estimated_price' => '49,90',
+    ])->assertRedirect();
+
+    expect(ShoppingItem::sole()->estimated_price_cents)->toBe(4990);
+    Http::assertNothingSent();
+});
+
+test('a lista filtra por situação e busca, e ordena por preço', function () {
+    ShoppingItem::factory()->create(['title' => 'Alfa', 'estimated_price_cents' => 3000]);
+    ShoppingItem::factory()->create(['title' => 'Beta', 'estimated_price_cents' => 1000]);
+    ShoppingItem::factory()->create(['title' => 'Gama', 'bought_at' => now()]);
+
+    $titles = fn (array $query) => collect($this->get(route('shopping.index', $query))->viewData('page')['props']['shopping'])->pluck('title')->all();
+
+    expect($titles(['status' => 'pending', 'sort' => 'price_asc']))->toBe(['Beta', 'Alfa'])
+        ->and($titles(['status' => 'bought']))->toBe(['Gama'])
+        ->and($titles(['q' => 'alf']))->toBe(['Alfa']);
 });
