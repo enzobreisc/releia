@@ -3,6 +3,8 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { BookCover } from '@/components/book-cover';
 import { Button } from '@/components/form';
+import { SuggestionEditions } from '@/components/suggestion-editions';
+import type { Choosing } from '@/components/suggestion-editions';
 import { PageHeader } from '@/components/page-header';
 import { index as libraryIndex } from '@/routes/library';
 import { accept, alreadyRead, dismiss, generate } from '@/routes/suggestions';
@@ -36,7 +38,7 @@ export default function Suggestions({
                         disabled={busy || !hasSources}
                         onClick={() => router.visit(generate(), options)}
                     >
-                        Buscar novas sugestões
+                        {busy ? 'Buscando…' : 'Buscar novas sugestões'}
                     </Button>
                 }
             />
@@ -70,6 +72,22 @@ export default function Suggestions({
                     />
                 ))}
             </div>
+
+            {hasSources && suggestions.length > 0 && (
+                <div className="flex flex-col items-start gap-2 pb-4">
+                    <Button
+                        variant="outline"
+                        disabled={busy}
+                        onClick={() => router.visit(generate(), options)}
+                    >
+                        {busy ? 'Buscando…' : 'Buscar mais sugestões'}
+                    </Button>
+                    <span className="text-xs text-muted">
+                        Cada busca sorteia outros dos seus livros e lê novos
+                        resultados, e acrescenta à lista.
+                    </span>
+                </div>
+            )}
         </>
     );
 }
@@ -91,6 +109,9 @@ function SuggestionCard({
     disabled: boolean;
     options: { preserveScroll: boolean };
 }) {
+    const [open, setOpen] = useState(false);
+    const [choosing, setChoosing] = useState<Choosing | null>(null);
+
     return (
         <article className="flex flex-wrap gap-5 rounded-md border bg-surface p-5">
             <BookCover
@@ -110,13 +131,27 @@ function SuggestionCard({
                 <span className="self-start rounded-full bg-elevated px-3 py-1 font-mono text-xs text-muted">
                     Parecido com: {suggestion.based_on}
                 </span>
+                {suggestion.has_editions && (
+                    <button
+                        type="button"
+                        aria-expanded={open}
+                        onClick={() => setOpen(!open)}
+                        className="self-start text-sm text-accent hover:underline"
+                    >
+                        {open ? '− Esconder edições' : '+ Escolher edição'}
+                    </button>
+                )}
             </div>
 
             <div className="flex flex-col justify-center gap-2">
                 <Button
                     variant="outline"
                     disabled={disabled}
-                    onClick={() => router.visit(accept(suggestion.id), options)}
+                    onClick={() =>
+                        suggestion.has_editions
+                            ? setChoosing('want')
+                            : router.visit(accept(suggestion.id), options)
+                    }
                 >
                     Quero ler
                 </Button>
@@ -124,7 +159,9 @@ function SuggestionCard({
                     variant="ghost"
                     disabled={disabled}
                     onClick={() =>
-                        router.visit(alreadyRead(suggestion.id), options)
+                        suggestion.has_editions
+                            ? setChoosing('read')
+                            : router.visit(alreadyRead(suggestion.id), options)
                     }
                 >
                     Já li
@@ -139,6 +176,20 @@ function SuggestionCard({
                     Sem interesse
                 </Button>
             </div>
+
+            {(open || choosing) && (
+                <SuggestionEditions
+                    key={choosing ?? 'browse'}
+                    id={suggestion.id}
+                    disabled={disabled}
+                    options={options}
+                    mode={choosing}
+                    onCancel={() => {
+                        setChoosing(null);
+                        setOpen(false);
+                    }}
+                />
+            )}
         </article>
     );
 }

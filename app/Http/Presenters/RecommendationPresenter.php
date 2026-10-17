@@ -8,7 +8,7 @@ use App\Models\Recommendation;
 final class RecommendationPresenter
 {
     /**
-     * @return array{id: int, title: string, authors: string, cover_url: string|null, reason: string, based_on: string}
+     * @return array{id: int, title: string, authors: string, cover_url: string|null, reason: string, based_on: string, has_editions: bool}
      */
     public static function card(Recommendation $recommendation): array
     {
@@ -19,6 +19,8 @@ final class RecommendationPresenter
             'cover_url' => $recommendation->cover_url,
             'reason' => $recommendation->reason,
             'based_on' => $recommendation->basedOn->title,
+            // Com o ISBN dá para achar a obra na hora (sugestões antigas não a guardaram).
+            'has_editions' => $recommendation->work_key !== null || $recommendation->isbn_13 !== null,
         ];
     }
 }

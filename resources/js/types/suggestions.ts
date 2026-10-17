@@ -6,4 +6,5 @@ export type Suggestion = {
     cover_url: string | null;
     reason: string;
     based_on: string;
+    has_editions: boolean;
 };

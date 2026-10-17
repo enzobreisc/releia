@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Enums\RecommendationStatus;
+use App\Http\Presenters\BookPresenter;
 use App\Http\Presenters\RecommendationPresenter;
 use App\Models\Book;
 use App\Models\Recommendation;
 use App\Services\RecommendationService;
 use App\Services\UndoService;
 use App\Support\Toast;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -44,9 +47,17 @@ class SuggestionController extends Controller
         return to_route('suggestions.index');
     }
 
-    public function accept(Recommendation $recommendation): RedirectResponse
+    /** Edições da obra sugerida, com as que já estão na biblioteca marcadas. */
+    public function editions(Recommendation $recommendation): JsonResponse
     {
-        if ($this->suggestions->accept($recommendation)) {
+        return response()->json([
+            'items' => BookPresenter::candidates($this->suggestions->editions($recommendation)),
+        ]);
+    }
+
+    public function accept(Request $request, Recommendation $recommendation): RedirectResponse
+    {
+        if ($this->suggestions->accept($recommendation, $this->isbn($request))) {
             $book = Book::query()->latest('id')->firstOrFail();
             Toast::success('Adicionado a Quero ler', $recommendation->title, [
                 'label' => 'Pôr na fila', 'method' => 'post', 'url' => route('queue.store', absolute: false), 'data' => ['book_id' => $book->id],
@@ -58,9 +69,9 @@ class SuggestionController extends Controller
         return back();
     }
 
-    public function alreadyRead(Recommendation $recommendation): RedirectResponse
+    public function alreadyRead(Request $request, Recommendation $recommendation): RedirectResponse
     {
-        if ($this->suggestions->alreadyRead($recommendation)) {
+        if ($this->suggestions->alreadyRead($recommendation, $this->isbn($request))) {
             $book = Book::query()->latest('id')->firstOrFail();
             Toast::success('Adicionado como lido', $recommendation->title, [
                 'label' => 'Avaliar', 'method' => 'get', 'url' => route('books.show', $book, absolute: false),
@@ -80,5 +91,11 @@ class SuggestionController extends Controller
         Toast::success('Sugestão dispensada', $recommendation->title, null, $undo->remember($snapshot));
 
         return back();
+    }
+
+    /** ISBN da edição escolhida, quando o usuário escolheu uma. */
+    private function isbn(Request $request): ?string
+    {
+        return $request->validate(['isbn_13' => ['nullable', 'string', 'max:20']])['isbn_13'] ?? null;
     }
 }
