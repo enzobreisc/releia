@@ -3,6 +3,7 @@
 namespace App\Services\BookLookup;
 
 use App\Enums\BookSource;
+use App\Support\Genres;
 use App\Support\Isbn;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
@@ -25,7 +26,16 @@ class GoogleBooksProvider implements MetadataProvider
 
     public function search(string $query, ?string $publisher = null): array
     {
-        return $this->volumes($publisher ? "{$query} inpublisher:{$publisher}" : $query, 10);
+        if ($publisher) {
+            $publisher = str_replace('"', '', $publisher);
+            $results = $this->volumes("{$query} inpublisher:\"{$publisher}\"", 10);
+
+            if ($results !== []) {
+                return $results;
+            }
+        }
+
+        return $this->volumes($query, 10);
     }
 
     /**
@@ -82,7 +92,7 @@ class GoogleBooksProvider implements MetadataProvider
                 publisher: BookCandidate::nonEmptyString($info['publisher'] ?? null),
                 publishedYear: BookCandidate::yearFrom($info['publishedDate'] ?? null),
                 pages: BookCandidate::positiveInt($info['pageCount'] ?? null),
-                genre: BookCandidate::nonEmptyString($info['categories'][0] ?? null),
+                genre: Genres::fromSubjects(is_array($info['categories'] ?? null) ? $info['categories'] : []),
                 description: BookCandidate::nonEmptyString($info['description'] ?? null),
                 coverUrl: $this->coverUrl($info['imageLinks'] ?? null),
             );

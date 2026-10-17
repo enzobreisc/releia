@@ -22,6 +22,10 @@ export type ShoppingEntry = {
     /** Link colado ou a busca na Amazon pelo ISBN/título. */
     link: string;
     link_label: string;
+    /** Busca pronta em cada loja (pelo ISBN, ou título e autor). */
+    stores: { key: string; label: string; url: string }[];
+    /** Link colado à mão, se houver. */
+    saved_link: string | null;
     store_type: string;
     store_label: string;
     estimated_price_cents: number | null;

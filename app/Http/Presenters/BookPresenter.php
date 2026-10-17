@@ -29,6 +29,25 @@ final class BookPresenter
     }
 
     /**
+     * Lombada: o cartão com o que a estante precisa para ordenar e agrupar
+     * (páginas dão a espessura; gênero, autor e ano dão as prateleiras).
+     *
+     * @return array<string, mixed>
+     */
+    public static function spine(Book $book, ?int $queuePosition = null): array
+    {
+        return [
+            ...self::card($book, $queuePosition),
+            'author' => $book->authors->first()?->name,
+            'genre' => $book->genre,
+            'pages' => $book->pages,
+            'published_year' => $book->published_year,
+            'bookshelf_id' => $book->bookshelf_id,
+            'shelf_position' => $book->shelf_position,
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public static function detail(Book $book): array
@@ -40,6 +59,7 @@ final class BookPresenter
             'title' => $book->title,
             'subtitle' => $book->subtitle,
             'authors' => $book->authors->pluck('name')->implode(', '),
+            'author_links' => $book->authors->map(fn ($author) => ['id' => $author->id, 'name' => $author->name])->values(),
             'isbn_13' => $book->isbn_13,
             'publisher' => $book->publisher,
             'published_year' => $book->published_year,

@@ -1,4 +1,6 @@
 import {
+    AuthorsIcon,
+    CartIcon,
     HomeIcon,
     LibraryIcon,
     NotesIcon,
@@ -11,9 +13,11 @@ import {
 } from '@/components/icons';
 import { home } from '@/routes';
 import { create as addBook } from '@/routes/books';
+import { index as authorsIndex } from '@/routes/authors';
 import { index as libraryIndex } from '@/routes/library';
 import { index as notesIndex } from '@/routes/notes';
 import { index as queueIndex } from '@/routes/queue';
+import { index as shoppingIndex } from '@/routes/shopping';
 import { show as profileShow } from '@/routes/profile';
 import { index as statsIndex } from '@/routes/stats';
 import { show as wrappedShow } from '@/routes/wrapped';
@@ -30,6 +34,7 @@ export const navGroups: NavItem[][] = [
             icon: LibraryIcon,
             count: 'books',
         },
+        { title: 'Autores', href: authorsIndex.url(), icon: AuthorsIcon },
         {
             title: 'Notas',
             href: notesIndex.url(),
@@ -41,6 +46,12 @@ export const navGroups: NavItem[][] = [
             href: queueIndex.url(),
             icon: QueueIcon,
             count: 'queue',
+        },
+        {
+            title: 'Compras',
+            href: shoppingIndex.url(),
+            icon: CartIcon,
+            count: 'shopping',
         },
     ],
     [

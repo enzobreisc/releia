@@ -85,15 +85,18 @@ class ReadingService
 
     /**
      * Termina a leitura numa data escolhida, com nota e uma linha de resenha opcionais.
-     * A linha entra no começo da resenha que já existir.
+     * A linha entra no começo da resenha que já existir. Sem data (`$on` nulo) o livro
+     * fica lido mas fora das estatísticas por período: serve para o que se leu há muito tempo.
      */
-    public function finish(Reading $reading, Carbon $on, ?int $rating = null, ?string $line = null): Reading
+    public function finish(Reading $reading, ?Carbon $on, ?int $rating = null, ?string $line = null): Reading
     {
         if ($reading->status === ReadingStatus::Read) {
             throw ValidationException::withMessages(['status' => 'Esta leitura já está terminada.']);
         }
 
-        $this->ensureEndDate($reading, $on, 'finished_on');
+        if ($on !== null) {
+            $this->ensureEndDate($reading, $on, 'finished_on');
+        }
 
         DB::transaction(function () use ($reading, $on, $rating, $line) {
             $first = $reading->sessions()->min('read_on');
@@ -199,15 +202,28 @@ class ReadingService
 
     /**
      * Corrige as datas. Leituras terminadas ou abandonadas têm início e fim;
-     * as em andamento, só início. Sessões fora do período são permitidas: a tela avisa.
+     * as em andamento, só início. Uma leitura lida pode ficar sem datas (lida há muito tempo).
+     * Sessões fora do período são permitidas: a tela avisa.
      */
-    public function updateDates(Reading $reading, Carbon $start, ?Carbon $end): void
+    public function updateDates(Reading $reading, ?Carbon $start, ?Carbon $end): void
     {
+        $closed = in_array($reading->status, [ReadingStatus::Read, ReadingStatus::Abandoned], true);
+
+        if ($reading->status === ReadingStatus::Read && $end === null) {
+            $reading->started_at = $start;
+            $reading->finished_at = null;
+            $reading->save();
+
+            return;
+        }
+
+        if ($start === null) {
+            throw ValidationException::withMessages(['started_at' => 'Informe o início.']);
+        }
+
         if ($start->greaterThan(Carbon::today())) {
             throw ValidationException::withMessages(['started_at' => 'O início não pode ser depois de hoje.']);
         }
-
-        $closed = in_array($reading->status, [ReadingStatus::Read, ReadingStatus::Abandoned], true);
 
         if ($closed) {
             if ($end === null) {

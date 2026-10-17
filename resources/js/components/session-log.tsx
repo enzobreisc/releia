@@ -1,7 +1,9 @@
 import { router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
+import { DatePicker } from '@/components/date-picker';
 import { Button, Field, Input } from '@/components/form';
+import { today } from '@/lib/dates';
 import { destroy, update } from '@/routes/sessions';
 import type { ReadingSession } from '@/types';
 
@@ -128,19 +130,20 @@ function EditSession({
 
     return (
         <form onSubmit={save} className="flex flex-wrap items-end gap-3">
-            <Field
-                label="Data"
-                error={form.errors.read_on}
-                className="flex-[1_1_140px]"
-            >
-                <Input
-                    type="date"
+            <div className="flex min-w-0 flex-[1_1_140px] flex-col gap-1.5 text-[13px] text-muted">
+                <span>Data</span>
+                <DatePicker
+                    aria-label="Data da sessão"
+                    max={today()}
                     value={form.data.read_on}
-                    onChange={(event) =>
-                        form.setData('read_on', event.target.value)
-                    }
+                    onChange={(value) => form.setData('read_on', value)}
                 />
-            </Field>
+                {form.errors.read_on && (
+                    <span className="text-xs text-red-300">
+                        {form.errors.read_on}
+                    </span>
+                )}
+            </div>
             <Field
                 label={`Página final (começa na ${session.page_from})`}
                 error={form.errors.page_to}

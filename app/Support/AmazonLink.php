@@ -39,6 +39,25 @@ final class AmazonLink
         return Isbn::toIsbn13($match[1]);
     }
 
+    /**
+     * ASIN do produto num link da Amazon (/dp/, /gp/product/, /o/ASIN/).
+     * Nos livros físicos é o ISBN-10; nos e-books começa com B0.
+     */
+    public static function asinFromUrl(string $url): ?string
+    {
+        if (! self::isAmazon($url)) {
+            return null;
+        }
+
+        $path = (string) parse_url($url, PHP_URL_PATH);
+
+        if (preg_match('~/(?:dp|gp/product|o/ASIN)/([0-9A-Z]{10})(?:[/?]|$)~i', $path, $match) !== 1) {
+            return null;
+        }
+
+        return strtoupper($match[1]);
+    }
+
     public static function isAmazon(string $url): bool
     {
         $host = strtolower((string) parse_url($url, PHP_URL_HOST));

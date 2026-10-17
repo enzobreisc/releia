@@ -23,6 +23,9 @@ test('busca por ISBN brasileiro completa páginas pela obra e sobrevive ao 429 d
     Http::fake([
         'openlibrary.org/api/books*' => apiFixture('open-library/books-9786580309313.json'),
         'openlibrary.org/search.json*' => apiFixture('open-library/search-isbn-9786580309313.json'),
+        'brasilapi.com.br/*' => Http::response([], 404),
+        'covers.openlibrary.org/*' => Http::response('', 404),
+        'm.media-amazon.com/*' => Http::response('', 404),
         'www.googleapis.com/*' => Http::response(apiFixture('google-books/quota-exceeded.json'), 429),
     ]);
 
@@ -41,6 +44,9 @@ test('extrai o ano de datas em texto livre', function () {
     Http::fake([
         'openlibrary.org/api/books*' => apiFixture('open-library/books-9788535933390.json'),
         'openlibrary.org/search.json*' => Http::response(['docs' => []]),
+        'brasilapi.com.br/*' => Http::response([], 404),
+        'covers.openlibrary.org/*' => Http::response('', 404),
+        'm.media-amazon.com/*' => Http::response('', 404),
         'www.googleapis.com/*' => Http::response([], 429),
     ]);
 
@@ -76,6 +82,9 @@ test('completa com o Google Books o que a Open Library não tem', function () {
 test('usa o Google Books quando a Open Library não conhece o ISBN', function () {
     Http::fake([
         'openlibrary.org/api/books*' => Http::response([]),
+        'brasilapi.com.br/*' => Http::response([], 404),
+        'covers.openlibrary.org/*' => Http::response('', 404),
+        'm.media-amazon.com/*' => Http::response('', 404),
         'www.googleapis.com/*' => googleVolume([
             'title' => 'Livro Só no Google',
             'industryIdentifiers' => [['type' => 'ISBN_13', 'identifier' => '9788535933390']],
@@ -93,6 +102,7 @@ test('usa o Google Books quando a Open Library não conhece o ISBN', function ()
 test('na busca por título prefere o ISBN da edição brasileira', function () {
     Http::fake([
         'openlibrary.org/search.json*' => apiFixture('open-library/search-torto-arado.json'),
+        'www.googleapis.com/*' => Http::response([], 429),
     ]);
 
     $results = app(BookLookupService::class)->search('torto arado');
@@ -116,13 +126,16 @@ test('guarda resultados em cache, mas não falhas', function () {
         ->and($lookup->search('torto arado'))->not->toBe([])
         ->and($lookup->search('torto arado'))->not->toBe([]);
 
-    Http::assertSentCount(3);
+    Http::assertSentCount(4);
     Http::assertSent(fn (Request $request) => $request->hasHeader('User-Agent')
         && str_contains($request->header('User-Agent')[0], 'releia'));
 });
 
 test('a busca por título traz a obra e o número de edições', function () {
-    Http::fake(['openlibrary.org/search.json*' => apiFixture('open-library/search-dom-casmurro.json')]);
+    Http::fake([
+        'openlibrary.org/search.json*' => apiFixture('open-library/search-dom-casmurro.json'),
+        'www.googleapis.com/*' => Http::response([], 429),
+    ]);
 
     $work = app(BookLookupService::class)->search('dom casmurro')[0];
 
@@ -131,7 +144,10 @@ test('a busca por título traz a obra e o número de edições', function () {
 });
 
 test('a busca repassa a editora para a Open Library', function () {
-    Http::fake(['openlibrary.org/search.json*' => apiFixture('open-library/search-dom-casmurro.json')]);
+    Http::fake([
+        'openlibrary.org/search.json*' => apiFixture('open-library/search-dom-casmurro.json'),
+        'www.googleapis.com/*' => Http::response([], 429),
+    ]);
 
     app(BookLookupService::class)->search('dom casmurro', 'Antofágica');
 
@@ -178,3 +194,97 @@ test('filtra as edições pela editora sem ligar para acento ou caixa', function
     ['PENGUIN', 'penguin'],
     ['antofagica', 'antofagica'],
 ]);
+
+test('acha pela BrasilAPI um ISBN brasileiro que as outras fontes não conhecem', function () {
+    Http::fake([
+        'openlibrary.org/api/books*' => Http::response([]),
+        'covers.openlibrary.org/*' => Http::response('', 404),
+        'm.media-amazon.com/*' => Http::response('', 404),
+        'brasilapi.com.br/api/isbn/v1/9786586460018' => Http::response([
+            'isbn' => '9786586460018',
+            'title' => 'A Luta pela Floresta',
+            'authors' => ['Torkjell Leira', 'Torkjell Leira'],
+            'publisher' => 'Editora Rua do Sabão',
+            'year' => 2020,
+            'page_count' => null,
+            'subjects' => ['Meio ambiente'],
+        ]),
+        'www.googleapis.com/*' => Http::response([], 429),
+    ]);
+
+    $book = app(BookLookupService::class)->search('978-65-86460-01-8')[0];
+
+    expect($book->title)->toBe('A Luta pela Floresta')
+        ->and($book->authors)->toBe(['Torkjell Leira'])
+        ->and($book->publisher)->toBe('Editora Rua do Sabão')
+        ->and($book->publishedYear)->toBe(2020)
+        ->and($book->source)->toBe(BookSource::BrasilApi);
+});
+
+test('não consulta a BrasilAPI para ISBN estrangeiro', function () {
+    Http::fake([
+        'openlibrary.org/api/books*' => Http::response([]),
+        'www.googleapis.com/*' => Http::response([], 429),
+    ]);
+
+    expect(app(BookLookupService::class)->findByIsbn('9780136083221'))->toBeNull();
+
+    Http::assertNotSent(fn (Request $request) => str_contains($request->url(), 'brasilapi'));
+});
+
+test('sem resultado com a editora, busca só pelo título', function () {
+    Http::fake([
+        'openlibrary.org/search.json*' => Http::sequence()
+            ->push(['docs' => []])
+            ->push(apiFixture('open-library/search-torto-arado.json')),
+        'www.googleapis.com/*' => Http::response([], 429),
+    ]);
+
+    $results = app(BookLookupService::class)->search('torto arado', 'Editora Inexistente');
+
+    expect($results[0]->title)->toBe('Torto Arado');
+});
+
+test('complementa poucos resultados da Open Library com o Google Books, sem repetir', function () {
+    Http::fake([
+        'openlibrary.org/search.json*' => Http::response(['docs' => [['key' => '/works/OL1W', 'title' => 'Torto Arado', 'author_name' => ['Itamar Vieira Junior']]]]),
+        'www.googleapis.com/*' => ['totalItems' => 2, 'items' => [
+            ['volumeInfo' => ['title' => 'Torto Arado', 'authors' => ['Itamar Vieira Junior']]],
+            ['volumeInfo' => ['title' => 'Livro Obscuro', 'authors' => ['Fulana'], 'publisher' => 'Editora Pequena']],
+        ]],
+    ]);
+
+    $titles = array_map(fn ($book) => $book->title, app(BookLookupService::class)->search('torto arado', 'Editora Pequena'));
+
+    expect($titles)->toContain('Livro Obscuro')
+        ->and(array_count_values($titles)['Torto Arado'])->toBe(1);
+
+    Http::assertSent(fn (Request $request) => str_contains($request->url(), 'googleapis')
+        && str_contains(urldecode($request->url()), 'inpublisher:"editora pequena"'));
+});
+
+test('quando a fonte não traz capa, acha uma pelo ISBN', function () {
+    Http::fake([
+        'openlibrary.org/api/books*' => Http::response([]),
+        'brasilapi.com.br/*' => Http::response(['title' => 'A Luta pela Floresta', 'cover_url' => null]),
+        'covers.openlibrary.org/*' => Http::response('', 404),
+        'm.media-amazon.com/images/P/6586460018.01.*' => Http::response(str_repeat('x', 4096), 200, ['Content-Type' => 'image/jpeg']),
+        'www.googleapis.com/*' => Http::response([], 429),
+    ]);
+
+    $book = app(BookLookupService::class)->findByIsbn('9786586460018');
+
+    expect($book?->coverUrl)->toStartWith('https://m.media-amazon.com/images/P/6586460018');
+});
+
+test('ignora o GIF de 1 pixel que a Amazon devolve quando não tem capa', function () {
+    Http::fake([
+        'openlibrary.org/api/books*' => Http::response([]),
+        'brasilapi.com.br/*' => Http::response(['title' => 'Sem Capa']),
+        'covers.openlibrary.org/*' => Http::response('', 404),
+        'm.media-amazon.com/*' => Http::response(str_repeat('x', 43), 200, ['Content-Type' => 'image/gif']),
+        'www.googleapis.com/*' => Http::response([], 429),
+    ]);
+
+    expect(app(BookLookupService::class)->findByIsbn('9786586460018')?->coverUrl)->toBeNull();
+});

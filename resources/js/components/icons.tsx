@@ -61,6 +61,16 @@ export function QueueIcon(props: IconProps) {
     );
 }
 
+export function CartIcon(props: IconProps) {
+    return (
+        <LineIcon {...props}>
+            <path d="M1.5 2.5h2l1.6 7.2h6.6l1.3-5H4.2" />
+            <circle cx="6" cy="12.8" r="0.9" />
+            <circle cx="10.8" cy="12.8" r="0.9" />
+        </LineIcon>
+    );
+}
+
 export function ProfileIcon(props: IconProps) {
     return (
         <LineIcon {...props}>
@@ -193,5 +203,14 @@ export function LogoMark({ size = 24 }: { size?: number }) {
                 )),
             )}
         </svg>
+    );
+}
+
+export function AuthorsIcon(props: IconProps) {
+    return (
+        <LineIcon {...props}>
+            <path d="M13 2.5c-4 .5-7 3-8.5 7L3 13.5l4-1.5c3-1 5.500-3.500 6-9.500z" />
+            <path d="M4 12.500 9 7.500" />
+        </LineIcon>
     );
 }

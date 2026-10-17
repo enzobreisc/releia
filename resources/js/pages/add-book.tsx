@@ -1,12 +1,16 @@
 import { Link, router, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
+import { AmazonCoverField } from '@/components/amazon-cover-field';
+import { DatePicker } from '@/components/date-picker';
+import { GenreSelect } from '@/components/genre-select';
 import { BookCover } from '@/components/book-cover';
 import { Field, Input, Segmented, Textarea } from '@/components/form';
 import { LibraryIcon, PencilIcon, SearchIcon } from '@/components/icons';
 import { PageHeader, SectionTitle } from '@/components/page-header';
 import { today } from '@/lib/dates';
 import { cn } from '@/lib/utils';
+import { visibleEditions } from '@/lib/editions';
 import { create as addBook, show, store } from '@/routes/books';
 import type { Candidate, Editions, Option } from '@/types';
 
@@ -17,6 +21,7 @@ type AddBookProps = {
     editions: Editions | null;
     preview: Candidate | null;
     statuses: Option[];
+    genres: string[];
 };
 
 type BookForm = {
@@ -34,6 +39,7 @@ type BookForm = {
     status: string;
     /** Só para "lido": quando terminou. */
     finished_on: string;
+    undated: boolean;
 };
 
 const emptyForm: BookForm = {
@@ -50,11 +56,12 @@ const emptyForm: BookForm = {
     source: 'manual',
     status: 'want_to_read',
     finished_on: '',
+    undated: false,
 };
 
 function toForm(
     candidate: Candidate,
-): Omit<BookForm, 'status' | 'finished_on'> {
+): Omit<BookForm, 'status' | 'finished_on' | 'undated'> {
     return {
         title: candidate.title,
         subtitle: candidate.subtitle ?? '',
@@ -73,6 +80,7 @@ function toForm(
 const SOURCE_LABELS: Record<string, string> = {
     open_library: 'Open Library',
     google_books: 'Google Books',
+    brasil_api: 'BrasilAPI',
     manual: 'cadastro manual',
 };
 
@@ -88,6 +96,7 @@ export default function AddBook({
     editions,
     preview,
     statuses,
+    genres,
 }: AddBookProps) {
     const [search, setSearch] = useState(query);
     const [publisherFilter, setPublisherFilter] = useState(publisher);
@@ -176,6 +185,7 @@ export default function AddBook({
             ...toForm(candidate),
             status: form.data.status,
             finished_on: form.data.finished_on,
+            undated: form.data.undated,
         });
 
         if (candidate.isbn_13) {
@@ -197,6 +207,7 @@ export default function AddBook({
             title: search.trim(),
             status: form.data.status,
             finished_on: form.data.finished_on,
+            undated: form.data.undated,
         });
     }
 
@@ -421,6 +432,12 @@ export default function AddBook({
                                 </div>
                             </div>
 
+                            <AmazonCoverField
+                                onFound={(coverUrl) =>
+                                    form.setData('cover_url', coverUrl)
+                                }
+                            />
+
                             <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
                                 <Field
                                     label="Páginas"
@@ -439,18 +456,21 @@ export default function AddBook({
                                         className="h-10 bg-bg font-mono"
                                     />
                                 </Field>
-                                <Field label="Gênero" error={form.errors.genre}>
-                                    <Input
+                                <div className="flex flex-col gap-1.5 text-[13px] text-muted">
+                                    <span>Gênero</span>
+                                    <GenreSelect
                                         value={form.data.genre}
-                                        onChange={(event) =>
-                                            form.setData(
-                                                'genre',
-                                                event.target.value,
-                                            )
+                                        onChange={(value) =>
+                                            form.setData('genre', value)
                                         }
-                                        className="h-10 bg-bg"
+                                        genres={genres}
                                     />
-                                </Field>
+                                    {form.errors.genre && (
+                                        <span className="text-xs text-red-300">
+                                            {form.errors.genre}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="flex flex-col gap-2.5 border-t pt-2.5">
@@ -491,24 +511,49 @@ export default function AddBook({
                                     </span>
                                 )}
                                 {form.data.status === 'read' && (
-                                    <Field
-                                        label="Terminou em"
-                                        error={form.errors.finished_on}
-                                        className="mt-1.5 max-w-52"
-                                    >
-                                        <Input
-                                            type="date"
-                                            max={today()}
-                                            value={form.data.finished_on}
-                                            onChange={(event) =>
-                                                form.setData(
-                                                    'finished_on',
-                                                    event.target.value,
-                                                )
-                                            }
-                                            className="h-10 bg-bg"
-                                        />
-                                    </Field>
+                                    <div className="mt-1.5 flex flex-col gap-1.5">
+                                        <span className="text-[13px] text-muted">
+                                            Terminou em
+                                        </span>
+                                        <div className="max-w-52">
+                                            <DatePicker
+                                                aria-label="Data de término"
+                                                max={today()}
+                                                disabled={form.data.undated}
+                                                value={
+                                                    form.data.undated
+                                                        ? ''
+                                                        : form.data.finished_on
+                                                }
+                                                onChange={(value) =>
+                                                    form.setData(
+                                                        'finished_on',
+                                                        value,
+                                                    )
+                                                }
+                                                className="h-10 bg-bg"
+                                            />
+                                        </div>
+                                        <label className="flex items-center gap-2 text-xs text-muted">
+                                            <input
+                                                type="checkbox"
+                                                checked={form.data.undated}
+                                                onChange={(event) =>
+                                                    form.setData(
+                                                        'undated',
+                                                        event.target.checked,
+                                                    )
+                                                }
+                                                className="accent-primary"
+                                            />
+                                            Não lembro / sem data de término
+                                        </label>
+                                        {form.errors.finished_on && (
+                                            <span className="text-xs text-danger">
+                                                {form.errors.finished_on}
+                                            </span>
+                                        )}
+                                    </div>
                                 )}
                             </fieldset>
                         </div>
@@ -710,6 +755,9 @@ function EditionList({
     selected: string | null;
     onSelect: (edition: Candidate) => void;
 }) {
+    const [showAll, setShowAll] = useState(false);
+    const [expanded, setExpanded] = useState(false);
+
     if (editions === null) {
         return (
             <p className="mb-3 ml-18 font-mono text-xs text-muted">
@@ -728,12 +776,19 @@ function EditionList({
         );
     }
 
+    // Brasileiras primeiro e sozinhas, sem repetidas; sem nenhuma brasileira, as demais.
+    const {
+        items: visible,
+        foreign,
+        more,
+    } = visibleEditions(editions, { showForeign: showAll, expanded });
+
     return (
         <ul
             aria-label="Edições"
             className="mr-3.5 mb-3 ml-18 flex max-h-96 flex-col gap-1 overflow-y-auto border-l pl-3"
         >
-            {editions.map((edition) => {
+            {visible.map((edition) => {
                 const isSelected = selected === keyOf(edition);
                 const meta = [
                     edition.published_year,
@@ -768,6 +823,28 @@ function EditionList({
                     </li>
                 );
             })}
+            {foreign > 0 && (
+                <li>
+                    <button
+                        type="button"
+                        onClick={() => setShowAll(true)}
+                        className="text-xs text-accent hover:underline"
+                    >
+                        {`+ Mostrar ${foreign} ${foreign === 1 ? 'edição' : 'edições'} de outros países`}
+                    </button>
+                </li>
+            )}
+            {more > 0 && (
+                <li>
+                    <button
+                        type="button"
+                        onClick={() => setExpanded(true)}
+                        className="text-xs text-accent hover:underline"
+                    >
+                        {`+ Mostrar mais ${more}`}
+                    </button>
+                </li>
+            )}
         </ul>
     );
 }

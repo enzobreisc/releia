@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ReadingStatus;
 use App\Http\Presenters\BookPresenter;
 use App\Models\Book;
+use App\Models\Reading;
 use App\Services\ProfileService;
 use App\Services\StatsService;
 use App\Services\UndoService;
@@ -59,6 +61,7 @@ class ProfileController extends Controller
                 ->get(['id', 'title'])
                 ->map(fn (Book $book) => ['id' => $book->id, 'title' => $book->title]),
             'pin_limit' => ProfileService::MAX_PINS,
+            'year_books' => $this->yearBooks($year),
             'year' => $year,
             'years' => $years,
             'calendar' => $this->stats->heatmap($yearPeriod),
@@ -111,5 +114,24 @@ class ProfileController extends Controller
         Toast::success('Desafixado', $book->title, null, $undo->remember($snapshot));
 
         return back();
+    }
+
+    /**
+     * Livros terminados no ano, na ordem em que foram terminados, para a estante do perfil.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function yearBooks(int $year): array
+    {
+        return Reading::query()
+            ->with(['book.authors', 'book.currentReading'])
+            ->where('status', ReadingStatus::Read->value)
+            ->whereBetween('finished_at', ["{$year}-01-01", "{$year}-12-31"])
+            ->orderBy('finished_at')
+            ->get()
+            ->unique('book_id')
+            ->map(fn (Reading $reading) => BookPresenter::spine($reading->book))
+            ->values()
+            ->all();
     }
 }

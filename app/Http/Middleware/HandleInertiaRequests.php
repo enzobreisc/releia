@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Book;
 use App\Models\Note;
 use App\Models\QueueItem;
+use App\Models\ShoppingItem;
 use App\Services\DashboardService;
 use App\Support\Toast;
 use Illuminate\Http\Request;
@@ -50,6 +51,7 @@ class HandleInertiaRequests extends Middleware
                 'books' => Book::count(),
                 'notes' => Note::count(),
                 'queue' => QueueItem::count(),
+                'shopping' => ShoppingItem::query()->whereNull('bought_at')->count(),
             ],
             // Aviso da última ação (App\Support\Toast), uma vez só.
             'toast' => fn () => $request->session()->get(Toast::SESSION_KEY),

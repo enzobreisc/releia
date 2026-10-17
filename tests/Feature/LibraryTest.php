@@ -2,6 +2,7 @@
 
 use App\Enums\ReadingStatus;
 use App\Models\Book;
+use App\Models\Bookshelf;
 use App\Models\Reading;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
@@ -61,6 +62,8 @@ test('o cadastro não falha quando a capa não baixa', function () {
 });
 
 test('livro adicionado como lido ganha datas de início e fim', function () {
+    Http::fake(['*' => Http::response('', 404)]);
+
     $this->post(route('books.store'), bookPayload(['status' => 'read']))->assertRedirect();
 
     $reading = Reading::sole();
@@ -180,7 +183,10 @@ test('remover apaga o livro, as leituras e a capa', function () {
 });
 
 test('resultados de busca marcam o que já está na biblioteca', function () {
-    Http::fake(['openlibrary.org/search.json*' => apiFixture('open-library/search-torto-arado.json')]);
+    Http::fake([
+        'openlibrary.org/search.json*' => apiFixture('open-library/search-torto-arado.json'),
+        'www.googleapis.com/*' => Http::response([], 429),
+    ]);
     $book = Book::factory()->create(['isbn_13' => '9786580309313']);
 
     $this->get(route('books.create', ['q' => 'torto arado']))
@@ -199,6 +205,7 @@ test('a contagem de livros vai para a barra lateral', function () {
 test('lista as edições de uma obra marcando as que já estão na biblioteca', function () {
     Http::fake([
         'openlibrary.org/search.json*' => apiFixture('open-library/search-dom-casmurro.json'),
+        'www.googleapis.com/*' => Http::response([], 429),
         'openlibrary.org/works/OL1003040W/editions.json*' => apiFixture('open-library/editions-OL1003040W.json'),
     ]);
     $book = Book::factory()->create(['isbn_13' => '9788582850350']);
@@ -209,4 +216,99 @@ test('lista as edições de uma obra marcando as que já estão na biblioteca', 
             ->where('editions.items', fn ($items) => collect($items)->contains(
                 fn ($item) => $item['isbn_13'] === '9788582850350' && $item['library_id'] === $book->id,
             ) && collect($items)->every(fn ($item) => str_contains(strtolower((string) $item['publisher']), 'penguin'))));
+});
+
+test('sem capa na fonte, baixa a capa pelo ISBN', function () {
+    Storage::fake('local');
+    Http::fake([
+        'covers.openlibrary.org/*' => Http::response('', 404),
+        'm.media-amazon.com/images/P/6580309318.01.*' => Http::response(str_repeat('x', 4096), 200, ['Content-Type' => 'image/jpeg']),
+    ]);
+
+    $this->post(route('books.store'), bookPayload(['cover_url' => '']))->assertRedirect();
+
+    expect(Book::sole()->cover_path)->not->toBeNull();
+    Storage::disk('local')->assertExists(Book::sole()->cover_path);
+});
+
+test('acha a capa pelo link de um produto da Amazon', function () {
+    Http::fake(['m.media-amazon.com/images/P/6586460018.01.*' => Http::response(str_repeat('x', 4096), 200, ['Content-Type' => 'image/jpeg'])]);
+
+    $this->getJson(route('books.amazonCover', ['url' => 'https://www.amazon.com.br/Luta-pela-Floresta/dp/6586460018/ref=sr_1_1?crid=x']))
+        ->assertOk()
+        ->assertJson(['cover_url' => 'https://m.media-amazon.com/images/P/6586460018.01._SCLZZZZZZZ_.jpg']);
+});
+
+test('aceita o ASIN de e-book e recusa link que não é da Amazon nem de produto', function () {
+    Http::fake(['m.media-amazon.com/images/P/B08J5F3G18.01.*' => Http::response(str_repeat('x', 4096), 200, ['Content-Type' => 'image/jpeg'])]);
+
+    $this->getJson(route('books.amazonCover', ['url' => 'https://www.amazon.com.br/dp/B08J5F3G18']))->assertOk();
+    $this->getJson(route('books.amazonCover', ['url' => 'https://www.amazon.com.br/s?k=livro']))->assertStatus(422);
+    $this->getJson(route('books.amazonCover', ['url' => 'https://outrosite.com/dp/6586460018']))->assertStatus(422);
+});
+
+test('avisa quando a Amazon não tem a capa', function () {
+    Http::fake(['m.media-amazon.com/*' => Http::response(str_repeat('x', 43), 200, ['Content-Type' => 'image/gif'])]);
+
+    $this->getJson(route('books.amazonCover', ['url' => 'https://www.amazon.com.br/dp/B0BSCQ4RP1']))
+        ->assertStatus(422)
+        ->assertJsonPath('message', 'A Amazon não tem capa para esse produto.');
+});
+
+test('prateleiras personalizadas: criar, mover livros, ordenar e apagar', function () {
+    $a = Book::factory()->create();
+    $b = Book::factory()->create();
+    $c = Book::factory()->create();
+
+    $this->post(route('bookshelves.store'), ['name' => 'Favoritos'])->assertRedirect();
+    $shelf = Bookshelf::sole();
+
+    foreach ([$a, $b] as $book) {
+        $this->patch(route('books.bookshelf', $book), ['bookshelf_id' => $shelf->id])->assertRedirect();
+    }
+
+    // Antes de outro livro: o novo entra na frente.
+    $this->patch(route('books.bookshelf', $c), ['bookshelf_id' => $shelf->id, 'before_book_id' => $a->id]);
+
+    expect($shelf->books()->pluck('id')->all())->toBe([$c->id, $a->id, $b->id]);
+
+    $this->patch(route('books.bookshelf', $a), ['bookshelf_id' => null]);
+    expect($a->refresh()->bookshelf_id)->toBeNull();
+
+    $this->patch(route('bookshelves.update', $shelf), ['name' => 'Releituras']);
+    expect($shelf->refresh()->name)->toBe('Releituras');
+
+    $this->delete(route('bookshelves.destroy', $shelf))->assertRedirect();
+    expect(Bookshelf::count())->toBe(0)->and($b->refresh()->bookshelf_id)->toBeNull();
+});
+
+test('a biblioteca envia as prateleiras e os dados da lombada', function () {
+    $book = Book::factory()->withAuthors(['Clarice Lispector'])->create(['pages' => 120, 'published_year' => 1977]);
+    $shelf = Bookshelf::create(['name' => 'Clássicos', 'position' => 1]);
+    $book->forceFill(['bookshelf_id' => $shelf->id])->save();
+
+    $this->get(route('library.index'))->assertInertia(fn ($page) => $page
+        ->where('bookshelves.0.name', 'Clássicos')
+        ->where('books.0.author', 'Clarice Lispector')
+        ->where('books.0.pages', 120)
+        ->where('books.0.bookshelf_id', $shelf->id));
+});
+
+test('editar tirando um autor remove só ele', function () {
+    $book = Book::factory()->withAuthors(['Marco Aurélio Antonino', 'Aldo Dinucci', 'Ana Souza'])->create();
+
+    $this->patch(route('books.update', $book), [
+        'title' => $book->title,
+        'authors' => ['Marco Aurélio Antonino', 'Ana Souza'],
+    ])->assertRedirect();
+
+    expect($book->refresh()->authors->pluck('name')->all())->toBe(['Marco Aurélio Antonino', 'Ana Souza']);
+});
+
+test('o detalhe do livro manda os autores um a um, sem juntar por vírgula', function () {
+    $book = Book::factory()->withAuthors(['Silva, João', 'Ana Souza'])->create();
+
+    $this->get(route('books.show', $book))->assertInertia(fn ($page) => $page
+        ->where('book.author_links.0.name', 'Silva, João')
+        ->where('book.author_links.1.name', 'Ana Souza'));
 });

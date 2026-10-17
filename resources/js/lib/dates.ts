@@ -42,3 +42,10 @@ export function monthYear(date: string): string {
 export function plural(count: number, one: string, many: string): string {
     return `${count} ${count === 1 ? one : many}`;
 }
+
+/** "2026-10-14" vira "14/10/2026". */
+export function longDate(date: string): string {
+    const [year, month, day] = date.split('-');
+
+    return `${day}/${month}/${year}`;
+}

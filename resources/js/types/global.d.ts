@@ -6,7 +6,12 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             native: boolean;
-            counts: { books: number; notes: number; queue: number };
+            counts: {
+                books: number;
+                notes: number;
+                queue: number;
+                shopping: number;
+            };
             reading_now: SidebarReading | null;
             toast: Toast | null;
             [key: string]: unknown;

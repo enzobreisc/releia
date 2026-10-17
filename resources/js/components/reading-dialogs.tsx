@@ -1,6 +1,7 @@
 import { router, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
+import { DatePicker } from '@/components/date-picker';
 import { Dialog, DialogChoice, DialogList } from '@/components/dialog';
 import { Button, Input } from '@/components/form';
 import { StarRating } from '@/components/star-rating';
@@ -129,34 +130,39 @@ export function FinishDialog({
     previous: ReadingHistory | null;
     onClose: () => void;
 }) {
-    const [choice, setChoice] = useState<'today' | 'yesterday' | 'other'>(
-        'today',
-    );
+    const [choice, setChoice] = useState<
+        'today' | 'yesterday' | 'other' | 'undated'
+    >('today');
     const form = useForm({
         finished_on: today(),
         rating: reading.rating ?? 0,
         line: '',
     });
 
-    const date =
-        choice === 'today'
-            ? today()
-            : choice === 'yesterday'
-              ? today(-1)
-              : form.data.finished_on;
+    const undated = choice === 'undated';
+    const date = undated
+        ? null
+        : choice === 'today'
+          ? today()
+          : choice === 'yesterday'
+            ? today(-1)
+            : form.data.finished_on;
     const minimum = [reading.started_at, reading.last_session_on]
         .filter((value): value is string => value !== null)
         .sort()
         .at(-1);
     const clientError =
-        date > today()
-            ? 'O término não pode ser depois de hoje.'
-            : minimum && date < minimum
-              ? `${reading.last_session_on === minimum ? 'A última sessão foi' : 'A leitura começou'} em ${shortDate(minimum)}. Escolha essa data ou depois.`
-              : null;
-    const days = reading.started_at
-        ? daysBetween(reading.started_at, date)
-        : null;
+        date === null
+            ? null
+            : date > today()
+              ? 'O término não pode ser depois de hoje.'
+              : minimum && date < minimum
+                ? `${reading.last_session_on === minimum ? 'A última sessão foi' : 'A leitura começou'} em ${shortDate(minimum)}. Escolha essa data ou depois.`
+                : null;
+    const days =
+        reading.started_at && date !== null
+            ? daysBetween(reading.started_at, date)
+            : null;
     const pace =
         days && reading.current_page
             ? Math.round(reading.current_page / days)
@@ -170,6 +176,7 @@ export function FinishDialog({
         form.transform((data) => ({
             ...data,
             finished_on: date,
+            undated,
             rating: data.rating || null,
         }));
         form.post(finish(reading.id).url, { ...options, onSuccess: onClose });
@@ -218,22 +225,30 @@ export function FinishDialog({
                         selected={choice === 'other'}
                         onClick={() => setChoice('other')}
                     />
+                    <Chip
+                        label="sem data"
+                        selected={undated}
+                        onClick={() => setChoice('undated')}
+                    />
                 </div>
                 {choice === 'other' && (
-                    <Input
-                        type="date"
+                    <DatePicker
                         aria-label="Data de término"
                         max={today()}
                         min={minimum}
                         value={form.data.finished_on}
-                        onChange={(event) =>
-                            form.setData('finished_on', event.target.value)
-                        }
+                        onChange={(value) => form.setData('finished_on', value)}
                         className={cn(
                             'h-10 bg-bg',
                             clientError && 'border-danger-line',
                         )}
                     />
+                )}
+                {undated && (
+                    <span className="text-[11px] text-faint">
+                        Fica como lido, mas não entra nas estatísticas por
+                        período nem na meta do ano.
+                    </span>
                 )}
                 {(clientError ?? form.errors.finished_on) && (
                     <span role="alert" className="text-xs text-danger">
@@ -540,27 +555,36 @@ export function DatesDialog({
     onClose: () => void;
 }) {
     const closed = reading.status === 'read' || reading.status === 'abandoned';
+    // Só uma leitura lida pode ficar sem datas (lida há muito tempo).
+    const canBeUndated = reading.status === 'read';
     const form = useForm({
-        started_at: reading.started_at ?? today(),
+        started_at:
+            reading.started_at ??
+            (canBeUndated && reading.finished_at === null ? '' : today()),
         finished_at: reading.finished_at ?? '',
+        undated: canBeUndated && reading.finished_at === null,
     });
-    const { started_at: start, finished_at: end } = form.data;
+    const { started_at: start, finished_at: end, undated } = form.data;
 
-    const error = closed
-        ? end === ''
-            ? 'Informe o término.'
-            : end > today()
-              ? `O término não pode ser depois de hoje (${shortDate(today())}).`
-              : end < start
-                ? 'O término não pode ser antes do início.'
-                : reading.last_session_on && end < reading.last_session_on
-                  ? `A última sessão foi em ${shortDate(reading.last_session_on)}. Escolha essa data ou depois.`
-                  : null
-        : start > today()
-          ? 'O início não pode ser depois de hoje.'
-          : null;
+    const error = undated
+        ? null
+        : closed
+          ? end === ''
+              ? 'Informe o término.'
+              : end > today()
+                ? `O término não pode ser depois de hoje (${shortDate(today())}).`
+                : end < start
+                  ? 'O término não pode ser antes do início.'
+                  : reading.last_session_on && end < reading.last_session_on
+                    ? `A última sessão foi em ${shortDate(reading.last_session_on)}. Escolha essa data ou depois.`
+                    : null
+          : start > today()
+            ? 'O início não pode ser depois de hoje.'
+            : null;
     const earlySessions =
-        reading.first_session_on && reading.first_session_on < start
+        start !== '' &&
+        reading.first_session_on &&
+        reading.first_session_on < start
             ? reading.sessions.filter((session) => session.read_on < start)
             : [];
 
@@ -572,8 +596,8 @@ export function DatesDialog({
         }
 
         form.transform((data) => ({
-            started_at: data.started_at,
-            finished_at: closed ? data.finished_at : null,
+            started_at: data.started_at || null,
+            finished_at: closed && !data.undated ? data.finished_at : null,
         }));
         form.patch(dates(reading.id).url, { ...options, onSuccess: onClose });
     }
@@ -585,38 +609,53 @@ export function DatesDialog({
         >
             <form onSubmit={save} className="flex flex-col gap-3.5">
                 <div className="grid grid-cols-2 gap-3">
-                    <label className="flex flex-col gap-1.5 text-xs text-muted">
+                    <div className="flex flex-col gap-1.5 text-xs text-muted">
                         Começou em
-                        <Input
-                            type="date"
+                        <DatePicker
+                            aria-label="Data de início"
                             max={today()}
+                            clearable={undated}
                             value={start}
-                            onChange={(event) =>
-                                form.setData('started_at', event.target.value)
+                            onChange={(value) =>
+                                form.setData('started_at', value)
                             }
                             className={cn(
                                 'h-10.5 bg-bg text-sm',
                                 earlySessions.length > 0 && 'border-warn',
                             )}
                         />
-                    </label>
-                    <label className="flex flex-col gap-1.5 text-xs text-muted">
+                    </div>
+                    <div className="flex flex-col gap-1.5 text-xs text-muted">
                         Terminou em
-                        <Input
-                            type="date"
+                        <DatePicker
+                            aria-label="Data de término"
                             max={today()}
-                            disabled={!closed}
-                            value={closed ? end : ''}
-                            onChange={(event) =>
-                                form.setData('finished_at', event.target.value)
+                            disabled={!closed || undated}
+                            value={closed && !undated ? end : ''}
+                            onChange={(value) =>
+                                form.setData('finished_at', value)
                             }
                             className={cn(
                                 'h-10.5 bg-bg text-sm',
                                 closed && error && 'border-danger-line',
                             )}
                         />
-                    </label>
+                    </div>
                 </div>
+
+                {canBeUndated && (
+                    <label className="flex items-center gap-2 text-xs text-muted">
+                        <input
+                            type="checkbox"
+                            checked={undated}
+                            onChange={(event) =>
+                                form.setData('undated', event.target.checked)
+                            }
+                            className="accent-primary"
+                        />
+                        Sem data de término (lido há muito tempo)
+                    </label>
+                )}
 
                 {earlySessions.length > 0 && reading.first_session_on && (
                     <div className="flex flex-col items-start gap-2 rounded-sm border border-warn-line bg-[#1a1610] px-3 py-2.5 text-xs leading-relaxed text-warn">

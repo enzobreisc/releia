@@ -19,7 +19,7 @@ class LibraryService
     ) {}
 
     /**
-     * @param  array{title: string, subtitle?: string|null, authors?: list<string>, isbn_13?: string|null, isbn_10?: string|null, publisher?: string|null, published_year?: int|null, pages?: int|null, genre?: string|null, description?: string|null, cover_url?: string|null, source?: string|null, status: string, finished_on?: string|null}  $data
+     * @param  array{title: string, subtitle?: string|null, authors?: list<string>, isbn_13?: string|null, isbn_10?: string|null, publisher?: string|null, published_year?: int|null, pages?: int|null, genre?: string|null, description?: string|null, cover_url?: string|null, source?: string|null, status: string, finished_on?: string|null, undated?: bool}  $data
      */
     public function add(array $data): Book
     {
@@ -45,7 +45,10 @@ class LibraryService
             $this->readings->changeStatus($reading, ReadingStatus::from($data['status']));
 
             // Livro lido antes do app: a data informada vale para início e fim (não há sessões).
-            if ($reading->status === ReadingStatus::Read && ! empty($data['finished_on'])) {
+            if ($reading->status === ReadingStatus::Read && ! empty($data['undated'])) {
+                $reading->started_at = $reading->finished_at = null;
+                $reading->save();
+            } elseif ($reading->status === ReadingStatus::Read && ! empty($data['finished_on'])) {
                 $reading->started_at = $reading->finished_at = Carbon::parse($data['finished_on']);
                 $reading->save();
             }
@@ -54,8 +57,17 @@ class LibraryService
         });
 
         // Fora da transação: a capa é opcional e uma falha não desfaz o cadastro.
-        if (! empty($data['cover_url'])) {
-            $this->covers->download($book, $data['cover_url']);
+        $coverUrl = ! empty($data['cover_url']) ? $data['cover_url'] : null;
+
+        if ($coverUrl !== null && $this->covers->download($book, $coverUrl)) {
+            return $book;
+        }
+
+        // Sem link, ou o link não rendeu imagem: tenta pelo ISBN.
+        $fallback = $book->isbn_13 ? $this->covers->findByIsbn($book->isbn_13) : null;
+
+        if ($fallback !== null) {
+            $this->covers->download($book, $fallback);
         }
 
         return $book;

@@ -1,16 +1,25 @@
 import { Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { BookCover } from '@/components/book-cover';
+import { Bookshelf } from '@/components/bookshelf';
 import { Kbd } from '@/components/app-sidebar';
-import { buttonClass, Field, Input, Select } from '@/components/form';
+import {
+    buttonClass,
+    Field,
+    Input,
+    Segmented,
+    Select,
+} from '@/components/form';
 import { PlusIcon } from '@/components/icons';
 import { PageHeader } from '@/components/page-header';
 import { QueueButton } from '@/components/queue-button';
 import { StatusBadge } from '@/components/status';
+import { SHELF_GROUPS } from '@/lib/spines';
+import type { ShelfGroup } from '@/lib/spines';
 import { cn } from '@/lib/utils';
 import { create as addBook, show } from '@/routes/books';
 import { index as libraryIndex } from '@/routes/library';
-import type { BookCard, Shelf } from '@/types';
+import type { Bookshelf as BookshelfModel, Shelf, SpineBook } from '@/types';
 
 type Filters = {
     q: string;
@@ -20,8 +29,9 @@ type Filters = {
 };
 
 type LibraryProps = {
-    books: BookCard[];
+    books: SpineBook[];
     shelves: Shelf[];
+    bookshelves: BookshelfModel[];
     genres: string[];
     filters: Filters;
 };
@@ -32,12 +42,38 @@ const SORTS = [
     { value: 'rating', label: 'Nota' },
 ];
 
+/** Preferência guardada no navegador; sem armazenamento, vale o padrão. */
+function useStored<T extends string>(key: string, fallback: T) {
+    const [value, setValue] = useState<T>(() => {
+        try {
+            return (localStorage.getItem(key) as T | null) ?? fallback;
+        } catch {
+            return fallback;
+        }
+    });
+
+    function update(next: T) {
+        setValue(next);
+
+        try {
+            localStorage.setItem(key, next);
+        } catch {
+            // sem armazenamento: a escolha vale só nesta sessão
+        }
+    }
+
+    return [value, update] as const;
+}
+
 export default function Library({
     books,
     shelves,
+    bookshelves,
     genres,
     filters,
 }: LibraryProps) {
+    const [view, setView] = useStored<'grid' | 'shelf'>('library.view', 'grid');
+    const [group, setGroup] = useStored<ShelfGroup>('library.group', 'genre');
     const [search, setSearch] = useState(filters.q);
     const searchRef = useRef<HTMLInputElement>(null);
     const searchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -85,9 +121,22 @@ export default function Library({
             <PageHeader
                 title="Biblioteca"
                 actions={
-                    <span className="text-sm text-muted">
-                        {total} {total === 1 ? 'livro' : 'livros'} no total
-                    </span>
+                    <div className="flex items-center gap-4">
+                        <span className="text-sm text-muted">
+                            {total} {total === 1 ? 'livro' : 'livros'} no total
+                        </span>
+                        <Segmented
+                            className="w-44"
+                            value={view}
+                            onChange={(next) =>
+                                setView(next as 'grid' | 'shelf')
+                            }
+                            options={[
+                                { value: 'grid', label: 'Capas' },
+                                { value: 'shelf', label: 'Estante' },
+                            ]}
+                        />
+                    </div>
                 }
             />
 
@@ -123,20 +172,37 @@ export default function Library({
                         ))}
                     </Select>
                 </Field>
-                <Field label="Ordenar por" className="flex-[1_1_150px]">
-                    <Select
-                        value={filters.sort}
-                        onChange={(event) =>
-                            apply({ sort: event.target.value })
-                        }
-                    >
-                        {SORTS.map((sort) => (
-                            <option key={sort.value} value={sort.value}>
-                                {sort.label}
-                            </option>
-                        ))}
-                    </Select>
-                </Field>
+                {view === 'shelf' ? (
+                    <Field label="Organizar por" className="flex-[1_1_150px]">
+                        <Select
+                            value={group}
+                            onChange={(event) =>
+                                setGroup(event.target.value as ShelfGroup)
+                            }
+                        >
+                            {SHELF_GROUPS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </Select>
+                    </Field>
+                ) : (
+                    <Field label="Ordenar por" className="flex-[1_1_150px]">
+                        <Select
+                            value={filters.sort}
+                            onChange={(event) =>
+                                apply({ sort: event.target.value })
+                            }
+                        >
+                            {SORTS.map((sort) => (
+                                <option key={sort.value} value={sort.value}>
+                                    {sort.label}
+                                </option>
+                            ))}
+                        </Select>
+                    </Field>
+                )}
             </div>
 
             <div
@@ -170,7 +236,13 @@ export default function Library({
                 })}
             </div>
 
-            {books.length > 0 ? (
+            {view === 'shelf' && (books.length > 0 || group === 'custom') ? (
+                <Bookshelf
+                    books={books}
+                    group={group}
+                    bookshelves={bookshelves}
+                />
+            ) : books.length > 0 ? (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(128px,1fr))] gap-x-5 gap-y-6">
                     {books.map((book) => (
                         // O botão da fila fica fora do Link, que não pode conter botões.

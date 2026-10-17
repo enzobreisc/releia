@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 /**
  * Metadados de um livro como vieram de uma fonte, já normalizados.
  *
- * @phpstan-type CandidateArray array{isbn_13: string|null, isbn_10: string|null, title: string, subtitle: string|null, authors: list<string>, publisher: string|null, published_year: int|null, pages: int|null, genre: string|null, description: string|null, cover_url: string|null, source: string, work_key?: string|null, edition_count?: int|null, language?: string|null}
+ * @phpstan-type CandidateArray array{isbn_13: string|null, isbn_10: string|null, title: string, subtitle: string|null, authors: list<string>, publisher: string|null, published_year: int|null, pages: int|null, genre: string|null, description: string|null, cover_url: string|null, source: string, work_key?: string|null, edition_count?: int|null, language?: string|null, popularity?: int|null}
  */
 final readonly class BookCandidate
 {
@@ -33,6 +33,8 @@ final readonly class BookCandidate
         public ?int $editionCount = null,
         // Código MARC do idioma da edição (por, eng…), quando a fonte informa.
         public ?string $language = null,
+        // Quanta gente quer ler ou avaliou a obra (Open Library); serve para ordenar sugestões.
+        public ?int $popularity = null,
     ) {}
 
     /** Completa os campos vazios com os de outra fonte, sem sobrescrever nada. */
@@ -54,12 +56,13 @@ final readonly class BookCandidate
             workKey: $this->workKey ?? $other->workKey,
             editionCount: $this->editionCount ?? $other->editionCount,
             language: $this->language ?? $other->language,
+            popularity: $this->popularity ?? $other->popularity,
         );
     }
 
     public function isComplete(): bool
     {
-        return $this->pages !== null && $this->coverUrl !== null && $this->description !== null;
+        return $this->pages !== null && $this->coverUrl !== null && $this->description !== null && $this->genre !== null;
     }
 
     /**
@@ -83,6 +86,7 @@ final readonly class BookCandidate
             'work_key' => $this->workKey,
             'edition_count' => $this->editionCount,
             'language' => $this->language,
+            'popularity' => $this->popularity,
         ];
     }
 
@@ -107,6 +111,7 @@ final readonly class BookCandidate
             workKey: $data['work_key'] ?? null,
             editionCount: $data['edition_count'] ?? null,
             language: $data['language'] ?? null,
+            popularity: $data['popularity'] ?? null,
         );
     }
 

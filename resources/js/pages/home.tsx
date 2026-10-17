@@ -1,7 +1,10 @@
 import { Link, router, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { BookCover } from '@/components/book-cover';
 import { Button, Field, Input, buttonClass } from '@/components/form';
+import { SuggestionEditions } from '@/components/suggestion-editions';
+import type { Choosing } from '@/components/suggestion-editions';
 import { PageHeader, SectionTitle } from '@/components/page-header';
 import { ProgressBar, progressText } from '@/components/reading-progress';
 import { index as libraryIndex } from '@/routes/library';
@@ -190,6 +193,8 @@ function GoalForm({ current }: { current: number | null }) {
 /** Sugestão do dia (fase 5): sempre com o motivo, ligado a um livro lido. */
 function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
     const options = { preserveScroll: true };
+    const [open, setOpen] = useState(false);
+    const [choosing, setChoosing] = useState<Choosing | null>(null);
 
     return (
         <section className="flex flex-wrap items-center gap-5 rounded-md border bg-surface p-5">
@@ -210,17 +215,33 @@ function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
                     Por quê: {suggestion.reason} · parecido com{' '}
                     {suggestion.based_on}
                 </div>
-                <Link
-                    href={suggestionsIndex.url()}
-                    className="self-start text-sm font-semibold text-accent hover:underline"
-                >
-                    Ver mais sugestões
-                </Link>
+                <div className="flex flex-wrap gap-4">
+                    <Link
+                        href={suggestionsIndex.url()}
+                        className="text-sm font-semibold text-accent hover:underline"
+                    >
+                        Ver mais sugestões
+                    </Link>
+                    {suggestion.has_editions && (
+                        <button
+                            type="button"
+                            aria-expanded={open}
+                            onClick={() => setOpen(!open)}
+                            className="text-sm text-accent hover:underline"
+                        >
+                            {open ? '− Esconder edições' : '+ Escolher edição'}
+                        </button>
+                    )}
+                </div>
             </div>
             <div className="flex gap-3">
                 <button
                     type="button"
-                    onClick={() => router.visit(accept(suggestion.id), options)}
+                    onClick={() =>
+                        suggestion.has_editions
+                            ? setChoosing('want')
+                            : router.visit(accept(suggestion.id), options)
+                    }
                     className={buttonClass('outline')}
                 >
                     Quero ler
@@ -235,6 +256,19 @@ function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
                     Dispensar
                 </button>
             </div>
+            {(open || choosing) && (
+                <SuggestionEditions
+                    key={choosing ?? 'browse'}
+                    id={suggestion.id}
+                    disabled={false}
+                    options={options}
+                    mode={choosing}
+                    onCancel={() => {
+                        setChoosing(null);
+                        setOpen(false);
+                    }}
+                />
+            )}
         </section>
     );
 }

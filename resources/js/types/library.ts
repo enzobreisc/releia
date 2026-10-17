@@ -17,6 +17,22 @@ export type BookCard = {
     readings_count: number | null;
 };
 
+/** Cartão com o que a estante de lombadas precisa para ordenar, agrupar e desenhar. */
+export type SpineBook = BookCard & {
+    author: string | null;
+    genre: string | null;
+    pages: number | null;
+    published_year: number | null;
+    bookshelf_id: number | null;
+    shelf_position: number;
+};
+
+/** Prateleira personalizada (não confundir com `Shelf`, a estante por status). */
+export type Bookshelf = {
+    id: number;
+    name: string;
+};
+
 export type Shelf = {
     value: string | null;
     label: string;
@@ -28,6 +44,7 @@ export type BookDetail = {
     title: string;
     subtitle: string | null;
     authors: string;
+    author_links: { id: number; name: string }[];
     isbn_13: string | null;
     publisher: string | null;
     published_year: number | null;

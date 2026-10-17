@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Services\BookLookup\BookCandidate;
+use App\Services\BookLookup\BrasilApiProvider;
 use App\Services\BookLookup\GoogleBooksProvider;
 use App\Services\BookLookup\OpenLibraryProvider;
 use App\Support\Isbn;
@@ -12,16 +13,22 @@ use Illuminate\Support\Str;
 /**
  * @phpstan-import-type CandidateArray from BookCandidate
  *
- * Busca e normaliza metadados: Open Library primeiro, Google Books para
- * completar ou como reserva. Resultados ficam em cache para não repetir chamadas.
+ * Busca e normaliza metadados: Open Library primeiro; BrasilAPI (ISBN brasileiro)
+ * e Google Books completam ou servem de reserva. Resultados ficam em cache para
+ * não repetir chamadas.
  */
 class BookLookupService
 {
     private const CACHE_DAYS = 30;
 
+    /** Com menos resultados que isso na Open Library, a busca é complementada. */
+    private const SUPPLEMENT_BELOW = 5;
+
     public function __construct(
         private readonly OpenLibraryProvider $openLibrary,
         private readonly GoogleBooksProvider $googleBooks,
+        private readonly BrasilApiProvider $brasilApi,
+        private readonly CoverStore $covers,
     ) {}
 
     /**
@@ -47,11 +54,18 @@ class BookLookupService
         }
 
         /** @var list<CandidateArray> $cached */
-        $cached = $this->remember('search:v2:'.mb_strtolower($query).'|'.$publisher, function () use ($query, $publisher) {
+        $cached = $this->remember('search:v3:'.mb_strtolower($query).'|'.$publisher, function () use ($query, $publisher) {
             $results = $this->openLibrary->search($query, $publisher);
 
-            if ($results === []) {
-                $results = $this->googleBooks->search($query, $publisher);
+            // A editora é uma dica: a Open Library tem pouca informação de editora,
+            // então sem resultado com ela busca só pelo título.
+            if ($results === [] && $publisher !== null) {
+                $results = $this->openLibrary->search($query);
+            }
+
+            // Poucos resultados costumam ser livros que a Open Library mal conhece.
+            if (count($results) < self::SUPPLEMENT_BELOW) {
+                $results = $this->merge($results, $this->googleBooks->search($query, $publisher));
             }
 
             return array_map(fn (BookCandidate $book) => $book->toArray(), $results);
@@ -110,6 +124,32 @@ class BookLookupService
         );
     }
 
+    /**
+     * Acrescenta ao final os resultados extras que ainda não estão na lista
+     * (mesmo ISBN, ou mesmo título e primeiro autor).
+     *
+     * @param  list<BookCandidate>  $results
+     * @param  list<BookCandidate>  $extra
+     * @return list<BookCandidate>
+     */
+    private function merge(array $results, array $extra): array
+    {
+        $identify = fn (BookCandidate $book) => self::normalize($book->title.'|'.($book->authors[0] ?? ''));
+        $seen = array_map($identify, $results);
+        $isbns = array_filter(array_map(fn (BookCandidate $book) => $book->isbn13, $results));
+
+        foreach ($extra as $book) {
+            if (($book->isbn13 !== null && in_array($book->isbn13, $isbns, true)) || in_array($identify($book), $seen, true)) {
+                continue;
+            }
+
+            $results[] = $book;
+            $seen[] = $identify($book);
+        }
+
+        return $results;
+    }
+
     private static function normalize(string $value): string
     {
         return Str::of($value)->ascii()->lower()->squish()->toString();
@@ -121,12 +161,21 @@ class BookLookupService
         $cached = $this->remember("isbn:{$isbn13}", function () use ($isbn13) {
             $book = $this->openLibrary->findByIsbn($isbn13);
 
-            if ($book === null || ! $book->isComplete()) {
-                $google = $this->googleBooks->findByIsbn($isbn13);
-
-                if ($google !== null) {
-                    $book = $book?->fillFrom($google) ?? $google;
+            foreach ([$this->brasilApi, $this->googleBooks] as $provider) {
+                if ($book !== null && $book->isComplete()) {
+                    break;
                 }
+
+                $other = $provider->findByIsbn($isbn13);
+
+                if ($other !== null) {
+                    $book = $book?->fillFrom($other) ?? $other;
+                }
+            }
+
+            // Os dados vêm certos e a capa não: tenta achar uma pelo ISBN.
+            if ($book !== null && $book->coverUrl === null && ($cover = $this->covers->findByIsbn($isbn13)) !== null) {
+                $book = $book->fillFrom(new BookCandidate(title: $book->title, source: $book->source, coverUrl: $cover));
             }
 
             return $book?->toArray();

@@ -89,11 +89,12 @@ class ReadingController extends Controller
         return to_route('books.show', $book);
     }
 
-    /** Terminar e avaliar: data, nota e uma linha, tudo opcional menos a data. */
+    /** Terminar e avaliar: data (ou "sem data"), nota e uma linha. */
     public function finish(Request $request, Reading $reading, DashboardService $dashboard): RedirectResponse
     {
         $data = $request->validate([
-            'finished_on' => ['required', 'date_format:Y-m-d'],
+            'undated' => ['boolean'],
+            'finished_on' => ['required_without:undated', 'nullable', 'date_format:Y-m-d'],
             'rating' => ['nullable', 'integer', 'between:1,5'],
             'line' => ['nullable', 'string', 'max:280'],
         ]);
@@ -103,7 +104,7 @@ class ReadingController extends Controller
 
         $this->readings->finish(
             $reading,
-            Carbon::createFromFormat('Y-m-d', $data['finished_on'])->startOfDay(),
+            ($data['undated'] ?? false) || empty($data['finished_on']) ? null : Carbon::createFromFormat('Y-m-d', $data['finished_on'])->startOfDay(),
             isset($data['rating']) ? (int) $data['rating'] : null,
             $data['line'] ?? null,
         );
@@ -189,7 +190,7 @@ class ReadingController extends Controller
     public function dates(Request $request, Reading $reading): RedirectResponse
     {
         $data = $request->validate([
-            'started_at' => ['required', 'date_format:Y-m-d'],
+            'started_at' => ['nullable', 'date_format:Y-m-d'],
             'finished_at' => ['nullable', 'date_format:Y-m-d'],
         ]);
 
@@ -197,7 +198,7 @@ class ReadingController extends Controller
 
         $this->readings->updateDates(
             $reading,
-            Carbon::createFromFormat('Y-m-d', $data['started_at'])->startOfDay(),
+            isset($data['started_at']) ? Carbon::createFromFormat('Y-m-d', $data['started_at'])->startOfDay() : null,
             isset($data['finished_at']) ? Carbon::createFromFormat('Y-m-d', $data['finished_at'])->startOfDay() : null,
         );
 

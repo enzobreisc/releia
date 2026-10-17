@@ -6,5 +6,5 @@ export type NavItem = {
     href: string;
     icon: ComponentType<IconProps>;
     /** Chave do contador em `counts` (dado compartilhado). */
-    count?: 'books' | 'notes' | 'queue';
+    count?: 'books' | 'notes' | 'queue' | 'shopping';
 };

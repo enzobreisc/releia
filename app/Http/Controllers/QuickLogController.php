@@ -141,7 +141,7 @@ class QuickLogController extends Controller
             'book_id' => $book->id,
             'streak' => $this->dashboard->streak(Carbon::today()),
             'finished' => $finished,
-            'days' => $finished && $reading->started_at !== null ? (int) $reading->started_at->diffInDays($reading->finished_at) + 1 : null,
+            'days' => $finished && $reading->started_at !== null && $reading->finished_at !== null ? (int) $reading->started_at->diffInDays($reading->finished_at) + 1 : null,
             'next' => $next === null ? null : ['id' => $next->id, 'title' => $next->title],
         ]);
     }

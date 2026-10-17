@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ReadingStatus;
 use App\Http\Presenters\BookPresenter;
 use App\Models\Book;
+use App\Models\Bookshelf;
 use App\Models\QueueItem;
 use App\Models\Reading;
 use Illuminate\Database\Eloquent\Builder;
@@ -47,8 +48,9 @@ class LibraryController extends Controller
         $positions = QueueItem::query()->pluck('position', 'book_id')->map(fn ($position) => (int) $position)->all();
 
         return Inertia::render('library', [
-            'books' => $books->map(fn (Book $book) => BookPresenter::card($book, $positions[$book->id] ?? null)),
+            'books' => $books->map(fn (Book $book) => BookPresenter::spine($book, $positions[$book->id] ?? null)),
             'shelves' => $this->shelves(),
+            'bookshelves' => Bookshelf::query()->orderBy('position')->get(['id', 'name']),
             'genres' => Book::query()->whereNotNull('genre')->distinct()->orderBy('genre')->pluck('genre'),
             'filters' => [
                 'q' => (string) $request->string('q'),

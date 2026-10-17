@@ -1,7 +1,9 @@
 import { Link, router, useForm } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import type { DragEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { AmazonCoverField } from '@/components/amazon-cover-field';
 import { BookCover } from '@/components/book-cover';
+import { GenreSelect } from '@/components/genre-select';
 import { Button, Field, Input, Textarea } from '@/components/form';
 import { cn } from '@/lib/utils';
 import { show, update } from '@/routes/books';
@@ -41,12 +43,8 @@ function initialFields(book: BookDetail): Fields {
     return {
         title: book.title,
         subtitle: book.subtitle ?? '',
-        authors: book.authors
-            ? book.authors
-                  .split(',')
-                  .map((name) => name.trim())
-                  .filter(Boolean)
-            : [],
+        // Um a um, como estão salvos: separar o texto "A, B" por vírgula quebra nomes como "Silva, João".
+        authors: book.author_links.map((author) => author.name),
         pages: book.pages?.toString() ?? '',
         genre: book.genre ?? '',
         publisher: book.publisher ?? '',
@@ -222,6 +220,8 @@ export function BookEditor({
             addAuthor();
         } else if (
             event.key === 'Backspace' &&
+            // Segurar a tecla repete o evento e apagaria vários autores de uma vez.
+            !event.repeat &&
             authorDraft === '' &&
             form.data.authors.length > 0
         ) {
@@ -433,6 +433,16 @@ export function BookEditor({
                                     className="h-9 text-[13px]"
                                 />
                             </Field>
+                            <AmazonCoverField
+                                onFound={(coverUrl) => {
+                                    // Um arquivo escolhido antes vale mais que o link; o link novo é o que vale agora.
+                                    form.setData((data) => ({
+                                        ...data,
+                                        cover_file: null,
+                                        cover_url: coverUrl,
+                                    }));
+                                }}
+                            />
                             <span className="text-[11px] text-faint">
                                 A imagem é guardada no Mac; não depende do link.
                                 Trocar a capa não tem desfazer.
@@ -442,9 +452,9 @@ export function BookEditor({
 
                     <Field label="Autores" error={form.errors.authors}>
                         <span className="flex min-h-10 flex-wrap items-center gap-1.5 rounded-sm border bg-bg px-2 py-1">
-                            {form.data.authors.map((name) => (
+                            {form.data.authors.map((name, index) => (
                                 <span
-                                    key={name}
+                                    key={`${index}:${name}`}
                                     className="inline-flex h-7 items-center gap-1.5 rounded-full bg-elevated pr-1 pl-2.5 text-[13px] text-text"
                                 >
                                     {name}
@@ -455,7 +465,8 @@ export function BookEditor({
                                             form.setData(
                                                 'authors',
                                                 form.data.authors.filter(
-                                                    (author) => author !== name,
+                                                    (_, position) =>
+                                                        position !== index,
                                                 ),
                                             )
                                         }
@@ -499,21 +510,22 @@ export function BookEditor({
                                 )}
                             />
                         </Field>
-                        <Field label="Gênero" error={form.errors.genre}>
-                            <Input
-                                list="book-editor-genres"
+                        <div className="flex flex-col gap-1.5 text-[13px] text-muted">
+                            <span>Gênero</span>
+                            <GenreSelect
                                 value={form.data.genre}
-                                onChange={(event) =>
-                                    form.setData('genre', event.target.value)
+                                onChange={(value) =>
+                                    form.setData('genre', value)
                                 }
-                                className="h-10 bg-bg text-sm"
+                                genres={genres}
+                                className="text-sm"
                             />
-                            <datalist id="book-editor-genres">
-                                {genres.map((genre) => (
-                                    <option key={genre} value={genre} />
-                                ))}
-                            </datalist>
-                        </Field>
+                            {form.errors.genre && (
+                                <span className="text-xs text-red-300">
+                                    {form.errors.genre}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     {errors.pages && (
                         <div

@@ -453,3 +453,44 @@ test('trocar a capa por arquivo salva a imagem e não oferece desfazer', functio
         ->and(lastToast()['sub'])->toBe('capa nova salva')
         ->and(lastToast()['undo'])->toBeNull();
 });
+
+test('terminar sem data deixa o livro lido, sem datas', function () {
+    $book = lifecycleBook(ReadingStatus::Reading, ['started_at' => '2026-10-01', 'current_page' => 40]);
+    $reading = $book->readings()->sole();
+
+    $this->post(route('readings.finish', $reading), ['undated' => true, 'rating' => 4])->assertRedirect();
+
+    $reading->refresh();
+
+    expect($reading->status)->toBe(ReadingStatus::Read)
+        ->and($reading->finished_at)->toBeNull()
+        ->and($reading->rating)->toBe(4)
+        ->and($reading->current_page)->toBe(100);
+});
+
+test('terminar exige data ou "sem data"', function () {
+    $reading = lifecycleBook(ReadingStatus::Reading)->readings()->sole();
+
+    $this->post(route('readings.finish', $reading), [])->assertSessionHasErrors('finished_on');
+});
+
+test('cadastrar como lido sem data não inventa a data de hoje', function () {
+    $this->post(route('books.store'), ['title' => 'Lido faz tempo', 'status' => 'read', 'undated' => true])->assertRedirect();
+
+    $reading = Reading::sole();
+
+    expect($reading->status)->toBe(ReadingStatus::Read)
+        ->and($reading->started_at)->toBeNull()
+        ->and($reading->finished_at)->toBeNull();
+});
+
+test('uma leitura lida pode ficar sem datas, mas uma abandonada não', function () {
+    $read = lifecycleBook(ReadingStatus::Read, ['started_at' => '2026-09-01', 'finished_at' => '2026-09-10'])->readings()->sole();
+    $abandoned = lifecycleBook(ReadingStatus::Abandoned, ['started_at' => '2026-09-01', 'finished_at' => '2026-09-10'])->readings()->sole();
+
+    $this->patch(route('readings.dates', $read), [])->assertRedirect();
+    $this->patch(route('readings.dates', $abandoned), ['started_at' => '2026-09-01'])->assertSessionHasErrors('finished_at');
+
+    expect($read->refresh()->started_at)->toBeNull()
+        ->and($read->finished_at)->toBeNull();
+});

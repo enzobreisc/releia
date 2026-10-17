@@ -169,3 +169,14 @@ test('o calendário do perfil troca de ano só entre anos com atividade', functi
             ->where('year', $current)
             ->where('years', [$current]));
 });
+
+test('o perfil manda a estante com os livros terminados no ano, na ordem em que terminaram', function () {
+    $first = Book::factory()->create(['title' => 'Primeiro']);
+    $second = Book::factory()->create(['title' => 'Segundo']);
+    $second->readings()->create(['status' => ReadingStatus::Read, 'finished_at' => '2026-02-01']);
+    $first->readings()->create(['status' => ReadingStatus::Read, 'finished_at' => '2026-03-01']);
+
+    $this->get(route('profile.show', ['year' => 2026]))->assertInertia(fn ($page) => $page
+        ->where('year_books.0.title', 'Segundo')
+        ->where('year_books.1.title', 'Primeiro'));
+});

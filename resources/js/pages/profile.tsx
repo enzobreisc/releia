@@ -2,6 +2,7 @@ import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { BookCover } from '@/components/book-cover';
+import { Bookshelf } from '@/components/bookshelf';
 import { Button, Field, Input } from '@/components/form';
 import { HeatMap, heatClass } from '@/components/heat-map';
 import { PageHeader, SectionTitle } from '@/components/page-header';
@@ -9,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { show as bookShow } from '@/routes/books';
 import { show as profileShow, update as updateProfile } from '@/routes/profile';
 import { destroy as unpinBook, store as pinBook } from '@/routes/profile/pins';
-import type { CalendarDay } from '@/types';
+import type { CalendarDay, SpineBook } from '@/types';
 
 type PinnedBook = {
     id: number;
@@ -41,6 +42,7 @@ type ProfileProps = {
     pinned: PinnedBook[];
     pin_options: { id: number; title: string }[];
     pin_limit: number;
+    year_books: SpineBook[];
     year: number;
     years: number[];
     calendar: CalendarDay[];
@@ -158,6 +160,7 @@ export default function Profile({
     pinned,
     pin_options,
     pin_limit,
+    year_books,
     year,
     years,
     calendar,
@@ -183,6 +186,26 @@ export default function Profile({
                         options={pin_options}
                         limit={pin_limit}
                     />
+
+                    <section
+                        aria-label="Estante do ano"
+                        className="flex flex-col gap-3 rounded-md border bg-surface px-5 py-4.5"
+                    >
+                        <SectionTitle>
+                            {`Estante de ${year} · ${plural(year_books.length, 'livro', 'livros')}`}
+                        </SectionTitle>
+                        {year_books.length > 0 ? (
+                            <Bookshelf
+                                books={year_books}
+                                group="given"
+                                bookshelves={[]}
+                            />
+                        ) : (
+                            <p className="font-mono text-xs text-faint">
+                                nenhum livro terminado em {year}
+                            </p>
+                        )}
+                    </section>
 
                     <section
                         aria-label="Calendário de leitura"

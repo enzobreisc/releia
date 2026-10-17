@@ -17,6 +17,7 @@ use App\Services\BookLookupService;
 use App\Services\LibraryService;
 use App\Services\ReadingService;
 use App\Services\UndoService;
+use App\Support\Genres;
 use App\Support\Isbn;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
@@ -54,6 +55,7 @@ class BookController extends Controller
             ],
             'preview' => fn () => $isbn === null ? null : $this->preview($isbn),
             'statuses' => ReadingStatus::options(),
+            'genres' => Genres::names(),
         ]);
     }
 
@@ -109,7 +111,9 @@ class BookController extends Controller
             ],
             // Maior página já registrada: o total de páginas não pode ficar abaixo dela.
             'max_logged_page' => (int) $history->flatMap(fn (Reading $item) => $item->sessions)->max('page_to'),
-            'genres' => fn () => Book::query()->whereNotNull('genre')->distinct()->orderBy('genre')->pluck('genre'),
+            'genres' => fn () => collect(Genres::names())
+                ->merge(Book::query()->whereNotNull('genre')->distinct()->pluck('genre'))
+                ->unique()->sort()->values(),
             // "↻ buscar" no painel de edição: os dados da fonte para comparar, por recarga parcial.
             'lookup' => Inertia::optional(fn () => $isbn === null ? null : $this->preview($isbn)),
         ]);
