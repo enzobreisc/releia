@@ -10,6 +10,7 @@ use App\Models\QueueItem;
 use App\Models\ShoppingItem;
 use App\Services\QueueService;
 use App\Services\UndoService;
+use App\Support\Ordinal;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class QueueController extends Controller
 {
     public function __construct(private readonly QueueService $queue) {}
 
-    /** Próximos a ler, com a previsão de término de cada um lendo na ordem da fila. */
+    /** Up next, with each book's finish forecast reading in queue order. */
     public function index(): Response
     {
         $pace = $this->queue->pace(Carbon::today());
@@ -33,7 +34,7 @@ class QueueController extends Controller
 
         $queuedBookIds = $queueItems->pluck('book_id');
 
-        // Previsão de término de cada livro, lendo na ordem da fila a partir de hoje.
+        // Finish forecast for each book, reading in queue order starting today.
         $elapsed = 0;
         $queue = $queueItems->map(function (QueueItem $item) use ($pace, &$elapsed) {
             $days = $this->queue->estimateDays($item->book, $pace['pages_per_day']);
@@ -57,7 +58,7 @@ class QueueController extends Controller
         ]);
     }
 
-    /** Coloca um livro no fim da fila. */
+    /** Puts a book at the end of the queue. */
     public function store(Request $request, UndoService $undo): RedirectResponse
     {
         $validated = $request->validate([
@@ -69,12 +70,12 @@ class QueueController extends Controller
         $item = $this->queue->add($book);
 
         Toast::success(
-            'Adicionado à fila',
-            $book->title.' · entrou em '.Toast::ordinal($item->position),
-            // Na própria Fila o link não faz sentido.
+            __('Adicionado à fila'),
+            $book->title.' · '.__('entrou em :position', ['position' => Ordinal::masculine($item->position)]),
+            // On the Queue screen itself the link makes no sense.
             str_contains(url()->previous(), '/queue')
                 ? null
-                : ['label' => 'Ver fila', 'method' => 'get', 'url' => route('queue.index', absolute: false)],
+                : ['label' => __('Ver fila'), 'method' => 'get', 'url' => route('queue.index', absolute: false)],
             $undo->remember($snapshot),
         );
 
@@ -88,7 +89,7 @@ class QueueController extends Controller
         return back();
     }
 
-    /** Tira da fila pelo livro (botão "na fila · 2º" do Detalhe e da Biblioteca). */
+    /** Removes from the queue by book (the "in queue · 2nd" button on the detail page and Library). */
     public function destroyBook(Book $book, UndoService $undo): RedirectResponse
     {
         return $this->destroy(QueueItem::query()->where('book_id', $book->id)->firstOrFail(), $undo);
@@ -102,7 +103,7 @@ class QueueController extends Controller
 
         $this->queue->remove($queueItem);
 
-        Toast::success('Tirado da fila', $title.' · era o '.Toast::ordinal($position), null, $undo->remember($snapshot));
+        Toast::success(__('Tirado da fila'), $title.' · '.__('era o :position', ['position' => Ordinal::masculine($position)]), null, $undo->remember($snapshot));
 
         return back();
     }

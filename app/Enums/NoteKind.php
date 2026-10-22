@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-/** Tipo da nota: trecho copiado, reflexão própria ou citação. */
+/** Kind of note: a copied excerpt, the reader's own reflection or a quote. */
 enum NoteKind: string
 {
     case Excerpt = 'excerpt';
@@ -12,19 +12,19 @@ enum NoteKind: string
     public function label(): string
     {
         return match ($this) {
-            self::Excerpt => 'Trecho',
-            self::Reflection => 'Reflexão',
-            self::Quote => 'Citação',
+            self::Excerpt => __('Trecho'),
+            self::Reflection => __('Reflexão'),
+            self::Quote => __('Citação'),
         };
     }
 
-    /** Rótulo da aba de filtro, no plural. */
+    /** Filter tab label, in the plural. */
     public function pluralLabel(): string
     {
         return match ($this) {
-            self::Excerpt => 'Trechos',
-            self::Reflection => 'Reflexões',
-            self::Quote => 'Citações',
+            self::Excerpt => __('Trechos'),
+            self::Reflection => __('Reflexões'),
+            self::Quote => __('Citações'),
         };
     }
 

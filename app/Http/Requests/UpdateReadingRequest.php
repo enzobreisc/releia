@@ -6,7 +6,7 @@ use App\Enums\ReadingStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/** Estante, nota e resenha. Página atual e sessões entram na fase 2. */
+/** Shelf, rating and review. Current page and sessions are handled elsewhere. */
 class UpdateReadingRequest extends FormRequest
 {
     /**

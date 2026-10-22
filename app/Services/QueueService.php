@@ -9,16 +9,16 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-/** Fila de próximas leituras: ordem, estimativa de dias e ritmo. */
+/** Queue of upcoming readings: order, days estimate and pace. */
 class QueueService
 {
-    /** Ritmo usado quando ainda não há sessões registradas. */
+    /** Pace used when no sessions have been logged yet. */
     public const DEFAULT_PAGES_PER_DAY = 20;
 
-    /** Janela, em dias, para calcular o ritmo a partir das sessões. */
+    /** Window, in days, to compute the pace from sessions. */
     private const PACE_WINDOW_DAYS = 30;
 
-    /** Livro já na fila não entra de novo: a chamada é idempotente. */
+    /** A book already in the queue does not enter again: the call is idempotent. */
     public function add(Book $book): QueueItem
     {
         return DB::transaction(function () use ($book) {
@@ -36,7 +36,7 @@ class QueueService
         });
     }
 
-    /** Tira o livro da fila, se estiver nela (ao começar a ler, por exemplo). */
+    /** Takes the book out of the queue, if it is in it (when starting to read, for instance). */
     public function removeBook(Book $book): void
     {
         $item = QueueItem::query()->where('book_id', $book->id)->first();
@@ -55,8 +55,8 @@ class QueueService
     }
 
     /**
-     * Grava a nova ordem. Recebe o id de todos os itens da fila, na ordem desejada;
-     * se a lista não bater com a fila atual (outra aba mexeu nela), recusa.
+     * Saves the new order. Receives the id of every queue item, in the desired order;
+     * if the list does not match the current queue (another tab changed it), it refuses.
      *
      * @param  list<int>  $ids
      */
@@ -68,7 +68,7 @@ class QueueService
 
         if ($requested !== $current) {
             throw ValidationException::withMessages([
-                'ids' => 'A fila mudou. Atualize a página e tente de novo.',
+                'ids' => __('A fila mudou. Atualize a página e tente de novo.'),
             ]);
         }
 
@@ -79,7 +79,7 @@ class QueueService
         });
     }
 
-    /** Renumera as posições em 1..n, sem buracos depois de uma remoção. */
+    /** Renumbers positions as 1..n, with no gaps after a removal. */
     private function compact(): void
     {
         QueueItem::query()
@@ -95,8 +95,8 @@ class QueueService
     }
 
     /**
-     * Ritmo em páginas por dia: média das páginas nos dias em que você leu,
-     * entre os últimos 30 dias. Sem sessões, usa o padrão.
+     * Pace in pages per day: average of the pages on the days you read,
+     * within the last 30 days. Without sessions, it uses the default.
      *
      * @return array{pages_per_day: float, from_sessions: bool}
      */
@@ -119,7 +119,7 @@ class QueueService
     }
 
     /**
-     * Dias para terminar o livro no ritmo dado. Null quando o livro não tem número de páginas.
+     * Days to finish the book at the given pace. Null when the book has no page count.
      */
     public function estimateDays(Book $book, float $pagesPerDay): ?int
     {

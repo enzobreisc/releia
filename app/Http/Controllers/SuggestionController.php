@@ -39,15 +39,15 @@ class SuggestionController extends Controller
         $added = $this->suggestions->generate();
 
         Toast::success(match ($added) {
-            0 => 'Nenhuma sugestão nova',
-            1 => '1 sugestão nova',
-            default => "{$added} sugestões novas",
+            0 => __('Nenhuma sugestão nova'),
+            1 => __('1 sugestão nova'),
+            default => __(':count sugestões novas', ['count' => $added]),
         });
 
         return to_route('suggestions.index');
     }
 
-    /** Edições da obra sugerida, com as que já estão na biblioteca marcadas. */
+    /** Editions of the suggested work, with the ones already in the library flagged. */
     public function editions(Recommendation $recommendation): JsonResponse
     {
         return response()->json([
@@ -59,11 +59,11 @@ class SuggestionController extends Controller
     {
         if ($this->suggestions->accept($recommendation, $this->isbn($request))) {
             $book = Book::query()->latest('id')->firstOrFail();
-            Toast::success('Adicionado a Quero ler', $recommendation->title, [
-                'label' => 'Pôr na fila', 'method' => 'post', 'url' => route('queue.store', absolute: false), 'data' => ['book_id' => $book->id],
+            Toast::success(__('Adicionado a Quero ler'), $recommendation->title, [
+                'label' => __('Pôr na fila'), 'method' => 'post', 'url' => route('queue.store', absolute: false), 'data' => ['book_id' => $book->id],
             ]);
         } else {
-            Toast::success('Esse livro já está na biblioteca', $recommendation->title);
+            Toast::success(__('Esse livro já está na biblioteca'), $recommendation->title);
         }
 
         return back();
@@ -73,11 +73,11 @@ class SuggestionController extends Controller
     {
         if ($this->suggestions->alreadyRead($recommendation, $this->isbn($request))) {
             $book = Book::query()->latest('id')->firstOrFail();
-            Toast::success('Adicionado como lido', $recommendation->title, [
-                'label' => 'Avaliar', 'method' => 'get', 'url' => route('books.show', $book, absolute: false),
+            Toast::success(__('Adicionado como lido'), $recommendation->title, [
+                'label' => __('Avaliar'), 'method' => 'get', 'url' => route('books.show', $book, absolute: false),
             ]);
         } else {
-            Toast::success('Esse livro já está na biblioteca', $recommendation->title);
+            Toast::success(__('Esse livro já está na biblioteca'), $recommendation->title);
         }
 
         return back();
@@ -88,12 +88,12 @@ class SuggestionController extends Controller
         $snapshot = $undo->capture([UndoService::scope('recommendations', ['id' => $recommendation->id])]);
         $this->suggestions->dismiss($recommendation);
 
-        Toast::success('Sugestão dispensada', $recommendation->title, null, $undo->remember($snapshot));
+        Toast::success(__('Sugestão dispensada'), $recommendation->title, null, $undo->remember($snapshot));
 
         return back();
     }
 
-    /** ISBN da edição escolhida, quando o usuário escolheu uma. */
+    /** ISBN of the chosen edition, when the user picked one. */
     private function isbn(Request $request): ?string
     {
         return $request->validate(['isbn_13' => ['nullable', 'string', 'max:20']])['isbn_13'] ?? null;

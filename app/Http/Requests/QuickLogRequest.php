@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Validation\Rule;
 
-/** Registro rápido: a sessão de hoje para um livro escolhido na janela da barra de menu. */
+/** Quick log: today's session for a book picked in the menu bar window. */
 class QuickLogRequest extends StoreSessionRequest
 {
     /**

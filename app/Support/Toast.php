@@ -6,11 +6,11 @@ use App\Services\UndoService;
 use Illuminate\Support\Str;
 
 /**
- * Aviso que aparece depois de uma ação (canto inferior direito). Vai para a
- * sessão como flash, então sobrevive ao redirect e aparece uma vez só.
+ * Notice shown after an action (bottom right corner). It goes to the session
+ * as a flash, so it survives the redirect and shows only once.
  *
- * A ação opcional é um botão no aviso: `label`, `method` (get, post ou patch),
- * `url` e `data`. O desfazer é um token do UndoService.
+ * The optional action is a button on the notice: `label`, `method` (get, post
+ * or patch), `url` and `data`. The undo is an UndoService token.
  *
  * @phpstan-type ToastAction array{label: string, method: string, url: string, data?: array<string, mixed>}
  */
@@ -23,7 +23,7 @@ final class Toast
      */
     public static function success(string $title, ?string $sub = null, ?array $action = null, ?string $undo = null): void
     {
-        // Ação nova sem desfazer: o desfazer da anterior não vale mais (desfaria esta também).
+        // A new action without undo: the previous undo is stale (it would undo this one too).
         if ($undo === null) {
             app(UndoService::class)->forget();
         }
@@ -42,7 +42,7 @@ final class Toast
     private static function flash(string $kind, string $title, ?string $sub, ?array $action, ?string $undo): void
     {
         session()->flash(self::SESSION_KEY, [
-            // Id único: o mesmo texto duas vezes seguidas são dois avisos.
+            // Unique id: the same text twice in a row is two notices.
             'id' => (string) Str::uuid(),
             'kind' => $kind,
             'title' => $title,
@@ -50,11 +50,5 @@ final class Toast
             'action' => $action,
             'undo' => $undo,
         ]);
-    }
-
-    /** "1º", "2º"… para posições na fila e leituras. */
-    public static function ordinal(int $number): string
-    {
-        return $number.'º';
     }
 }

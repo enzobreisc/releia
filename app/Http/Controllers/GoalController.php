@@ -9,12 +9,12 @@ use Illuminate\Http\RedirectResponse;
 
 class GoalController extends Controller
 {
-    /** Meta de livros do ano, guardada em settings. */
+    /** The year's book goal, kept in settings. */
     public function update(UpdateGoalRequest $request): RedirectResponse
     {
         Setting::put('yearly_goal', $request->integer('yearly_goal'));
 
-        Toast::success('Meta salva', $request->integer('yearly_goal').' livros em '.now()->year);
+        Toast::success(__('Meta salva'), __(':count livros em :year', ['count' => $request->integer('yearly_goal'), 'year' => now()->year]));
 
         return back();
     }

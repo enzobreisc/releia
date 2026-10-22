@@ -17,7 +17,7 @@ class ReadingSessionController extends Controller
 {
     public function __construct(private readonly ReadingService $readings) {}
 
-    /** Registra o progresso de hoje no livro. */
+    /** Logs today's progress on the book. */
     public function store(StoreSessionRequest $request, Book $book): RedirectResponse
     {
         $session = $this->readings->registerSession(
@@ -28,7 +28,7 @@ class ReadingSessionController extends Controller
         );
 
         $data = ReadingPresenter::session($session);
-        Toast::success('Sessão registrada', "{$data['hash']} · p. {$session->page_from} → {$session->page_to} · +{$data['pages']} págs");
+        Toast::success(__('Sessão registrada'), "{$data['hash']} · ".__('p. :page', ['page' => "{$session->page_from} → {$session->page_to}"]).' · '.__('+:pages págs', ['pages' => $data['pages']]));
 
         return back();
     }
@@ -42,7 +42,7 @@ class ReadingSessionController extends Controller
             $request->integer('minutes') ?: null,
         );
 
-        Toast::success('Sessão corrigida', ReadingPresenter::session($session)['hash']);
+        Toast::success(__('Sessão corrigida'), ReadingPresenter::session($session)['hash']);
 
         return back();
     }
@@ -57,7 +57,7 @@ class ReadingSessionController extends Controller
 
         $this->readings->deleteSession($session);
 
-        Toast::success('Sessão apagada', "{$data['hash']} · p. {$session->page_from} → {$session->page_to} · progresso recalculado", null, $undo->remember($snapshot));
+        Toast::success(__('Sessão apagada'), "{$data['hash']} · ".__('p. :page', ['page' => "{$session->page_from} → {$session->page_to}"]).' · '.__('progresso recalculado'), null, $undo->remember($snapshot));
 
         return back();
     }

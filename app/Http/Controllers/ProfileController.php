@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Locale;
 use App\Enums\ReadingStatus;
 use App\Http\Presenters\BookPresenter;
 use App\Models\Book;
@@ -23,7 +24,7 @@ class ProfileController extends Controller
         private readonly StatsService $stats,
     ) {}
 
-    /** Avatar: os últimos 25 dias de leitura numa grade 5×5. */
+    /** Avatar: the last 25 reading days on a 5×5 grid. */
     private const AVATAR_DAYS = 25;
 
     private const TOP_GENRES = 3;
@@ -34,13 +35,14 @@ class ProfileController extends Controller
         $indicators = $this->stats->indicators($history);
         $streaks = $this->stats->streaks($history);
 
-        // Ano do calendário: só os anos com atividade; qualquer outro valor volta para o atual.
+        // Calendar year: only years with activity; any other value falls back to the current one.
         $years = $this->stats->years();
         $year = in_array($request->integer('year'), $years, true) ? $request->integer('year') : $years[0];
         $yearPeriod = StatsPeriod::year($year);
 
         return Inertia::render('profile', [
             'reader' => $this->profile->reader(),
+            'locales' => Locale::options(),
             'since' => $history->start->format('Y-m'),
             'totals' => [
                 'books_read' => $indicators['books_read'],
@@ -73,7 +75,7 @@ class ProfileController extends Controller
         ]);
     }
 
-    /** Nome e frase do leitor. */
+    /** The reader's name and tagline. */
     public function update(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -83,12 +85,12 @@ class ProfileController extends Controller
 
         $this->profile->updateReader($data['name'] ?? null, $data['bio'] ?? null);
 
-        Toast::success('Perfil salvo');
+        Toast::success(__('Perfil salvo'));
 
         return back();
     }
 
-    /** Fixa um livro na seção "Livros fixados". */
+    /** Pins a book to the "Pinned books" section. */
     public function pin(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -98,10 +100,10 @@ class ProfileController extends Controller
         $book = Book::query()->whereKey($data['book_id'])->firstOrFail();
 
         if (! $this->profile->pin($book)) {
-            return back()->withErrors(['book_id' => 'Você pode fixar até '.ProfileService::MAX_PINS.' livros.']);
+            return back()->withErrors(['book_id' => __('Você pode fixar até :max livros.', ['max' => ProfileService::MAX_PINS])]);
         }
 
-        Toast::success('Fixado no perfil', $book->title);
+        Toast::success(__('Fixado no perfil'), $book->title);
 
         return back();
     }
@@ -111,13 +113,13 @@ class ProfileController extends Controller
         $snapshot = $undo->capture([UndoService::scope('settings', ['key' => ProfileService::PINS_SETTING], 'key')]);
         $this->profile->unpin($book);
 
-        Toast::success('Desafixado', $book->title, null, $undo->remember($snapshot));
+        Toast::success(__('Desafixado'), $book->title, null, $undo->remember($snapshot));
 
         return back();
     }
 
     /**
-     * Livros terminados no ano, na ordem em que foram terminados, para a estante do perfil.
+     * Books finished in the year, in the order they were finished, for the profile shelf.
      *
      * @return list<array<string, mixed>>
      */

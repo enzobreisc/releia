@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 class StoreBookRequest extends FormRequest
 {
     /**
-     * Normaliza antes de validar: ISBN sem hífens e autores separados por vírgula.
+     * Normalizes before validating: ISBN without hyphens and comma-separated authors.
      */
     protected function prepareForValidation(): void
     {
@@ -21,7 +21,7 @@ class StoreBookRequest extends FormRequest
 
         $this->merge([
             'isbn_13' => $isbn13,
-            // Derivado do ISBN-13, para os dois nunca divergirem.
+            // Derived from the ISBN-13, so the two never diverge.
             'isbn_10' => $isbn13 !== null ? Isbn::toIsbn10($isbn13) : null,
             'authors' => is_string($this->input('authors'))
                 ? array_values(array_filter(array_map('trim', explode(',', $this->input('authors')))))
@@ -44,7 +44,7 @@ class StoreBookRequest extends FormRequest
                 'string',
                 function (string $attribute, mixed $value, Closure $fail) {
                     if (! is_string($value) || Isbn::toIsbn13($value) === null) {
-                        $fail('ISBN inválido.');
+                        $fail(__('ISBN inválido.'));
                     }
                 },
                 Rule::unique('books', 'isbn_13'),
@@ -58,7 +58,7 @@ class StoreBookRequest extends FormRequest
             'cover_url' => ['nullable', 'url:http,https', 'max:2048'],
             'source' => ['nullable', Rule::enum(BookSource::class)],
             'status' => ['required', Rule::enum(ReadingStatus::class)],
-            // Cadastrar como "lido": quando terminou. Sem data, vale hoje, a menos que seja "sem data".
+            // Adding as "read": when it was finished. Without a date, today applies, unless it is "undated".
             'finished_on' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
             'undated' => ['boolean'],
         ];
@@ -70,11 +70,11 @@ class StoreBookRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'title.required' => 'Informe o título.',
-            'isbn_13.unique' => 'Esse livro já está na biblioteca.',
-            'pages.between' => 'Número de páginas inválido.',
-            'published_year.between' => 'Ano inválido.',
-            'finished_on.before_or_equal' => 'O término não pode ser depois de hoje.',
+            'title.required' => __('Informe o título.'),
+            'isbn_13.unique' => __('Esse livro já está na biblioteca.'),
+            'pages.between' => __('Número de páginas inválido.'),
+            'published_year.between' => __('Ano inválido.'),
+            'finished_on.before_or_equal' => __('O término não pode ser depois de hoje.'),
         ];
     }
 }

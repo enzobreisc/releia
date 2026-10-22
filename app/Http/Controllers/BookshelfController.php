@@ -9,7 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-/** Prateleiras personalizadas da estante: criar, renomear, apagar e mover livros. */
+/** Custom bookcase shelves: create, rename, delete and move books. */
 class BookshelfController extends Controller
 {
     public function store(Request $request): RedirectResponse
@@ -30,19 +30,19 @@ class BookshelfController extends Controller
         return back();
     }
 
-    /** Apagar a prateleira devolve os livros para "Sem prateleira". */
+    /** Deleting the shelf moves its books back to "No shelf". */
     public function destroy(Bookshelf $bookshelf): RedirectResponse
     {
         $bookshelf->delete();
 
-        Toast::success('Prateleira apagada', $bookshelf->name);
+        Toast::success(__('Prateleira apagada'), $bookshelf->name);
 
         return back();
     }
 
     /**
-     * Põe o livro numa prateleira (ou tira, com `bookshelf_id` nulo), antes de outro
-     * livro quando `before_book_id` vem, senão no fim.
+     * Puts the book on a shelf (or takes it off, with a null `bookshelf_id`), before another
+     * book when `before_book_id` is given, otherwise at the end.
      */
     public function move(Request $request, Book $book): RedirectResponse
     {

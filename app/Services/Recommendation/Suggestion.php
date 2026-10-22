@@ -7,10 +7,10 @@ use App\Services\BookLookup\BookCandidate;
 use InvalidArgumentException;
 
 /**
- * Candidato com o motivo e o livro de origem. Sem motivo não existe sugestão.
+ * A candidate with the reason and the source book. Without a reason there is no suggestion.
  *
- * O mesmo candidato pode vir de vários livros seus: `also` guarda os outros e
- * `affinity` soma o peso das notas de todos eles.
+ * The same candidate can come from several of your books: `also` keeps the others and
+ * `affinity` sums the weight of the ratings of all of them.
  */
 final readonly class Suggestion
 {
@@ -30,11 +30,11 @@ final readonly class Suggestion
         public array $also = [],
     ) {
         if (trim($reason) === '') {
-            throw new InvalidArgumentException('Sugestão sem motivo.');
+            throw new InvalidArgumentException('A suggestion needs a reason.');
         }
     }
 
-    /** Mais um livro seu que aponta para o mesmo candidato. */
+    /** One more of your books pointing to the same candidate. */
     public function withSource(Book $book, float $weight): self
     {
         return new self(
@@ -52,7 +52,7 @@ final readonly class Suggestion
         return new self($candidate, $reason, $this->basedOn, $this->kind, $this->affinity, $this->also);
     }
 
-    /** Mesmo autor vale mais que assunto; popularidade desempata. */
+    /** Same author counts more than subject; popularity breaks ties. */
     public function score(): float
     {
         $base = $this->kind === self::BY_AUTHOR ? 3.0 : 1.0;

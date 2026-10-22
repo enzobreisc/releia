@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-/** Onde o livro da lista de compras pode ser comprado. */
+/** Where a book on the shopping list can be bought. */
 enum StoreType: string
 {
     case UsedBookstore = 'used_bookstore';
@@ -12,9 +12,9 @@ enum StoreType: string
     public function label(): string
     {
         return match ($this) {
-            self::UsedBookstore => 'Sebo',
-            self::Bookstore => 'Livraria',
-            self::Online => 'Online',
+            self::UsedBookstore => __('Sebo'),
+            self::Bookstore => __('Livraria'),
+            self::Online => __('Online'),
         };
     }
 

@@ -3,14 +3,13 @@
 namespace App\Http\Presenters;
 
 use App\Models\Reading;
+use App\Support\DateLabel;
 
-/** Formato das estatísticas, do perfil e do Wrapped enviado às páginas. */
+/** Shape of the statistics, profile and Wrapped data sent to the pages. */
 final class StatsPresenter
 {
-    private const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-
     /**
-     * Leitura com os dados do livro e a nota da própria leitura.
+     * A reading with the book's data and the reading's own rating.
      *
      * @return array<string, mixed>|null
      */
@@ -38,22 +37,19 @@ final class StatsPresenter
         ];
     }
 
-    /** Rótulo do eixo: "mar" para um mês (AAAA-MM), o próprio ano no histórico. */
+    /** Axis label: "Mar" for a month (YYYY-MM), the year itself in the history. */
     public static function bucketLabel(string $key, bool $history): string
     {
         if ($history) {
             return $key;
         }
 
-        return self::MONTHS[((int) substr($key, 5, 2)) - 1];
+        return DateLabel::monthAbbreviation((int) substr($key, 5, 2));
     }
 
-    /** Nome do mês por extenso, para o Wrapped ("março"). */
+    /** Full month name for Wrapped ("March"). */
     public static function monthName(string $month): string
     {
-        return [
-            'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-            'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
-        ][((int) substr($month, 5, 2)) - 1];
+        return DateLabel::monthName((int) substr($month, 5, 2));
     }
 }

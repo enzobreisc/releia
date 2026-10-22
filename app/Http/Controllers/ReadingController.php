@@ -10,6 +10,8 @@ use App\Models\Reading;
 use App\Services\DashboardService;
 use App\Services\ReadingService;
 use App\Services\UndoService;
+use App\Support\DateLabel;
+use App\Support\Ordinal;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,9 +21,9 @@ use Illuminate\Validation\Rule;
 /**
  * @phpstan-import-type Snapshot from UndoService
  *
- * Estante, nota, resenha e o ciclo de cada leitura: começar, terminar,
- * abandonar, reler, corrigir e mudar datas. Toda mudança responde com um aviso,
- * quase sempre com desfazer.
+ * Shelf, rating, review and the lifecycle of each reading: start, finish,
+ * abandon, reread, correct and change dates. Every change answers with a
+ * notice, almost always with undo.
  */
 class ReadingController extends Controller
 {
@@ -30,7 +32,7 @@ class ReadingController extends Controller
         private readonly UndoService $undo,
     ) {}
 
-    /** Nota, resenha e trocas de estante simples, na leitura mais recente do livro. */
+    /** Rating, review and simple shelf changes, on the book's most recent reading. */
     public function update(UpdateReadingRequest $request, Book $book): RedirectResponse
     {
         $reading = $book->currentReading;
@@ -53,9 +55,9 @@ class ReadingController extends Controller
             $reading->save();
 
             if ($request->has('review')) {
-                Toast::success('Resenha salva', $this->ordinalLabel($reading));
+                Toast::success(__('Resenha salva'), $this->ordinalLabel($reading));
             } else {
-                // A nota muda sem aviso, mas o desfazer anterior já não vale.
+                // The rating changes silently, but the previous undo is stale.
                 $this->undo->forget();
             }
 
@@ -75,7 +77,7 @@ class ReadingController extends Controller
         return back();
     }
 
-    /** "Começar" de fora do Detalhe (fila, aviso de término): passa para lendo e abre o livro. */
+    /** "Start" from outside the detail page (queue, finish notice): moves to reading and opens the book. */
     public function start(Book $book): RedirectResponse
     {
         $snapshot = $this->captureBook($book);
@@ -89,7 +91,7 @@ class ReadingController extends Controller
         return to_route('books.show', $book);
     }
 
-    /** Terminar e avaliar: data (ou "sem data"), nota e uma linha. */
+    /** Finish and rate: date (or undated), rating and a one-line review. */
     public function finish(Request $request, Reading $reading, DashboardService $dashboard): RedirectResponse
     {
         $data = $request->validate([
@@ -113,17 +115,17 @@ class ReadingController extends Controller
         $next = QueueItem::query()->with('book')->orderBy('position')->first()?->book;
 
         $sub = match (true) {
-            $goal['goal'] !== null && $goal['finished'] === $goal['goal'] && $reading->finished_at?->year === $goal['year'] => "Meta de {$goal['year']} batida: {$goal['finished']} de {$goal['goal']}",
-            $next !== null => "próximo da fila: {$next->title}",
-            default => 'a fila está vazia',
+            $goal['goal'] !== null && $goal['finished'] === $goal['goal'] && $reading->finished_at?->year === $goal['year'] => __('Meta de :year batida: :finished de :goal', ['year' => $goal['year'], 'finished' => $goal['finished'], 'goal' => $goal['goal']]),
+            $next !== null => __('próximo da fila: :title', ['title' => $next->title]),
+            default => __('a fila está vazia'),
         };
 
         Toast::success(
-            "{$book->title} marcado como lido",
+            __(':title marcado como lido', ['title' => $book->title]),
             $sub,
             $next !== null
-                ? ['label' => "Começar {$next->title}", 'method' => 'post', 'url' => route('books.start', $next, absolute: false)]
-                : ['label' => 'Escolher o próximo', 'method' => 'get', 'url' => route('queue.index', absolute: false)],
+                ? ['label' => __('Começar :title', ['title' => $next->title]), 'method' => 'post', 'url' => route('books.start', $next, absolute: false)]
+                : ['label' => __('Escolher o próximo'), 'method' => 'get', 'url' => route('queue.index', absolute: false)],
             $this->undo->remember($snapshot),
         );
 
@@ -141,8 +143,8 @@ class ReadingController extends Controller
         $this->readings->abandon($reading, $data['reason'] ?? null, isset($data['rating']) ? (int) $data['rating'] : null);
 
         Toast::success(
-            "Abandonado na p. {$reading->current_page}",
-            $reading->abandon_reason === null ? 'sem motivo' : "motivo: {$reading->abandon_reason}",
+            __('Abandonado na p. :page', ['page' => $reading->current_page]),
+            $reading->abandon_reason === null ? __('sem motivo') : __('motivo: :reason', ['reason' => $reading->abandon_reason]),
             null,
             $this->undo->remember($snapshot),
         );
@@ -150,7 +152,7 @@ class ReadingController extends Controller
         return back();
     }
 
-    /** Ler de novo: hoje (lendo) ou depois (quero ler, no fim da fila). */
+    /** Read again: today (reading) or later (want to read, at the end of the queue). */
     public function reread(Request $request, Book $book): RedirectResponse
     {
         $data = $request->validate([
@@ -159,27 +161,22 @@ class ReadingController extends Controller
 
         $snapshot = $this->captureBook($book);
         $reading = $this->readings->startReread($book, ReadingStatus::from($data['status']));
-        $number = $this->readings->ordinal($reading);
         $token = $this->undo->remember($snapshot);
 
-        if ($reading->status === ReadingStatus::Reading) {
-            Toast::success("{$number}ª leitura começou", 'a anterior está na aba Leituras', null, $token);
-        } else {
-            Toast::success('Quero reler', 'nova leitura · entrou em '.$this->queuePosition($book).' na fila · a anterior continua no histórico', null, $token);
-        }
+        $this->rereadToast($book, $reading, $token);
 
         return back();
     }
 
-    /** Corrigir: desmarca como lido e apaga a data de término. */
+    /** Correct: unmarks as read and clears the finish date. */
     public function reopen(Reading $reading): RedirectResponse
     {
         $snapshot = $this->captureBook($reading->book);
         $this->readings->reopen($reading);
 
         Toast::success(
-            'Desmarcado como lido',
-            "a leitura voltou para Lendo na p. {$reading->current_page}",
+            __('Desmarcado como lido'),
+            __('a leitura voltou para Lendo na p. :page', ['page' => $reading->current_page]),
             null,
             $this->undo->remember($snapshot),
         );
@@ -205,8 +202,8 @@ class ReadingController extends Controller
         $month = $reading->finished_at ?? $reading->started_at ?? Carbon::today();
 
         Toast::success(
-            'Datas salvas',
-            'estatísticas de '.ReadingService::monthLabel($month).' atualizadas',
+            __('Datas salvas'),
+            __('estatísticas de :month atualizadas', ['month' => DateLabel::monthYear($month)]),
             null,
             $this->undo->remember($snapshot),
         );
@@ -214,7 +211,7 @@ class ReadingController extends Controller
         return back();
     }
 
-    /** Apaga uma leitura do histórico (com as sessões dela). */
+    /** Deletes a reading from the history (with its sessions). */
     public function destroy(Reading $reading): RedirectResponse
     {
         $book = $reading->book;
@@ -226,14 +223,14 @@ class ReadingController extends Controller
 
         $this->readings->deleteReading($reading);
 
-        Toast::success('Leitura apagada', "{$label} de {$book->title}", null, $this->undo->remember($snapshot));
+        Toast::success(__('Leitura apagada'), __(':reading de :title', ['reading' => $label, 'title' => $book->title]), null, $this->undo->remember($snapshot));
 
         return back();
     }
 
     /**
-     * Foto do que uma troca de estante pode mexer: as leituras do livro (releituras
-     * criam uma nova) e a fila inteira (posições se reorganizam).
+     * Snapshot of what a shelf change may touch: the book's readings (rereads
+     * create a new one) and the whole queue (positions are reordered).
      *
      * @return Snapshot
      */
@@ -249,45 +246,69 @@ class ReadingController extends Controller
     {
         $page = $reading->current_page;
 
-        // Releitura: changeStatus devolveu uma leitura nova.
+        // Reread: changeStatus returned a new reading.
         if ($before === ReadingStatus::Read) {
-            $number = $this->readings->ordinal($reading).'ª';
-
-            if ($reading->status === ReadingStatus::Reading) {
-                Toast::success("{$number} leitura começou", 'a anterior está na aba Leituras', null, $token);
-            } else {
-                Toast::success('Quero reler', 'nova leitura · entrou em '.$this->queuePosition($book).' na fila · a anterior continua no histórico', null, $token);
-            }
+            $this->rereadToast($book, $reading, $token);
 
             return;
         }
 
         match ($reading->status) {
             ReadingStatus::Reading => $before === ReadingStatus::Abandoned
-                ? Toast::success('Leitura retomada', "continua da p. {$page}", null, $token)
-                : Toast::success('Começou a ler', ($wasQueued ? 'saiu da fila · ' : '').'início: '.ReadingService::shortDate($reading->started_at ?? Carbon::today()), null, $token),
+                ? Toast::success(__('Leitura retomada'), __('continua da p. :page', ['page' => $page]), null, $token)
+                : Toast::success(__('Começou a ler'), ($wasQueued ? __('saiu da fila').' · ' : '').__('início: :date', ['date' => DateLabel::shortDate($reading->started_at ?? Carbon::today())]), null, $token),
             ReadingStatus::WantToRead => Toast::success(
-                'Movido para Quero ler',
-                $page > 0 ? "a p. {$page} fica guardada; ao voltar, continua dela" : null,
+                __('Movido para Quero ler'),
+                $this->keptPageNote($page),
                 QueueItem::query()->where('book_id', $book->id)->exists()
                     ? null
-                    : ['label' => 'Pôr na fila', 'method' => 'post', 'url' => route('queue.store', absolute: false), 'data' => ['book_id' => $book->id]],
+                    : ['label' => __('Pôr na fila'), 'method' => 'post', 'url' => route('queue.store', absolute: false), 'data' => ['book_id' => $book->id]],
                 $token,
             ),
-            ReadingStatus::Read => Toast::success("{$book->title} marcado como lido", null, null, $token),
-            ReadingStatus::Abandoned => Toast::success("Abandonado na p. {$page}", null, null, $token),
+            ReadingStatus::Read => Toast::success(__(':title marcado como lido', ['title' => $book->title]), null, null, $token),
+            ReadingStatus::Abandoned => Toast::success(__('Abandonado na p. :page', ['page' => $page]), null, null, $token),
         };
+    }
+
+    private function keptPageNote(int $page): ?string
+    {
+        if ($page <= 0) {
+            return null;
+        }
+
+        return __('a p. :page fica guardada; ao voltar, continua dela', ['page' => $page]);
+    }
+
+    private function rereadToast(Book $book, Reading $reading, string $token): void
+    {
+        if ($reading->status === ReadingStatus::Reading) {
+            Toast::success(
+                __(':ordinal leitura começou', ['ordinal' => Ordinal::feminine($this->readings->ordinal($reading))]),
+                __('a anterior está na aba Leituras'),
+                null,
+                $token,
+            );
+
+            return;
+        }
+
+        Toast::success(
+            __('Quero reler'),
+            __('nova leitura · entrou em :position na fila · a anterior continua no histórico', ['position' => $this->queuePosition($book)]),
+            null,
+            $token,
+        );
     }
 
     private function queuePosition(Book $book): string
     {
         $position = QueueItem::query()->where('book_id', $book->id)->value('position');
 
-        return Toast::ordinal((int) $position);
+        return Ordinal::masculine((int) $position);
     }
 
     private function ordinalLabel(Reading $reading): string
     {
-        return ($reading->exists ? $this->readings->ordinal($reading) : 1).'ª leitura';
+        return __(':ordinal leitura', ['ordinal' => Ordinal::feminine($reading->exists ? $this->readings->ordinal($reading) : 1)]);
     }
 }

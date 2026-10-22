@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/** Página em que você parou e minutos opcionais. A data é sempre hoje. */
+/** The page where you stopped and optional minutes. The date is always today. */
 class StoreSessionRequest extends FormRequest
 {
     /**
@@ -24,9 +24,9 @@ class StoreSessionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'page_to.required' => 'Informe a página atual.',
-            'page_to.between' => 'Número de página inválido.',
-            'minutes.between' => 'Informe entre 1 e 1440 minutos.',
+            'page_to.required' => __('Informe a página atual.'),
+            'page_to.between' => __('Número de página inválido.'),
+            'minutes.between' => __('Informe entre 1 e 1440 minutos.'),
         ];
     }
 }

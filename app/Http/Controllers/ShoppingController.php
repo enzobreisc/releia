@@ -15,6 +15,7 @@ use App\Services\ShoppingService;
 use App\Services\UndoService;
 use App\Support\AmazonLink;
 use App\Support\Money;
+use App\Support\Ordinal;
 use App\Support\StoreLinks;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
@@ -27,28 +28,28 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ShoppingController extends Controller
 {
-    /** Tira da estante "quero ler" e leva para a lista de compras. */
+    /** Takes the book off the "want to read" shelf and moves it to the shopping list. */
     public function fromBook(Book $book): RedirectResponse
     {
         $title = $book->title;
 
         if ($this->shopping->fromWishlist($book) === null) {
-            Toast::error("{$title} não pode ir para as compras", 'só livros em "quero ler", sem leitura iniciada');
+            Toast::error(__(':title não pode ir para as compras', ['title' => $title]), __('só livros em "quero ler", sem leitura iniciada'));
 
             return back();
         }
 
-        Toast::success("{$title} foi para as compras", 'saiu de "quero ler"');
+        Toast::success(__(':title foi para as compras', ['title' => $title]), __('saiu de "quero ler"'));
 
         return to_route('shopping.index');
     }
 
-    /** Correspondências mostradas na busca da lista de compras. */
+    /** Matches shown in the shopping list search. */
     private const MATCH_LIMIT = 5;
 
     public function __construct(private readonly ShoppingService $shopping) {}
 
-    /** Lista de compras (filtrada por loja) e total estimado dos itens pendentes. */
+    /** Shopping list (filtered by store) and estimated total of pending items. */
     public function index(Request $request, BookLookupService $lookup): Response
     {
         $store = StoreType::tryFrom($request->string('store')->toString());
@@ -76,7 +77,7 @@ class ShoppingController extends Controller
         $pending = $shopping->whereNull('bought_at');
         $queuedBookIds = QueueItem::query()->pluck('book_id');
 
-        // Itens por comprar em cada loja, para as abas (sem o filtro atual).
+        // Items to buy in each store, for the tabs (without the current filter).
         $storeCounts = ShoppingItem::query()
             ->whereNull('bought_at')
             ->selectRaw('store_type, count(*) as total')
@@ -95,9 +96,9 @@ class ShoppingController extends Controller
                 'q' => $search !== '' ? $search : null,
                 'sort' => in_array($sort, ['price_asc', 'price_desc', 'title', 'recent'], true) ? $sort : null,
             ],
-            // "Ao comprar": vai para quero ler e também para a fila? Fica salvo.
+            // "On buy": does it go to want to read and also to the queue? It is saved.
             'queue_on_buy' => ShoppingService::queueOnBuy(),
-            // Busca de correspondência (ISBN, título ou link da Amazon), só por recarga parcial.
+            // Match search (ISBN, title or Amazon link), only via partial reload.
             'matches' => Inertia::optional(fn () => $this->matches($request->string('match')->trim()->toString(), $lookup)),
             'totals' => [
                 'pending_count' => $pending->count(),
@@ -108,15 +109,15 @@ class ShoppingController extends Controller
     }
 
     /**
-     * Um link da Amazon vira o ISBN do ASIN; o resto vai para a busca normal
-     * (ISBN exato ou título).
+     * An Amazon link becomes the ISBN from the ASIN; the rest goes to the normal search
+     * (exact ISBN or title).
      *
      * @return array{query: string, isbn_from_url: string|null, items: list<array<string, mixed>>}
      */
     private function matches(string $query, BookLookupService $lookup): array
     {
         $isbn = AmazonLink::isbnFromUrl($query);
-        // Um link sem ISBN (outra loja, produto sem ASIN de livro) não vira busca por título.
+        // A link without an ISBN (another store, product without a book ASIN) does not become a title search.
         $search = $isbn ?? (preg_match('~^https?://~i', $query) === 1 ? '' : $query);
 
         return [
@@ -130,7 +131,7 @@ class ShoppingController extends Controller
     {
         $item = $this->shopping->add($request->payload());
 
-        Toast::success('Adicionado à lista de compras', $item->title);
+        Toast::success(__('Adicionado à lista de compras'), $item->title);
 
         return back();
     }
@@ -139,16 +140,16 @@ class ShoppingController extends Controller
     {
         $this->shopping->updatePrice($shoppingItem, $request->cents());
 
-        Toast::success('Preço atualizado', $shoppingItem->title);
+        Toast::success(__('Preço atualizado'), $shoppingItem->title);
 
         return back();
     }
 
-    /** "Buscar preço": o menor preço da edição na Estante Virtual, com desfazer. */
+    /** "Look up price": the edition's lowest price on Estante Virtual, with undo. */
     public function lookupPrice(ShoppingItem $shoppingItem, UndoService $undo): RedirectResponse
     {
         if ($shoppingItem->isbn === null) {
-            Toast::error('Sem ISBN não dá para buscar o preço', 'Anote o preço à mão.');
+            Toast::error(__('Sem ISBN não dá para buscar o preço'), __('Anote o preço à mão.'));
 
             return back();
         }
@@ -157,14 +158,14 @@ class ShoppingController extends Controller
         $cents = $this->shopping->lookupPrice($shoppingItem);
 
         if ($cents === null) {
-            Toast::error('Não achei o preço dessa edição', 'Não está à venda na Estante Virtual, ou o site não respondeu. Anote à mão.');
+            Toast::error(__('Não achei o preço dessa edição'), __('Não está à venda na Estante Virtual, ou o site não respondeu. Anote à mão.'));
 
             return back();
         }
 
         Toast::success(
-            'A partir de '.Money::format($cents),
-            $shoppingItem->title.' · menor preço na Estante Virtual (inclui usados)',
+            __('A partir de :price', ['price' => Money::format($cents)]),
+            $shoppingItem->title.' · '.__('menor preço na Estante Virtual (inclui usados)'),
             null,
             $undo->remember($snapshot),
         );
@@ -173,8 +174,8 @@ class ShoppingController extends Controller
     }
 
     /**
-     * Abre o link de compra no navegador padrão. A janela nativa não abre abas
-     * novas, então o pedido passa pelo Shell do NativePHP.
+     * Opens the purchase link in the default browser. The native window does not
+     * open new tabs, so the request goes through NativePHP's Shell.
      */
     public function open(Request $request, ShoppingItem $shoppingItem): RedirectResponse|SymfonyResponse
     {
@@ -195,12 +196,12 @@ class ShoppingController extends Controller
         $snapshot = $undo->capture([UndoService::scope('shopping_items', ['id' => $shoppingItem->id])]);
         $shoppingItem->delete();
 
-        Toast::success('Item excluído', $shoppingItem->title.$this->priceSuffix($shoppingItem), null, $undo->remember($snapshot));
+        Toast::success(__('Item excluído'), $shoppingItem->title.$this->priceSuffix($shoppingItem), null, $undo->remember($snapshot));
 
         return back();
     }
 
-    /** Compra o item: cria o livro na biblioteca e, pela preferência salva, põe na fila. */
+    /** Buys the item: creates the book in the library and, per the saved preference, queues it. */
     public function buy(Request $request, ShoppingItem $shoppingItem, UndoService $undo): RedirectResponse
     {
         $queue = $request->has('queue') ? $request->boolean('queue') : ShoppingService::queueOnBuy();
@@ -212,15 +213,15 @@ class ShoppingController extends Controller
         $this->shopping->buy($shoppingItem, $queue);
         $shoppingItem->refresh();
 
-        // Desfazer devolve o item como não comprado, mas mantém o vínculo com o livro já criado.
+        // Undo restores the item as not bought, but keeps the link to the book already created.
         $snapshot = $undo->override($snapshot, 'shopping_items', ['book_id' => $shoppingItem->book_id]);
         $position = $shoppingItem->book_id === null ? null : QueueItem::query()->where('book_id', $shoppingItem->book_id)->value('position');
 
         Toast::success(
-            'Comprado',
-            $shoppingItem->title.($queue && $position !== null
-                ? ' · foi para quero ler e entrou em '.Toast::ordinal((int) $position).' na fila'
-                : ' · foi para quero ler'),
+            __('Comprado'),
+            $shoppingItem->title.' · '.($queue && $position !== null
+                ? __('foi para quero ler e entrou em :position na fila', ['position' => Ordinal::masculine((int) $position)])
+                : __('foi para quero ler')),
             null,
             $undo->remember($snapshot),
         );
@@ -228,7 +229,7 @@ class ShoppingController extends Controller
         return back();
     }
 
-    /** Desmarca a compra (D10). */
+    /** Unmarks the purchase. */
     public function unbuy(ShoppingItem $shoppingItem, UndoService $undo): RedirectResponse
     {
         $snapshot = $undo->capture([
@@ -241,8 +242,8 @@ class ShoppingController extends Controller
         $stillQueued = $shoppingItem->book_id !== null && QueueItem::query()->where('book_id', $shoppingItem->book_id)->exists();
 
         Toast::success(
-            'Desmarcado como comprado',
-            $shoppingItem->title.($wasQueued && ! $stillQueued ? ' · saiu da fila' : ''),
+            __('Desmarcado como comprado'),
+            $shoppingItem->title.($wasQueued && ! $stillQueued ? ' · '.__('saiu da fila') : ''),
             null,
             $undo->remember($snapshot),
         );
@@ -250,7 +251,7 @@ class ShoppingController extends Controller
         return back();
     }
 
-    /** Preferência "ao comprar": só quero ler ou quero ler + fila. */
+    /** "On buy" preference: just want to read, or want to read plus queue. */
     public function preference(Request $request): RedirectResponse
     {
         $data = $request->validate(['queue_on_buy' => ['required', 'boolean']]);

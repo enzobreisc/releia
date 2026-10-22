@@ -29,49 +29,49 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Camada 1 de sugestões: a partir dos livros avaliados com 4 ou 5, busca outros do
- * mesmo autor e do mesmo assunto na Open Library.
+ * Suggestion layer 1: from the books rated 4 or 5, finds others by the
+ * same author and on the same subject in Open Library.
  *
- * Quando gerar: só quando o usuário pede (botão "Buscar novas sugestões" ou
- * `php artisan releia:suggestions`). Não há fila nem cron, porque o app é local.
- * Abrir a tela e today() nunca tocam na rede.
+ * When to generate: only when the user asks (the "Find new suggestions" button or
+ * `php artisan releia:suggestions`). There is no queue or cron, because the app is local.
+ * Opening the screen and today() never touch the network.
  *
- * Só entram obras com edição brasileira (ISBN 978-85/65, confirmada por ISBN para trazer
- * o título em português). O mesmo candidato apontado por vários livros seus sobe na lista,
- * e a popularidade na Open Library separa o conhecido do obscuro.
+ * Only works with a Brazilian edition count (ISBN 978-85/65, confirmed by ISBN to bring
+ * the Portuguese title). The same candidate pointed to by several of your books rises in the list,
+ * and popularity on Open Library separates the well-known from the obscure.
  *
- * Limites: no máximo MAX_SOURCES livros por busca (no máximo duas chamadas por livro,
- * com timeout de 10s cada). Cada consulta fica em cache por 7 dias; respostas vazias
- * ou com erro não são guardadas, para tentar de novo depois.
+ * Limits: at most MAX_SOURCES books per search (at most two calls per book,
+ * with a 10s timeout each). Each query is cached for 7 days; empty or
+ * failed responses are not stored, so they can be retried later.
  */
 class RecommendationService
 {
-    /** Quantos livros avaliados viram origem numa busca. */
+    /** How many rated books become sources in one search. */
     private const MAX_SOURCES = 6;
 
-    /** Tempo máximo de uma busca, em segundos: passou disso, fica com o que já achou. */
+    /** Maximum time of one search, in seconds: past that, it keeps what it already found. */
     private const BUDGET_SECONDS = 20;
 
-    /** Quantas sugestões novas uma busca acrescenta. */
+    /** How many new suggestions a search adds. */
     private const MAX_NEW = 20;
 
     private const CACHE_DAYS = 7;
 
-    /** Want-to-read + 5 × avaliações na Open Library: abaixo disso, obra pouco conhecida. */
+    /** Want-to-read + 5 × ratings on Open Library: below this, a little-known work. */
     private const MIN_SUBJECT_POPULARITY = 40;
 
     private const TODAY_KEY = 'suggestion-of-day';
 
-    /** Quantas buscas já foram feitas: a cada uma, a Open Library é lida numa página diferente. */
+    /** How many searches have been made: on each one, Open Library is read on a different page. */
     private const ROUND_KEY = 'suggestion-round';
 
-    /** Quantas páginas de resultados por assunto se alternam antes de recomeçar. */
+    /** How many pages of results per subject alternate before starting over. */
     private const PAGES = 3;
 
-    /** Pendentes guardadas: acima disso as mais antigas saem. */
+    /** Pending suggestions kept: above this the oldest ones drop out. */
     private const MAX_PENDING = 60;
 
-    /** Página da Open Library desta busca. */
+    /** Open Library page of this search. */
     private int $page = 1;
 
     public function __construct(
@@ -82,16 +82,16 @@ class RecommendationService
         private readonly CandidateRanker $ranker = new ScoredRanker,
     ) {}
 
-    /** Há livros avaliados com 4 ou 5 para gerar sugestões? */
+    /** Are there books rated 4 or 5 to generate suggestions from? */
     public function hasSources(): bool
     {
         return $this->sourceReadings()->exists();
     }
 
     /**
-     * Busca sugestões novas e devolve quantas foram criadas, acrescentando às pendentes.
-     * Cada busca sorteia de novo os livros de origem e lê outra página da Open Library,
-     * para não devolver sempre as mesmas.
+     * Finds new suggestions and returns how many were created, adding to the pending ones.
+     * Each search re-draws the source books and reads another Open Library page,
+     * so it does not always return the same ones.
      */
     public function generate(): int
     {
@@ -101,11 +101,11 @@ class RecommendationService
         $blocked = $this->blockedKeys();
         /** @var array<int, Suggestion> $found */
         $found = [];
-        /** @var array<string, int> $index chave de identidade → posição em $found */
+        /** @var array<string, int> $index identity key → position in $found */
         $index = [];
 
         foreach ($this->sourceBooks() as [$book, $weight]) {
-            // As buscas vão à rede: no estouro do tempo, segue com o que já veio (ao menos um livro).
+            // Searches go over the network: on timeout, it carries on with what already came (at least one book).
             if ($found !== [] && microtime(true) > $deadline) {
                 break;
             }
@@ -126,7 +126,7 @@ class RecommendationService
                 $current = $position === null ? null : $found[$position];
 
                 if ($current === null || ($current->kind === Suggestion::BY_SUBJECT && $suggestion->kind === Suggestion::BY_AUTHOR)) {
-                    // Novo, ou o mesmo autor substitui um motivo só de assunto: o motivo mais forte vale.
+                    // New, or the same author replaces a subject-only reason: the stronger reason wins.
                     $position ??= count($found);
                     $found[$position] = new Suggestion($suggestion->candidate, $suggestion->reason, $book, $suggestion->kind, $weight);
                 } elseif ($current->kind === $suggestion->kind && ! in_array($book->id, array_map(fn (Book $b) => $b->id, [$current->basedOn, ...$current->also]), true)) {
@@ -154,7 +154,7 @@ class RecommendationService
 
             $keys = $this->keysOf($verified->candidate);
 
-            // O título em português pode ser um livro que você já tem com outro ISBN.
+            // The Portuguese title may be a book you already have under another ISBN.
             if (array_intersect_key(array_flip($keys), $blocked) !== []) {
                 continue;
             }
@@ -166,7 +166,7 @@ class RecommendationService
             $created[] = $verified;
         }
 
-        // Nada novo nesta página: a próxima busca já lê outra.
+        // Nothing new on this page: the next search already reads another.
         if ($created === []) {
             Setting::put(self::ROUND_KEY, $round + 1);
 
@@ -192,7 +192,7 @@ class RecommendationService
         return count($created);
     }
 
-    /** Guarda só as pendentes mais recentes. */
+    /** Keeps only the most recent pending ones. */
     private function trimPending(): void
     {
         $keep = Recommendation::query()->where('status', RecommendationStatus::New)->latest('id')->limit(self::MAX_PENDING)->pluck('id');
@@ -201,8 +201,8 @@ class RecommendationService
     }
 
     /**
-     * A obra da Open Library vem com o título original ("The Hobbit"). A edição brasileira,
-     * buscada pelo ISBN, traz título, autores e capa em português; sem ela, não sugere.
+     * The Open Library work comes with the original title ("The Hobbit"). The Brazilian edition,
+     * fetched by ISBN, brings the title, authors and cover in Portuguese; without it, it does not suggest.
      */
     private function inPortuguese(Suggestion $suggestion): ?Suggestion
     {
@@ -220,13 +220,13 @@ class RecommendationService
 
         $candidate = $edition->fillFrom($suggestion->candidate);
 
-        // Autor e título vêm da edição; a capa da obra é só reserva.
+        // Author and title come from the edition; the work's cover is only a fallback.
         return $suggestion->withCandidate($candidate, $this->reasonFor($suggestion));
     }
 
     /**
-     * Edição pelo ISBN brasileiro: BrasilAPI primeiro (uma chamada, título certo) e, se ela
-     * não conhece, as outras fontes. Cada ISBN fica em cache.
+     * Edition by Brazilian ISBN: BrasilAPI first (one call, right title) and, if it
+     * does not know it, the other sources. Each ISBN is cached.
      */
     private function brazilianEdition(string $isbn): ?BookCandidate
     {
@@ -248,20 +248,20 @@ class RecommendationService
         return $this->lookup->findByIsbn($isbn);
     }
 
-    /** "mesmo autor que A e B" / "assunto em comum: Fantasia, como A e B". */
+    /** "same author as A and B" / "shared subject: Fantasy, like A and B". Stored in the language it was generated in. */
     private function reasonFor(Suggestion $suggestion): string
     {
         $titles = array_map(fn (Book $book) => $book->title, [$suggestion->basedOn, ...$suggestion->also]);
         $last = array_pop($titles);
-        $list = $titles === [] ? $last : implode(', ', $titles).' e '.$last;
+        $list = $titles === [] ? $last : implode(', ', $titles).' '.__('e').' '.$last;
 
         return $suggestion->kind === Suggestion::BY_AUTHOR
-            ? "mesmo autor que {$list}"
-            : "assunto em comum: {$suggestion->basedOn->genre}, como {$list}";
+            ? __('mesmo autor que :titles', ['titles' => $list])
+            : __('assunto em comum: :genre, como :titles', ['genre' => __((string) $suggestion->basedOn->genre), 'titles' => $list]);
     }
 
     /**
-     * Sugestão do dia: a mesma durante o dia, mesmo que a lista mude. Não busca na rede.
+     * Suggestion of the day: the same all day, even if the list changes. Does not hit the network.
      */
     public function today(): ?Recommendation
     {
@@ -290,7 +290,7 @@ class RecommendationService
             return null;
         }
 
-        // crc32 da data: a escolha muda de um dia para o outro, mas não muda no mesmo dia.
+        // crc32 of the date: the choice changes from one day to the next, but not within the same day.
         $pick = $options->get(crc32($today) % $options->count());
 
         if ($pick !== null) {
@@ -301,13 +301,13 @@ class RecommendationService
     }
 
     /**
-     * Edições da obra sugerida, brasileiras primeiro, para escolher qual ler.
+     * Editions of the suggested work, Brazilian first, to pick which one to read.
      *
      * @return list<BookCandidate>
      */
     public function editions(Recommendation $recommendation): array
     {
-        // Sugestões antigas não guardaram a obra: acha pelo ISBN e guarda para a próxima.
+        // Old suggestions did not store the work: find it by ISBN and store it for next time.
         if ($recommendation->work_key === null && $recommendation->isbn_13 !== null) {
             $key = $this->openLibrary->workKeyForIsbn($recommendation->isbn_13);
 
@@ -324,8 +324,8 @@ class RecommendationService
     }
 
     /**
-     * "Quero ler": cria o livro na estante "quero ler" e fecha a sugestão.
-     * Com `$isbn`, cria a edição escolhida em vez da sugerida.
+     * "Want to read": creates the book on the "want to read" shelf and closes the suggestion.
+     * With `$isbn`, it creates the chosen edition instead of the suggested one.
      */
     public function accept(Recommendation $recommendation, ?string $isbn = null): bool
     {
@@ -337,8 +337,8 @@ class RecommendationService
     }
 
     /**
-     * "Já li": cria o livro como lido. A sugestão é encerrada como descartada, que basta
-     * para não voltar (o livro agora também está no acervo).
+     * "Already read": creates the book as read. The suggestion is closed as dismissed, which is enough
+     * to keep it from coming back (the book is now also in the collection).
      */
     public function alreadyRead(Recommendation $recommendation, ?string $isbn = null): bool
     {
@@ -349,14 +349,14 @@ class RecommendationService
         return $added;
     }
 
-    /** "Sem interesse": nunca mais sugerir este livro. */
+    /** "Not interested": never suggest this book again. */
     public function dismiss(Recommendation $recommendation): void
     {
         $recommendation->update(['status' => RecommendationStatus::Dismissed]);
     }
 
     /**
-     * Os candidatos de um livro de origem, cada um com o motivo.
+     * The candidates of a source book, each with its reason.
      *
      * @return list<Suggestion>
      */
@@ -373,16 +373,16 @@ class RecommendationService
             );
 
             foreach ($candidates as $candidate) {
-                // A busca por autor também traz obras de coautores e homônimos: só vale se o autor estiver na obra.
+                // The author search also returns works by co-authors and namesakes: only valid if the author is on the work.
                 if (! $this->isUsable($candidate) || ! $this->isBy($candidate, $author)) {
                     continue;
                 }
 
-                $suggestions[] = new Suggestion($candidate, "mesmo autor que {$book->title}", $book, Suggestion::BY_AUTHOR);
+                $suggestions[] = new Suggestion($candidate, __('mesmo autor que :titles', ['titles' => $book->title]), $book, Suggestion::BY_AUTHOR);
             }
         }
 
-        // Os gêneros do catálogo são em português; a Open Library indexa os assuntos em inglês.
+        // The catalog genres are in Portuguese; Open Library indexes subjects in English.
         $subject = Genres::openLibrarySubject($book->genre) ?? $book->genre;
 
         if (GenericSubjects::isUseful($subject) && $subject !== null) {
@@ -393,7 +393,7 @@ class RecommendationService
 
             foreach ($candidates as $candidate) {
                 if ($this->isUsable($candidate) && $this->fitsSubject($candidate, $book)) {
-                    $suggestions[] = new Suggestion($candidate, "assunto em comum: {$book->genre}", $book, Suggestion::BY_SUBJECT);
+                    $suggestions[] = new Suggestion($candidate, __('assunto em comum: :genre', ['genre' => __((string) $book->genre)]), $book, Suggestion::BY_SUBJECT);
                 }
             }
         }
@@ -402,8 +402,8 @@ class RecommendationService
     }
 
     /**
-     * Livros avaliados com 4 ou 5 na leitura mais recente de cada livro (releituras:
-     * vale a última passagem, não a primeira).
+     * Books rated 4 or 5 on each book's most recent reading (rereads:
+     * the latest pass counts, not the first).
      *
      * @return Builder<Reading>
      */
@@ -415,7 +415,7 @@ class RecommendationService
     }
 
     /**
-     * Livros de origem com o peso da nota: 5 estrelas contam mais que 4.
+     * Source books with the rating's weight: 5 stars count more than 4.
      *
      * @return Collection<int, array{0: Book, 1: float}>
      */
@@ -430,9 +430,9 @@ class RecommendationService
     }
 
     /**
-     * Edição brasileira para buscar em português, e título que não seja só o nome de um autor.
-     * Busca por assunto traz de tudo: exige mesmo gênero (ou nenhum gênero conhecido no
-     * livro de origem), capa e alguma popularidade, para não sugerir obra obscura.
+     * A Brazilian edition to search in Portuguese, and a title that is not just an author's name.
+     * Subject search brings everything: it requires the same genre (or no known genre on the
+     * source book), a cover and some popularity, so it does not suggest an obscure work.
      */
     private function isUsable(BookCandidate $candidate): bool
     {
@@ -455,7 +455,7 @@ class RecommendationService
             return false;
         }
 
-        // Sem gênero conhecido na obra não dá para saber se é parecida.
+        // Without a known genre on the work there is no telling whether it is similar.
         return $candidate->genre !== null && $candidate->genre === $book->genre;
     }
 
@@ -469,7 +469,7 @@ class RecommendationService
     }
 
     /**
-     * Guarda a resposta da API em cache, mas nunca uma lista vazia (pode ser erro de rede).
+     * Caches the API response, but never an empty list (it may be a network error).
      *
      * @param  Closure(): list<BookCandidate>  $fetch
      * @return list<BookCandidate>
@@ -492,8 +492,8 @@ class RecommendationService
     }
 
     /**
-     * Chaves de tudo que não deve voltar como sugestão: acervo, sugestões já feitas
-     * (pendentes e descartadas) e a lista de compras da fase 3.
+     * Keys of everything that must not come back as a suggestion: the collection, suggestions already made
+     * (pending and dismissed) and the shopping list.
      *
      * @return array<string, true>
      */
@@ -534,8 +534,8 @@ class RecommendationService
     }
 
     /**
-     * Lista de compras (fase 3). Tolerante à ausência da tabela ou das colunas.
-     * A fila (queue_items) não entra: ela só guarda livros que já estão no acervo.
+     * Shopping list. Tolerant of a missing table or columns.
+     * The queue (queue_items) does not count: it only holds books already in the collection.
      *
      * @return list<string>
      */
@@ -565,7 +565,7 @@ class RecommendationService
     }
 
     /**
-     * Chaves de um candidato, para comparar com o acervo e com as sugestões.
+     * Keys of a candidate, to compare with the collection and the suggestions.
      *
      * @return list<string>
      */
@@ -575,8 +575,8 @@ class RecommendationService
     }
 
     /**
-     * Cria o livro na biblioteca, com metadados completos quando há ISBN.
-     * Se o livro já está no acervo, não cria de novo (o ISBN é único).
+     * Creates the book in the library, with full metadata when there is an ISBN.
+     * If the book is already in the collection, it does not create it again (the ISBN is unique).
      */
     private function addToLibrary(Recommendation $recommendation, ReadingStatus $status, ?string $isbn = null): bool
     {
@@ -584,7 +584,7 @@ class RecommendationService
             return false;
         }
 
-        // Edição escolhida: vale o ISBN dela, não o da sugestão.
+        // Chosen edition: its ISBN counts, not the suggestion's.
         $isbn = $isbn !== null ? Isbn::toIsbn13($isbn) : null;
 
         if ($isbn !== null) {
@@ -631,7 +631,7 @@ class RecommendationService
     }
 
     /**
-     * Autores guardados como "A, B" voltam a lista.
+     * Authors stored as "A, B" turn back into a list.
      *
      * @return list<string>
      */

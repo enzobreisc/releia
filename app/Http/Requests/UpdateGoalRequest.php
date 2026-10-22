@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/** Meta de livros do ano. */
+/** The year's book goal. */
 class UpdateGoalRequest extends FormRequest
 {
     /**
@@ -23,7 +23,7 @@ class UpdateGoalRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'yearly_goal.between' => 'A meta vai de 1 a 999 livros.',
+            'yearly_goal.between' => __('A meta vai de 1 a 999 livros.'),
         ];
     }
 }

@@ -12,13 +12,13 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Baixa as capas para o disco local, para o app funcionar offline.
- * No app nativo o disco fica na pasta de dados do app, por isso as capas
- * são servidas por uma rota e não por storage:link.
+ * Downloads covers to the local disk, so the app works offline.
+ * In the native app the disk lives in the app's data folder, so covers
+ * are served by a route rather than storage:link.
  */
 class CoverStore
 {
-    /** Abaixo disso é um marcador de "sem capa", não uma capa de verdade. */
+    /** Below this it is a "no cover" placeholder, not a real cover. */
     private const MIN_BYTES = 1024;
 
     private const EXTENSIONS = [
@@ -46,8 +46,8 @@ class CoverStore
     }
 
     /**
-     * Procura capa pelo ISBN quando a fonte dos metadados não trouxe nenhuma.
-     * O Google Books por ISBN não serve: devolve um quadro cinza em vez de 404.
+     * Looks for a cover by ISBN when the metadata source brought none.
+     * Google Books by ISBN is no good: it returns a gray frame instead of a 404.
      */
     public function findByIsbn(string $isbn13): ?string
     {
@@ -67,7 +67,7 @@ class CoverStore
         return null;
     }
 
-    /** Capa de um link de produto da Amazon, pelo ASIN. Null se o link não tem ASIN ou a Amazon não tem a imagem. */
+    /** Cover from an Amazon product link, by ASIN. Null if the link has no ASIN or Amazon has no image. */
     public function findByAmazonLink(string $link): ?string
     {
         $asin = AmazonLink::asinFromUrl($link);
@@ -81,7 +81,7 @@ class CoverStore
         return $this->fetch($url) === null ? null : $url;
     }
 
-    /** O ASIN de livros físicos é o ISBN-10. Sem capa, a Amazon devolve um GIF de 1 pixel. */
+    /** The ASIN of physical books is the ISBN-10. Without a cover, Amazon returns a 1-pixel GIF. */
     private static function amazonImageUrl(string $asin): string
     {
         return "https://m.media-amazon.com/images/P/{$asin}.01._SCLZZZZZZZ_.jpg";
@@ -92,7 +92,7 @@ class CoverStore
      */
     private function fetch(string $url): ?array
     {
-        // Sem isso a Open Library devolve uma imagem vazia quando não tem capa.
+        // Without this, Open Library returns an empty image when there is no cover.
         if (str_contains($url, 'covers.openlibrary.org') && ! str_contains($url, 'default=')) {
             $url .= (str_contains($url, '?') ? '&' : '?').'default=false';
         }
@@ -100,7 +100,7 @@ class CoverStore
         try {
             $response = Http::timeout(10)->get($url);
         } catch (ConnectionException $e) {
-            Log::warning('Falha ao baixar capa', ['url' => $url, 'error' => $e->getMessage()]);
+            Log::warning('Failed to download cover', ['url' => $url, 'error' => $e->getMessage()]);
 
             return null;
         }
@@ -115,7 +115,7 @@ class CoverStore
         return ['body' => $response->body(), 'extension' => $extension];
     }
 
-    /** Capa escolhida no Mac (arrastada ou pelo seletor de arquivos). */
+    /** Cover chosen on the Mac (dragged or via the file picker). */
     public function store(Book $book, UploadedFile $file): bool
     {
         $extension = self::EXTENSIONS[(string) $file->getMimeType()] ?? null;

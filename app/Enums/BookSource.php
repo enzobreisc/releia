@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-/** De onde vieram os metadados do livro. */
+/** Where the book's metadata came from. */
 enum BookSource: string
 {
     case OpenLibrary = 'open_library';
@@ -16,7 +16,7 @@ enum BookSource: string
             self::OpenLibrary => 'Open Library',
             self::GoogleBooks => 'Google Books',
             self::BrasilApi => 'BrasilAPI',
-            self::Manual => 'Manual',
+            self::Manual => __('Manual'),
         };
     }
 }

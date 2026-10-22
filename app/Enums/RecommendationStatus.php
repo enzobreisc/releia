@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-/** Situação de uma sugestão. As descartadas ficam guardadas só para não voltarem. */
+/** State of a suggestion. Dismissed ones are kept only so they do not come back. */
 enum RecommendationStatus: string
 {
     case New = 'new';
@@ -12,9 +12,9 @@ enum RecommendationStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::New => 'Nova',
-            self::WantToRead => 'Quero ler',
-            self::Dismissed => 'Descartada',
+            self::New => __('Nova'),
+            self::WantToRead => __('Quero ler'),
+            self::Dismissed => __('Descartada'),
         };
     }
 }

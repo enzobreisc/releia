@@ -62,8 +62,8 @@ class LibraryController extends Controller
     }
 
     /**
-     * Contagem por estante, considerando só a leitura mais recente de cada livro
-     * (um livro relido não conta como "lido" e "lendo" ao mesmo tempo).
+     * Count per shelf, considering only each book's most recent reading
+     * (a reread book does not count as both "read" and "reading").
      *
      * @return list<array{value: string|null, label: string, count: int}>
      */
@@ -74,7 +74,7 @@ class LibraryController extends Controller
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $shelves = [['value' => null, 'label' => 'Todos', 'count' => Book::count()]];
+        $shelves = [['value' => null, 'label' => __('Todos'), 'count' => Book::count()]];
 
         foreach ([ReadingStatus::Reading, ReadingStatus::WantToRead, ReadingStatus::Read, ReadingStatus::Abandoned] as $status) {
             $shelves[] = [
@@ -88,7 +88,7 @@ class LibraryController extends Controller
     }
 
     /**
-     * Só a leitura mais recente de cada livro.
+     * Only the most recent reading of each book.
      *
      * @return Builder<Reading>
      */

@@ -6,11 +6,11 @@ use App\Enums\NoteKind;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/** Criar e editar nota: o mesmo conjunto de campos nos dois casos. */
+/** Create and edit a note: the same set of fields in both cases. */
 class NoteRequest extends FormRequest
 {
     /**
-     * Página em branco vira null, para não falhar na validação numérica.
+     * A blank page becomes null, so it does not fail numeric validation.
      */
     protected function prepareForValidation(): void
     {
@@ -55,10 +55,10 @@ class NoteRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'body_md.required' => 'Escreva o texto da nota.',
+            'body_md.required' => __('Escreva o texto da nota.'),
             'book_id.required' => 'Escolha o livro.',
-            'book_id.exists' => 'Livro não encontrado.',
-            'page.between' => 'Número de página inválido.',
+            'book_id.exists' => __('Livro não encontrado.'),
+            'page.between' => __('Número de página inválido.'),
         ];
     }
 }

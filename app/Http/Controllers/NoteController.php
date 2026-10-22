@@ -29,7 +29,7 @@ class NoteController extends Controller
     ) {}
 
     /**
-     * Lista com filtros, nota selecionada no editor (?note=) e modo de nova nota (?new=1).
+     * List with filters, note selected in the editor (?note=) and new note mode (?new=1).
      */
     public function index(Request $request): Response
     {
@@ -91,7 +91,7 @@ class NoteController extends Controller
     {
         $note = $this->notes->create($request->payload());
 
-        Toast::success('Nota criada', $note->book->title.($note->page === null ? '' : " · p. {$note->page}"));
+        Toast::success(__('Nota criada'), $note->book->title.($note->page === null ? '' : ' · '.__('p. :page', ['page' => $note->page])));
 
         return to_route('notes.index', ['note' => $note->id]);
     }
@@ -100,7 +100,7 @@ class NoteController extends Controller
     {
         $this->notes->update($note, $request->payload());
 
-        Toast::success('Nota salva');
+        Toast::success(__('Nota salva'));
 
         return back();
     }
@@ -111,17 +111,17 @@ class NoteController extends Controller
             UndoService::scope('notes', ['id' => $note->id]),
             UndoService::scope('note_tag', ['note_id' => $note->id], null),
         ]);
-        $where = $note->book->title.($note->page === null ? '' : " · p. {$note->page}");
+        $where = $note->book->title.($note->page === null ? '' : ' · '.__('p. :page', ['page' => $note->page]));
 
         $this->notes->delete($note);
 
-        Toast::success('Nota excluída', $where, null, $undo->remember($snapshot));
+        Toast::success(__('Nota excluída'), $where, null, $undo->remember($snapshot));
 
-        // Excluída do Detalhe do livro, continua lá; da tela de Notas, o editor fecha.
+        // Deleted from the book detail page, stay there; from the Notes screen, the editor closes.
         return str_contains(url()->previous(), '/library/') ? back() : to_route('notes.index');
     }
 
-    /** Marca a nota como revista hoje e reagenda. */
+    /** Marks the note as reviewed today and reschedules it. */
     public function review(Note $note): RedirectResponse
     {
         $this->reviews->markReviewed($note, Carbon::today());

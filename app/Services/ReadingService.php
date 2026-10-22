@@ -6,28 +6,26 @@ use App\Enums\ReadingStatus;
 use App\Models\Book;
 use App\Models\Reading;
 use App\Models\ReadingSession;
-use Carbon\CarbonInterface;
+use App\Support\DateLabel;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Regras da leitura: as datas de início e fim acompanham a estante,
- * porque as estatísticas contam livros lidos pela data de fim. As sessões
- * mantêm current_page coerente com o que foi registrado.
+ * Reading rules: the start and end dates follow the shelf, because statistics
+ * count books read by their end date. Sessions keep current_page consistent
+ * with what was logged.
  */
 class ReadingService
 {
-    private const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-
     public function __construct(private readonly QueueService $queue) {}
 
     /**
-     * Troca a estante da leitura. Início, página e sessões nunca são apagados aqui:
-     * voltar para "quero ler" é uma pausa, e retomar continua de onde parou.
+     * Changes the reading's shelf. Start, page and sessions are never erased here:
+     * going back to "want to read" is a pause, and resuming continues where it stopped.
      *
-     * Um livro lido não volta para "lendo" ou "quero ler" na mesma leitura: isso
-     * vira uma releitura (startReread). Corrigir uma marcação errada é reopen().
+     * A read book does not go back to "reading" or "want to read" in the same reading:
+     * that becomes a reread (startReread). Fixing a wrong mark is reopen().
      */
     public function changeStatus(Reading $reading, ReadingStatus $status): Reading
     {
@@ -38,7 +36,7 @@ class ReadingService
         if ($reading->exists && $reading->status === ReadingStatus::Read) {
             if ($status === ReadingStatus::Abandoned) {
                 throw ValidationException::withMessages([
-                    'status' => 'Um livro lido não pode ser abandonado. Para relê-lo, use "Ler de novo".',
+                    'status' => __('Um livro lido não pode ser abandonado. Para relê-lo, use "Ler de novo".'),
                 ]);
             }
 
@@ -75,7 +73,7 @@ class ReadingService
 
         $reading->save();
 
-        // A fila é do que vem a seguir: começar, terminar ou abandonar tira o livro dela.
+        // The queue holds what comes next: starting, finishing or abandoning takes the book out of it.
         if ($status !== ReadingStatus::WantToRead) {
             $this->queue->removeBook($reading->book);
         }
@@ -84,14 +82,14 @@ class ReadingService
     }
 
     /**
-     * Termina a leitura numa data escolhida, com nota e uma linha de resenha opcionais.
-     * A linha entra no começo da resenha que já existir. Sem data (`$on` nulo) o livro
-     * fica lido mas fora das estatísticas por período: serve para o que se leu há muito tempo.
+     * Finishes the reading on a chosen date, with an optional rating and one-line review.
+     * The line goes at the top of any existing review. Without a date (`$on` null) the book
+     * is read but left out of period statistics: it is for what was read long ago.
      */
     public function finish(Reading $reading, ?Carbon $on, ?int $rating = null, ?string $line = null): Reading
     {
         if ($reading->status === ReadingStatus::Read) {
-            throw ValidationException::withMessages(['status' => 'Esta leitura já está terminada.']);
+            throw ValidationException::withMessages(['status' => __('Esta leitura já está terminada.')]);
         }
 
         if ($on !== null) {
@@ -124,12 +122,12 @@ class ReadingService
         return $reading;
     }
 
-    /** Abandona guardando a página e, se informado, o motivo. */
+    /** Abandons, keeping the page and, when given, the reason. */
     public function abandon(Reading $reading, ?string $reason = null, ?int $rating = null): Reading
     {
         if ($reading->status === ReadingStatus::Read) {
             throw ValidationException::withMessages([
-                'status' => 'Um livro lido não pode ser abandonado. Para relê-lo, use "Ler de novo".',
+                'status' => __('Um livro lido não pode ser abandonado. Para relê-lo, use "Ler de novo".'),
             ]);
         }
 
@@ -150,17 +148,17 @@ class ReadingService
     }
 
     /**
-     * Releitura: uma leitura nova do livro, com sessões, nota e resenha próprias.
-     * A anterior fica intacta no histórico. "Quero ler" entra no fim da fila.
+     * Reread: a new reading of the book, with its own sessions, rating and review.
+     * The previous one stays intact in the history. "Want to read" goes to the end of the queue.
      */
     public function startReread(Book $book, ReadingStatus $status): Reading
     {
         if (! in_array($status, [ReadingStatus::Reading, ReadingStatus::WantToRead], true)) {
-            throw ValidationException::withMessages(['status' => 'Uma releitura começa em "lendo" ou "quero ler".']);
+            throw ValidationException::withMessages(['status' => __('Uma releitura começa em "lendo" ou "quero ler".')]);
         }
 
         if ($book->currentReading?->status !== ReadingStatus::Read) {
-            throw ValidationException::withMessages(['status' => 'Só dá para reler um livro que você terminou.']);
+            throw ValidationException::withMessages(['status' => __('Só dá para reler um livro que você terminou.')]);
         }
 
         return DB::transaction(function () use ($book, $status) {
@@ -184,13 +182,13 @@ class ReadingService
     }
 
     /**
-     * "Corrigir: ainda não terminei". O único caminho que apaga a data de término
-     * de uma leitura lida: ela volta para "lendo" na página em que estava.
+     * "Fix: I have not finished yet". The only path that clears the end date
+     * of a read reading: it goes back to "reading" on the page it was on.
      */
     public function reopen(Reading $reading): Reading
     {
         if ($reading->status !== ReadingStatus::Read) {
-            throw ValidationException::withMessages(['status' => 'Só uma leitura terminada pode ser desmarcada.']);
+            throw ValidationException::withMessages(['status' => __('Só uma leitura terminada pode ser desmarcada.')]);
         }
 
         $reading->status = ReadingStatus::Reading;
@@ -201,9 +199,9 @@ class ReadingService
     }
 
     /**
-     * Corrige as datas. Leituras terminadas ou abandonadas têm início e fim;
-     * as em andamento, só início. Uma leitura lida pode ficar sem datas (lida há muito tempo).
-     * Sessões fora do período são permitidas: a tela avisa.
+     * Fixes the dates. Finished or abandoned readings have a start and an end;
+     * ongoing ones, only a start. A read reading may have no dates (read long ago).
+     * Sessions outside the period are allowed: the screen warns about it.
      */
     public function updateDates(Reading $reading, ?Carbon $start, ?Carbon $end): void
     {
@@ -218,20 +216,20 @@ class ReadingService
         }
 
         if ($start === null) {
-            throw ValidationException::withMessages(['started_at' => 'Informe o início.']);
+            throw ValidationException::withMessages(['started_at' => __('Informe o início.')]);
         }
 
         if ($start->greaterThan(Carbon::today())) {
-            throw ValidationException::withMessages(['started_at' => 'O início não pode ser depois de hoje.']);
+            throw ValidationException::withMessages(['started_at' => __('O início não pode ser depois de hoje.')]);
         }
 
         if ($closed) {
             if ($end === null) {
-                throw ValidationException::withMessages(['finished_at' => 'Informe o término.']);
+                throw ValidationException::withMessages(['finished_at' => __('Informe o término.')]);
             }
 
             if ($end->lessThan($start)) {
-                throw ValidationException::withMessages(['finished_at' => 'O término não pode ser antes do início.']);
+                throw ValidationException::withMessages(['finished_at' => __('O término não pode ser antes do início.')]);
             }
 
             $this->ensureEndDate($reading, $end, 'finished_at');
@@ -242,19 +240,19 @@ class ReadingService
         $reading->save();
     }
 
-    /** Apaga uma leitura do histórico. A única leitura de um livro não sai: remova o livro. */
+    /** Deletes a reading from the history. A book's only reading stays: remove the book instead. */
     public function deleteReading(Reading $reading): void
     {
         if ($reading->book->readings()->count() <= 1) {
             throw ValidationException::withMessages([
-                'reading' => 'Esta é a única leitura do livro. Para apagá-la, remova o livro da biblioteca.',
+                'reading' => __('Esta é a única leitura do livro. Para apagá-la, remova o livro da biblioteca.'),
             ]);
         }
 
         $reading->delete();
     }
 
-    /** Número da leitura entre as do livro: 1 para a primeira, 2 para a releitura… */
+    /** Position of the reading among the book's readings: 1 for the first, 2 for the reread... */
     public function ordinal(Reading $reading): int
     {
         return Reading::query()
@@ -263,7 +261,7 @@ class ReadingService
             ->count();
     }
 
-    /** Leitura mais recente do livro; cria uma em "quero ler" se não houver nenhuma. */
+    /** The book's most recent reading; creates a "want to read" one when there is none. */
     public function readingFor(Book $book): Reading
     {
         $reading = $book->currentReading;
@@ -271,7 +269,7 @@ class ReadingService
         if ($reading === null) {
             $reading = new Reading(['status' => ReadingStatus::WantToRead]);
             $reading->book()->associate($book);
-            // Salva já: a sessão precisa de uma leitura com id.
+            // Saved right away: the session needs a reading with an id.
             $reading->save();
         }
 
@@ -279,19 +277,19 @@ class ReadingService
     }
 
     /**
-     * Registra o que foi lido: a página em que você parou, com minutos opcionais.
-     * A página inicial é deduzida de current_page + 1. Só avança: para corrigir
-     * um registro, edite a sessão.
+     * Logs what was read: the page where the reader stopped, with optional minutes.
+     * The starting page is derived from current_page + 1. It only moves forward: to
+     * fix a record, edit the session.
      *
-     * Decisões: sessões só entram em livros "quero ler" ou "lendo" (o primeiro
-     * vira "lendo" sozinho). Livros lidos ou abandonados precisam voltar para
-     * "lendo" antes, para não reabrir uma leitura sem querer.
+     * Sessions only go into "want to read" or "reading" books (the former becomes
+     * "reading" on its own). Read or abandoned books must go back to "reading"
+     * first, so a reading is not reopened by accident.
      */
     public function registerSession(Reading $reading, int $pageTo, ?int $minutes, Carbon $readOn): ReadingSession
     {
         if (! in_array($reading->status, [ReadingStatus::WantToRead, ReadingStatus::Reading], true)) {
             throw ValidationException::withMessages([
-                'status' => 'Mude a estante para "Lendo" para registrar sessões.',
+                'status' => __('Mude a estante para "Lendo" para registrar sessões.'),
             ]);
         }
 
@@ -299,7 +297,7 @@ class ReadingService
 
         if ($pageTo <= $reading->current_page) {
             throw ValidationException::withMessages([
-                'page_to' => "Informe uma página depois da pág. {$reading->current_page}.",
+                'page_to' => __('Informe uma página depois da pág. :page.', ['page' => $reading->current_page]),
             ]);
         }
 
@@ -313,7 +311,7 @@ class ReadingService
 
             $reading->current_page = $pageTo;
 
-            // changeStatus já salva a leitura; sem a troca de estante, salva aqui.
+            // changeStatus already saves the reading; without a shelf change, save it here.
             if ($reading->status === ReadingStatus::WantToRead) {
                 $this->changeStatus($reading, ReadingStatus::Reading);
             } else {
@@ -325,8 +323,8 @@ class ReadingService
     }
 
     /**
-     * Corrige uma sessão. A página inicial fica como foi registrada, porque
-     * as sessões seguintes continuam a partir dela.
+     * Fixes a session. The starting page stays as logged, because the
+     * following sessions continue from it.
      */
     public function updateSession(ReadingSession $session, Carbon $readOn, int $pageTo, ?int $minutes): void
     {
@@ -334,7 +332,7 @@ class ReadingService
 
         if ($pageTo < $session->page_from) {
             throw ValidationException::withMessages([
-                'page_to' => "Use uma página a partir da {$session->page_from}.",
+                'page_to' => __('Use uma página a partir da :page.', ['page' => $session->page_from]),
             ]);
         }
 
@@ -356,8 +354,8 @@ class ReadingService
     }
 
     /**
-     * Apaga uma sessão. current_page só volta se a sessão apagada era a última
-     * registrada. Uma marcação manual (ex.: "lido") não é desfeita por isso.
+     * Deletes a session. current_page only goes back if the deleted session was the last
+     * one logged. A manual mark (e.g. "read") is not undone by this.
      */
     public function deleteSession(ReadingSession $session): void
     {
@@ -374,10 +372,10 @@ class ReadingService
     }
 
     /**
-     * Progresso para as telas: página, percentual, ritmo e previsão de dias.
+     * Progress for the screens: page, percentage, pace and days forecast.
      *
-     * O ritmo é páginas por dia em que houve leitura, o mesmo critério da
-     * média de dias lidos da estatística. Sem sessões, não há previsão.
+     * Pace is pages per day with reading, the same criterion as the statistics'
+     * average over reading days. Without sessions there is no forecast.
      *
      * @return array{current_page: int, pages: int|null, percent: int|null, pace: float|null, days_left: int|null, finish_suggested: bool}
      */
@@ -403,23 +401,23 @@ class ReadingService
             'days_left' => $remaining !== null && $remaining > 0 && $pace !== null && $pace > 0
                 ? (int) ceil($remaining / $pace)
                 : null,
-            // Chegou à última página: a tela oferece marcar como lido, sem mudar nada sozinha.
+            // Reached the last page: the screen offers to mark it as read, without changing anything on its own.
             'finish_suggested' => $reading->status === ReadingStatus::Reading && $pages !== null && $current >= $pages,
         ];
     }
 
     /**
-     * Término válido: não depois de hoje, não antes do início nem da última sessão.
+     * Valid end date: not after today, not before the start nor the last session.
      */
     private function ensureEndDate(Reading $reading, Carbon $end, string $field): void
     {
         if ($end->greaterThan(Carbon::today())) {
-            throw ValidationException::withMessages([$field => 'O término não pode ser depois de hoje.']);
+            throw ValidationException::withMessages([$field => __('O término não pode ser depois de hoje.')]);
         }
 
         if ($reading->started_at !== null && $end->lessThan($reading->started_at) && $field === 'finished_on') {
             throw ValidationException::withMessages([
-                $field => 'A leitura começou em '.self::shortDate($reading->started_at).'. Escolha essa data ou depois.',
+                $field => __('A leitura começou em :date. Escolha essa data ou depois.', ['date' => DateLabel::shortDate($reading->started_at)]),
             ]);
         }
 
@@ -427,21 +425,9 @@ class ReadingService
 
         if ($last !== null && $end->lessThan(Carbon::parse($last)->startOfDay())) {
             throw ValidationException::withMessages([
-                $field => 'A última sessão foi em '.self::shortDate(Carbon::parse($last)).'. Escolha essa data ou depois.',
+                $field => __('A última sessão foi em :date. Escolha essa data ou depois.', ['date' => DateLabel::shortDate(Carbon::parse($last))]),
             ]);
         }
-    }
-
-    /** "14 out". */
-    public static function shortDate(CarbonInterface $date): string
-    {
-        return $date->day.' '.self::MONTHS[$date->month - 1];
-    }
-
-    /** "out 2026". */
-    public static function monthLabel(CarbonInterface $date): string
-    {
-        return self::MONTHS[$date->month - 1].' '.$date->year;
     }
 
     private function ensureWithinBook(Reading $reading, int $pageTo): void
@@ -450,12 +436,12 @@ class ReadingService
 
         if ($pages !== null && $pageTo > $pages) {
             throw ValidationException::withMessages([
-                'page_to' => "O livro tem {$pages} páginas.",
+                'page_to' => __('O livro tem :pages páginas.', ['pages' => $pages]),
             ]);
         }
     }
 
-    /** Recalcula current_page pela maior página registrada, se ainda houver sessões. */
+    /** Recomputes current_page from the highest logged page, when sessions remain. */
     private function syncCurrentPage(Reading $reading): void
     {
         $last = $reading->sessions()->max('page_to');

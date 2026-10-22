@@ -253,6 +253,7 @@ test('a fila não oferece livro que já está nela nem livro que não é quero l
 test('money parsing aceita formatos brasileiros e recusa o que não é valor', function () {
     expect(Money::parseReais('34,90'))->toBe(3490)
         ->and(Money::parseReais('1.234,56'))->toBe(123456)
+        ->and(Money::parseReais('1,234.56'))->toBe(123456)
         ->and(Money::parseReais('10'))->toBe(1000)
         ->and(Money::parseReais('R$ 5,5'))->toBe(550)
         ->and(Money::parseReais('34.90'))->toBe(3490)

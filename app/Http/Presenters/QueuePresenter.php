@@ -9,13 +9,13 @@ use App\Support\StoreLinks;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
-/** Formato da fila e da lista de compras enviado à página de Fila. */
+/** Shape of the queue and the shopping list sent to the Queue page. */
 final class QueuePresenter
 {
     public const PRICE_STALE_DAYS = 30;
 
     /**
-     * Item da fila com a estimativa de dias já calculada.
+     * Queue item with the days estimate already computed.
      *
      * @return array<string, mixed>
      */
@@ -46,16 +46,16 @@ final class QueuePresenter
                 ? $item->cover_url
                 : route('shopping.cover', ['shoppingItem' => $item, 'v' => $item->updated_at?->timestamp], absolute: false),
             'link' => $item->shopUrl(),
-            // Link gerado (busca na Amazon) ou colado à mão.
-            'link_label' => $item->url === null || AmazonLink::isAmazon($item->url) ? 'Ver na Amazon' : 'Abrir link',
-            // Todas as lojas com busca pronta; o link colado, se houver, vai à parte.
+            // Generated link (Amazon search) or pasted by hand.
+            'link_label' => $item->url === null || AmazonLink::isAmazon($item->url) ? __('Ver na Amazon') : __('Abrir link'),
+            // Every store with a ready-made search; the pasted link, if any, goes separately.
             'stores' => StoreLinks::all($item->isbn, $item->title, $item->author),
             'saved_link' => $item->url,
             'store_type' => $item->store_type->value,
             'store_label' => $item->store_type->label(),
             'estimated_price_cents' => $item->estimated_price_cents,
             'price_checked_on' => $item->price_checked_at?->toDateString(),
-            // Preço anotado há mais de PRICE_STALE_DAYS: vale conferir de novo.
+            // Price noted more than PRICE_STALE_DAYS ago: worth checking again.
             'price_stale' => $item->bought_at === null
                 && $item->price_checked_at !== null
                 && $item->price_checked_at->lt(now()->subDays(self::PRICE_STALE_DAYS)),

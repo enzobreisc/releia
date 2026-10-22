@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/** Correção de uma sessão já registrada. */
+/** Correction of an already logged session. */
 class UpdateSessionRequest extends FormRequest
 {
     /**
@@ -26,9 +26,9 @@ class UpdateSessionRequest extends FormRequest
     {
         return [
             'read_on.required' => 'Informe a data.',
-            'page_to.required' => 'Informe a página.',
-            'page_to.between' => 'Número de página inválido.',
-            'minutes.between' => 'Informe entre 1 e 1440 minutos.',
+            'page_to.required' => __('Informe a página.'),
+            'page_to.between' => __('Número de página inválido.'),
+            'minutes.between' => __('Informe entre 1 e 1440 minutos.'),
         ];
     }
 }

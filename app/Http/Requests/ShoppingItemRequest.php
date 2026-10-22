@@ -26,13 +26,13 @@ class ShoppingItemRequest extends FormRequest
                 'string',
                 function (string $attribute, mixed $value, Closure $fail) {
                     if (is_string($value) && trim($value) !== '' && Isbn::toIsbn13($value) === null) {
-                        $fail('ISBN inválido.');
+                        $fail(__('ISBN inválido.'));
                     }
                 },
             ],
-            // Capa da correspondência escolhida na busca.
+            // Cover of the match picked in the search.
             'cover_url' => ['nullable', 'url:http,https', 'max:2048'],
-            // Link de um anúncio específico; de um link da Amazon também sai o ISBN.
+            // Link of a specific listing; an Amazon link also yields the ISBN.
             'url' => ['nullable', 'url:http,https', 'max:2048'],
             'store_type' => ['required', Rule::enum(StoreType::class)],
             'estimated_price' => self::priceRule(),
@@ -40,7 +40,7 @@ class ShoppingItemRequest extends FormRequest
     }
 
     /**
-     * Preço digitado em reais ("34,90"); a conversão para centavos fica em payload().
+     * Price typed in reais ("34,90"); the conversion to cents happens in payload().
      *
      * @return list<mixed>
      */
@@ -51,15 +51,15 @@ class ShoppingItemRequest extends FormRequest
             'string',
             function (string $attribute, mixed $value, Closure $fail) {
                 if (is_string($value) && trim($value) !== '' && Money::parseReais($value) === null) {
-                    $fail('Preço inválido. Use o formato 34,90.');
+                    $fail(__('Preço inválido. Use o formato 34,90.'));
                 }
             },
         ];
     }
 
     /**
-     * Dados prontos para o ShoppingService: ISBN em 13 dígitos (digitado ou tirado
-     * do link da Amazon) e preço em centavos, com a data em que foi anotado.
+     * Data ready for ShoppingService: 13-digit ISBN (typed or taken
+     * from the Amazon link) and price in cents, with the date it was noted.
      *
      * @return array{title: string, author: string, isbn: string|null, cover_url: string|null, url: string|null, store_type: string, estimated_price_cents: int|null, price_checked_at: CarbonInterface|null}
      */

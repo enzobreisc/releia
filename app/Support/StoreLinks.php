@@ -5,13 +5,12 @@ namespace App\Support;
 use Illuminate\Support\Str;
 
 /**
- * Links de busca em lojas e comparadores brasileiros. Nenhuma tem API aberta de
- * preço, então o app leva até a busca pelo ISBN e quem decide é você.
+ * Search links for Brazilian stores and price comparers. None has an open price
+ * API, so the app links to the ISBN search and the reader decides.
  */
 final class StoreLinks
 {
-    /** @var array<string, string> chave => nome na tela */
-    private const STORES = [
+    private const STORE_LABELS = [
         'amazon' => 'Amazon',
         'estante_virtual' => 'Estante Virtual',
         'mercado_livre' => 'Mercado Livre',
@@ -24,7 +23,7 @@ final class StoreLinks
      */
     public static function keys(): array
     {
-        return array_keys(self::STORES);
+        return array_keys(self::STORE_LABELS);
     }
 
     /**
@@ -34,8 +33,8 @@ final class StoreLinks
     {
         $links = [];
 
-        foreach (self::STORES as $key => $label) {
-            $links[] = ['key' => $key, 'label' => $label, 'url' => (string) self::url($key, $isbn, $title, $author)];
+        foreach (self::STORE_LABELS as $key => $label) {
+            $links[] = ['key' => $key, 'label' => __($label), 'url' => (string) self::url($key, $isbn, $title, $author)];
         }
 
         return $links;
@@ -43,7 +42,7 @@ final class StoreLinks
 
     public static function url(string $store, ?string $isbn, string $title, string $author = ''): ?string
     {
-        // O ISBN acha a edição exata; sem ele, título e autor.
+        // The ISBN finds the exact edition; without it, fall back to title and author.
         $terms = $isbn ?? trim($title.' '.$author);
 
         return match ($store) {

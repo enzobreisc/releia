@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-/** Estante em que o livro está, pela leitura mais recente. */
+/** Shelf the book is on, from its most recent reading. */
 enum ReadingStatus: string
 {
     case WantToRead = 'want_to_read';
@@ -13,21 +13,21 @@ enum ReadingStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::WantToRead => 'Quero ler',
-            self::Reading => 'Lendo',
-            self::Read => 'Lido',
-            self::Abandoned => 'Abandonado',
+            self::WantToRead => __('Quero ler'),
+            self::Reading => __('Lendo'),
+            self::Read => __('Lido'),
+            self::Abandoned => __('Abandonado'),
         };
     }
 
-    /** Rótulo da aba na Biblioteca. */
+    /** Tab label in the Library. */
     public function shelfLabel(): string
     {
         return match ($this) {
-            self::WantToRead => 'Quero ler',
-            self::Reading => 'Lendo',
-            self::Read => 'Lidos',
-            self::Abandoned => 'Abandonados',
+            self::WantToRead => __('Quero ler'),
+            self::Reading => __('Lendo'),
+            self::Read => __('Lidos'),
+            self::Abandoned => __('Abandonados'),
         };
     }
 

@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use App\Http\Presenters\ReadingPresenter;
 use App\Models\Book;
 use App\Models\ReadingSession;
-use App\Services\ReadingService;
+use App\Support\DateLabel;
 use App\Support\Isbn;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -13,9 +13,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\Validator;
 
 /**
- * Edição dos dados do livro. Além das regras de formato, duas checagens que
- * dependem do que já existe: o ISBN não pode ser de outro livro e o total de
- * páginas não pode ficar abaixo de uma sessão já registrada.
+ * Editing the book's data. Besides the format rules, two checks that
+ * depend on what already exists: the ISBN cannot belong to another book and the total
+ * pages cannot fall below an already logged session.
  */
 class UpdateBookRequest extends FormRequest
 {
@@ -62,11 +62,11 @@ class UpdateBookRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'title.required' => 'Informe o título.',
-            'pages.between' => 'Número de páginas inválido.',
-            'published_year.between' => 'Use um ano entre 1450 e '.(Carbon::today()->year + 1).'.',
-            'cover_file.image' => 'Escolha uma imagem (JPG, PNG, WebP ou GIF).',
-            'cover_file.max' => 'A imagem pode ter até 5 MB.',
+            'title.required' => __('Informe o título.'),
+            'pages.between' => __('Número de páginas inválido.'),
+            'published_year.between' => __('Use um ano entre 1450 e :year.', ['year' => Carbon::today()->year + 1]),
+            'cover_file.image' => __('Escolha uma imagem (JPG, PNG, WebP ou GIF).'),
+            'cover_file.max' => __('A imagem pode ter até 5 MB.'),
         ];
     }
 
@@ -83,14 +83,14 @@ class UpdateBookRequest extends FormRequest
 
                 if (is_string($isbn)) {
                     if (Isbn::toIsbn13($isbn) === null) {
-                        $validator->errors()->add('isbn_13', 'ISBN inválido.');
+                        $validator->errors()->add('isbn_13', __('ISBN inválido.'));
                     } else {
                         $other = Book::query()->where('isbn_13', $isbn)->whereKeyNot($book->id)->first();
 
                         if ($other !== null) {
                             $edition = implode(', ', array_filter([$other->publisher, $other->published_year]));
-                            $validator->errors()->add('isbn_13', "Esse ISBN já é de outro livro da biblioteca: {$other->title}".($edition === '' ? '' : " ({$edition})").'.');
-                            // A tela usa o id para o link "Abrir o outro livro".
+                            $validator->errors()->add('isbn_13', __('Esse ISBN já é de outro livro da biblioteca: :book.', ['book' => $other->title.($edition === '' ? '' : " ({$edition})")]));
+                            // The screen uses the id for the "Open the other book" link.
                             $validator->errors()->add('isbn_13_book', (string) $other->id);
                         }
                     }
@@ -108,7 +108,7 @@ class UpdateBookRequest extends FormRequest
                         $hash = ReadingPresenter::session($highest)['hash'];
                         $validator->errors()->add(
                             'pages',
-                            "O livro não pode ter menos que {$highest->page_to} páginas: a sessão {$hash} de ".ReadingService::shortDate($highest->read_on)." vai até a p. {$highest->page_to}.",
+                            __('O livro não pode ter menos que :pages páginas: a sessão :hash de :date vai até a p. :pages.', ['pages' => $highest->page_to, 'hash' => $hash, 'date' => DateLabel::shortDate($highest->read_on)]),
                         );
                         $validator->errors()->add('pages_session', (string) $highest->id);
                     }

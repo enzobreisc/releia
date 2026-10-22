@@ -34,9 +34,9 @@ class BookController extends Controller
     ) {}
 
     /**
-     * Adicionar livro. `q` (e `publisher`, opcional) busca nas fontes externas;
-     * `work` lista as edições de uma obra e `isbn` carrega os detalhes de uma
-     * edição para a prévia. Os dois últimos chegam por recarga parcial.
+     * Add book. `q` (and optional `publisher`) searches the external sources;
+     * `work` lists the editions of a work and `isbn` loads the details of an
+     * edition for the preview. The last two arrive through partial reloads.
      */
     public function create(Request $request): Response
     {
@@ -66,7 +66,7 @@ class BookController extends Controller
 
         $book = $this->library->add($data);
 
-        Toast::success('Livro adicionado', $book->title.' · '.mb_strtolower(ReadingStatus::from($data['status'])->label()));
+        Toast::success(__('Livro adicionado'), $book->title.' · '.mb_strtolower(ReadingStatus::from($data['status'])->label()));
 
         return to_route('books.show', $book);
     }
@@ -88,9 +88,9 @@ class BookController extends Controller
                 ->sortByDesc(fn ($session) => [$session->read_on->toDateString(), $session->id])
                 ->map(ReadingPresenter::session(...))
                 ->values(),
-            // Sessões só entram em livros "quero ler" ou "lendo" (ver ReadingService).
+            // Sessions only go into "want to read" or "reading" books (see ReadingService).
             'can_log' => $reading !== null && in_array($reading->status, [ReadingStatus::WantToRead, ReadingStatus::Reading], true),
-            // Todas as leituras, da primeira à atual, para a aba Leituras e a releitura.
+            // All readings, from the first to the current, for the Readings tab and the reread.
             'readings' => $history->map(fn (Reading $item, int $index) => ReadingPresenter::history($item, $index + 1, $book->pages))->values(),
             'notes' => fn () => Note::query()
                 ->with(['book:id,title', 'tags:id,name'])
@@ -101,7 +101,7 @@ class BookController extends Controller
                 ->values(),
             'queued' => $queuePosition !== null,
             'queue_position' => $queuePosition === null ? null : (int) $queuePosition,
-            // O que vai junto se o livro for removido (diálogo de confirmação).
+            // What goes with the book if it is removed (confirmation dialog).
             'removal' => [
                 'readings' => $history->count(),
                 'finished' => $history->where('status', ReadingStatus::Read)->count(),
@@ -109,17 +109,17 @@ class BookController extends Controller
                 'pages' => $history->sum(fn (Reading $item) => $item->sessions->sum(fn ($session) => $session->pages())),
                 'notes' => Note::query()->where('book_id', $book->id)->count(),
             ],
-            // Maior página já registrada: o total de páginas não pode ficar abaixo dela.
+            // Highest page already logged: the page total cannot fall below it.
             'max_logged_page' => (int) $history->flatMap(fn (Reading $item) => $item->sessions)->max('page_to'),
             'genres' => fn () => collect(Genres::names())
                 ->merge(Book::query()->whereNotNull('genre')->distinct()->pluck('genre'))
                 ->unique()->sort()->values(),
-            // "↻ buscar" no painel de edição: os dados da fonte para comparar, por recarga parcial.
+            // "↻ look up" in the edit panel: the source's data to compare, via partial reload.
             'lookup' => Inertia::optional(fn () => $isbn === null ? null : $this->preview($isbn)),
         ]);
     }
 
-    /** Corrige os dados do livro (painel "editar dados"). */
+    /** Fixes the book's data ("edit data" panel). */
     public function update(UpdateBookRequest $request, Book $book, UndoService $undo): RedirectResponse
     {
         /** @var array{title: string, subtitle?: string|null, authors?: list<string>, isbn_13?: string|null, isbn_10?: string|null, publisher?: string|null, published_year?: int|null, pages?: int|null, genre?: string|null, description?: string|null, cover_url?: string|null} $data */
@@ -135,10 +135,10 @@ class BookController extends Controller
         $coverChanged = $this->library->update($book, $data, $request->file('cover_file'), $data['cover_url'] ?? null);
 
         Toast::success(
-            'Dados atualizados',
-            $coverChanged ? 'capa nova salva' : ($pagesBefore !== $book->pages ? 'previsão e ritmo recalculados' : null),
+            __('Dados atualizados'),
+            $this->updateNote($coverChanged, $pagesBefore !== $book->pages),
             null,
-            // Troca de capa substitui o arquivo: essa não tem volta.
+            // Replacing the cover overwrites the file: there is no going back.
             $coverChanged ? null : $undo->remember($snapshot),
         );
 
@@ -150,9 +150,22 @@ class BookController extends Controller
         $title = $book->title;
         $this->library->remove($book);
 
-        Toast::success("{$title} removido", 'da biblioteca, com leituras, sessões e notas');
+        Toast::success(__(':title removido', ['title' => $title]), __('da biblioteca, com leituras, sessões e notas'));
 
         return to_route('library.index');
+    }
+
+    private function updateNote(bool $coverChanged, bool $pagesChanged): ?string
+    {
+        if ($coverChanged) {
+            return __('capa nova salva');
+        }
+
+        if ($pagesChanged) {
+            return __('previsão e ritmo recalculados');
+        }
+
+        return null;
     }
 
     /**

@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Timer da leitura do dia (janela da barra de menu). Fica em settings, e não na
- * janela, para continuar contando com a janela fechada ou o app reaberto.
- * Só existe um timer por vez.
+ * Timer for the day's reading (menu bar window). It lives in settings, not in the
+ * window, so it keeps counting with the window closed or the app reopened.
+ * There is only one timer at a time.
  *
  * @phpstan-type TimerState array{book_id: int, start_page: int, started_at: string, paused_at: string|null, paused_seconds: int}
  */
@@ -40,8 +40,8 @@ class ReadingTimer
     }
 
     /**
-     * Começa a contar. A página inicial é a última lida; se for maior que a
-     * registrada, o livro avança até ela ao salvar (páginas lidas sem registro).
+     * Starts counting. The starting page is the last one read; if it is higher than the
+     * logged one, the book advances to it on save (pages read without being logged).
      */
     public function start(Book $book, int $startPage): void
     {
@@ -50,13 +50,13 @@ class ReadingTimer
 
         if ($startPage < $reading->current_page) {
             throw ValidationException::withMessages([
-                'start_page' => "Você já registrou até a pág. {$reading->current_page}.",
+                'start_page' => __('Você já registrou até a pág. :page.', ['page' => $reading->current_page]),
             ]);
         }
 
         if ($pages !== null && $startPage >= $pages) {
             throw ValidationException::withMessages([
-                'start_page' => "O livro tem {$pages} páginas.",
+                'start_page' => __('O livro tem :pages páginas.', ['pages' => $pages]),
             ]);
         }
 
@@ -96,7 +96,7 @@ class ReadingTimer
     }
 
     /**
-     * Segundos lidos, sem as pausas.
+     * Seconds read, without the pauses.
      *
      * @param  TimerState  $timer
      */
@@ -109,8 +109,8 @@ class ReadingTimer
     }
 
     /**
-     * Para o timer e registra a sessão de hoje com os minutos contados
-     * (no mínimo 1). Sem timer, não faz nada.
+     * Stops the timer and logs today's session with the counted minutes
+     * (at least 1). Without a timer, it does nothing.
      */
     public function finish(int $pageTo): ?ReadingSession
     {
@@ -125,15 +125,15 @@ class ReadingTimer
 
         if ($pageTo <= $timer['start_page']) {
             throw ValidationException::withMessages([
-                'page_to' => "Informe uma página depois da pág. {$timer['start_page']}.",
+                'page_to' => __('Informe uma página depois da pág. :page.', ['page' => $timer['start_page']]),
             ]);
         }
 
         $minutes = max(1, (int) round($this->elapsedSeconds($timer) / 60));
 
-        // Numa transação: se a sessão for recusada, a página inicial não fica gravada.
+        // In a transaction: if the session is refused, the starting page is not kept.
         $session = DB::transaction(function () use ($reading, $timer, $pageTo, $minutes) {
-            // Páginas lidas antes do timer, sem registro: o livro avança até a página inicial.
+            // Pages read before the timer, unlogged: the book advances up to the starting page.
             if ($timer['start_page'] > $reading->current_page) {
                 $reading->current_page = $timer['start_page'];
                 $reading->save();
