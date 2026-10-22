@@ -3,45 +3,56 @@
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
-/* Identidade visual do releia (escopo, seção 8). Tema escuro único. */
+/* "Noite" identity: sober blue-black ground, one blue accent, white primary actions. */
 @theme {
-    --font-sans:
-        -apple-system, BlinkMacSystemFont, 'SF Pro Text', ui-sans-serif,
-        system-ui, sans-serif;
-    --font-mono:
+    --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --font-brand:
         'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-    --color-bg: #0a0e14;
-    --color-surface: #111823;
-    --color-elevated: #1a2434;
-    --color-border: #243044;
-    --color-text: #e6ecf5;
-    --color-muted: #8d9ab0;
+    --color-bg: #06080c;
+    --color-surface: #0b0f16;
+    --color-elevated: #0e1420;
+    --color-border: #151c28;
+    --color-strong: #1b2433;
+    --color-text: #e8eef7;
+    --color-secondary: #a9b4c6;
+    --color-muted: #8c98ab;
     --color-primary: #2f6fe4;
-    --color-accent: #6ca6ff;
+    --color-accent: #5b9bff;
+    --color-link: #9cc3ff;
 
-    --color-sidebar: #070a0f;
-    --color-active: #16202f;
-    --color-nav: #a9b6cc;
-    --color-faint: #7a889f;
+    --color-sidebar: #04060a;
+    --color-active: #121a28;
+    --color-nav: #a9b4c6;
+    /* Lighter than the mock's #6f7b8f so captions keep 4.5:1 on cards and active rows. */
+    --color-faint: #7a879c;
 
-    --color-heat-0: #1a2434;
+    --color-heat-0: #121a28;
     --color-heat-1: #17365f;
     --color-heat-2: #2563c4;
     --color-heat-3: #5b9bff;
     --color-heat-4: #bcd7ff;
 
-    /* Onda 1: perigo (apagar), atenção (abandonado, avisos) e borda de elementos flutuantes. */
     --color-danger: #f4a3a3;
     --color-danger-fill: #a8323a;
     --color-danger-line: #5a2a30;
     --color-warn: #e3b263;
     --color-warn-line: #5c4a26;
     --color-warn-fill: #2a2214;
-    --color-strong: #2e3b52;
 
-    --radius-sm: 6px;
-    --radius-md: 8px;
+    --radius-sm: 12px;
+    --radius-md: 18px;
+    --radius-lg: 22px;
+
+    --shadow-cover:
+        0 20px 34px -14px rgb(0 0 0 / 0.95),
+        inset 0 0 0 1px rgb(255 255 255 / 0.06);
+    --shadow-hero:
+        0 40px 80px -24px rgb(0 0 0 / 0.95),
+        inset 0 0 0 1px rgb(255 255 255 / 0.06);
+    --shadow-float:
+        inset 0 0 0 1px var(--color-strong), 0 24px 48px -16px rgb(0 0 0 / 0.9);
 }
 
 @layer base {
@@ -55,7 +66,6 @@
         border-color: var(--color-border);
     }
 
-    /* Anel de foco visível em tudo que recebe Tab. */
     :focus-visible {
         outline: 2px solid var(--color-accent);
         outline-offset: 2px;
@@ -78,7 +88,7 @@
     }
 }
 
-/* Faixa arrastável da janela (title bar oculta no NativePHP). */
+/* The NativePHP window hides its title bar, so this strip is what drags the window. */
 @utility app-drag {
     -webkit-app-region: drag;
 }
