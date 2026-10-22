@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use App\Enums\Locale;
 use App\Models\Book;
-use App\Models\Note;
 use App\Models\QueueItem;
 use App\Models\ShoppingItem;
 use App\Services\DashboardService;
@@ -52,7 +51,6 @@ class HandleInertiaRequests extends Middleware
             'native' => (bool) config('nativephp-internal.running'),
             'counts' => fn () => [
                 'books' => Book::count(),
-                'notes' => Note::count(),
                 'queue' => QueueItem::count(),
                 'shopping' => ShoppingItem::query()->whereNull('bought_at')->count(),
             ],

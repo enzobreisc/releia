@@ -77,11 +77,9 @@ Route::get('/stats', [StatsController::class, 'index'])->name('stats.index');
 Route::get('/wrapped', [WrappedController::class, 'show'])->name('wrapped.show');
 
 // Fase 3
-Route::get('/notes', [NoteController::class, 'index'])->name('notes.index');
 Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');
 Route::patch('/notes/{note}', [NoteController::class, 'update'])->whereNumber('note')->name('notes.update');
 Route::delete('/notes/{note}', [NoteController::class, 'destroy'])->whereNumber('note')->name('notes.destroy');
-Route::post('/notes/{note}/review', [NoteController::class, 'review'])->whereNumber('note')->name('notes.review');
 
 Route::get('/queue', [QueueController::class, 'index'])->name('queue.index');
 Route::post('/queue/books', [QueueController::class, 'store'])->name('queue.store');

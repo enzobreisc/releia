@@ -37,6 +37,7 @@ import type {
     Candidate,
     ReadingHistory,
     ReadingProgress,
+    Option,
     ReadingSession,
 } from '@/types';
 import type { NoteCard } from '@/types/notes';
@@ -49,6 +50,7 @@ type BookProps = {
     can_log: boolean;
     readings: ReadingHistory[];
     notes: NoteCard[];
+    note_kinds: Option[];
     queue_position: number | null;
     removal: Removal;
     genres: string[];
@@ -71,6 +73,7 @@ export default function Book({
     can_log,
     readings,
     notes,
+    note_kinds,
     queue_position,
     removal,
     genres,
@@ -506,7 +509,11 @@ export default function Book({
                     />
                 )}
                 {tab === 'notes' && (
-                    <BookNotes bookId={book.id} notes={notes} />
+                    <BookNotes
+                        bookId={book.id}
+                        notes={notes}
+                        kinds={note_kinds}
+                    />
                 )}
                 {/* The review stays mounted: the draft is not lost when switching tabs. */}
                 <div hidden={tab !== 'review'}>

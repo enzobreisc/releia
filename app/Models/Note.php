@@ -14,38 +14,29 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
- * Trecho, reflexão ou citação sobre um livro, em Markdown. As tags vêm do
- * próprio texto (#tag), então não há um campo separado para elas.
+ * Excerpt, reflection or quote about a book, in Markdown. Tags come from the
+ * text itself (#tag), so there is no separate field for them.
  *
  * @property int $id
  * @property int $book_id
  * @property int|null $page
  * @property NoteKind $kind
  * @property string $body_md
- * @property string $search_text
- * @property Carbon|null $next_review_at
- * @property int $review_count
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Book $book
  * @property-read Collection<int, Tag> $tags
  */
-#[Fillable(['book_id', 'page', 'kind', 'body_md', 'next_review_at', 'review_count'])]
+#[Fillable(['book_id', 'page', 'kind', 'body_md'])]
 class Note extends Model
 {
     /** @use HasFactory<NoteFactory> */
     use HasFactory;
 
-    // Preenchido pelo NoteService (fora do mass assignment), como em Book.
-    protected $attributes = [
-        'search_text' => '',
-        'review_count' => 0,
-    ];
-
     /**
-     * Tag é "#" seguido de letra, sem vir logo depois de outra letra, número,
-     * "/" ou "&" (assim URLs com âncora e "a#b" não viram tag). Títulos "## x"
-     * também não casam, porque o caractere depois do "#" é espaço.
+     * A tag is "#" followed by a letter, not right after another letter, digit,
+     * "/" or "&" (so URL anchors and "a#b" are not tags). "## x" headings do
+     * not match either, because a space follows the "#".
      */
     private const TAG_PATTERN = '/(?<![\p{L}\p{N}_&\/#])#(\p{L}[\p{L}\p{N}_-]{0,39})/u';
 
@@ -57,8 +48,6 @@ class Note extends Model
         return [
             'kind' => NoteKind::class,
             'page' => 'integer',
-            'next_review_at' => 'date',
-            'review_count' => 'integer',
         ];
     }
 
@@ -79,7 +68,7 @@ class Note extends Model
     }
 
     /**
-     * Tags citadas no texto, sem acento e em minúsculas, sem repetição.
+     * Tags mentioned in the text, unaccented, lowercase and without repeats.
      *
      * @return list<string>
      */

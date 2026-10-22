@@ -7,7 +7,7 @@ export type NavItem = {
     href: string;
     icon: ComponentType<IconProps>;
     /** Key of the counter in `counts` (shared data). */
-    count?: 'books' | 'notes' | 'queue' | 'shopping';
+    count?: 'books' | 'queue' | 'shopping';
 };
 
 /** A titled block of the sidebar; the first one has no title. */

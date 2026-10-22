@@ -4,7 +4,7 @@ namespace App\Http\Presenters;
 
 use App\Models\Note;
 
-/** Formato das notas enviado às páginas. Espera book e tags carregados. */
+/** Shape of the notes sent to pages. Expects book and tags loaded. */
 final class NotePresenter
 {
     /**
@@ -21,8 +21,6 @@ final class NotePresenter
             'kind_label' => $note->kind->label(),
             'body_md' => $note->body_md,
             'tags' => $note->tags->pluck('name')->sort()->values()->all(),
-            'next_review_at' => $note->next_review_at?->toDateString(),
-            'review_count' => $note->review_count,
             'updated_at' => $note->updated_at?->toDateString(),
         ];
     }

@@ -11,7 +11,6 @@ declare module '@inertiajs/core' {
             native: boolean;
             counts: {
                 books: number;
-                notes: number;
                 queue: number;
                 shopping: number;
             };

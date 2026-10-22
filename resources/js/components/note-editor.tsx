@@ -1,37 +1,25 @@
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useState } from 'react';
+import { Dialog } from '@/components/dialog';
 import { Markdown } from '@/components/markdown';
 import { Button, Field, Input, Select, Textarea } from '@/components/form';
-import { SectionTitle } from '@/components/page-header';
 import { useTranslation } from '@/hooks/use-translation';
+import { cn } from '@/lib/utils';
 import { destroy, store, update } from '@/routes/notes';
-import { show } from '@/routes/books';
-import type { NoteBook, NoteCard } from '@/types/notes';
+import type { NoteCard } from '@/types/notes';
 import type { Option } from '@/types';
 
 type NoteEditorProps = {
     /** Existing note; null when it is a new note. */
     note: NoteCard | null;
-    books: NoteBook[];
+    bookId: number;
     kinds: Option[];
-    /** Book already chosen when creating from a book. */
-    initialBookId: number | null;
+    onClose: () => void;
 };
 
-/**
- * Note editor: Markdown text with preview, kind, page and book.
- * Remounted by the screen (key) when the note changes, so local state does not leak.
- */
-export function NoteEditor({
-    note,
-    books,
-    kinds,
-    initialBookId,
-}: NoteEditorProps) {
+/** Note dialog on the book page: Markdown text with preview, kind and page. */
+export function NoteEditor({ note, bookId, kinds, onClose }: NoteEditorProps) {
     const { t } = useTranslation();
-    const [bookId, setBookId] = useState(
-        String(note?.book_id ?? initialBookId ?? books[0]?.id ?? ''),
-    );
     const [kind, setKind] = useState(note?.kind ?? kinds[0]?.value ?? '');
     const [page, setPage] = useState(note?.page ? String(note.page) : '');
     const [body, setBody] = useState(note?.body_md ?? '');
@@ -39,7 +27,7 @@ export function NoteEditor({
     const [saving, setSaving] = useState(false);
 
     const data = {
-        book_id: bookId === '' ? null : Number(bookId),
+        book_id: bookId,
         kind,
         page: page === '' ? null : Number(page),
         body_md: body,
@@ -48,9 +36,9 @@ export function NoteEditor({
     function save() {
         const options = {
             preserveScroll: true,
-            preserveState: true,
             onStart: () => setSaving(true),
             onFinish: () => setSaving(false),
+            onSuccess: onClose,
         };
 
         if (note) {
@@ -63,62 +51,21 @@ export function NoteEditor({
     // Deletes right away: the notice offers undo (text, tags and page come back).
     function remove() {
         if (note) {
-            router.delete(destroy.url(note.id));
+            router.delete(destroy.url(note.id), {
+                preserveScroll: true,
+                onSuccess: onClose,
+            });
         }
     }
 
-    if (books.length === 0) {
-        return (
-            <section className="rounded-md border bg-surface p-5 text-sm text-muted">
-                {t('Cadastre um livro antes de criar notas.')}
-            </section>
-        );
-    }
-
     return (
-        <section className="flex min-w-0 flex-col gap-4 rounded-md border bg-surface p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <SectionTitle>
-                    {note ? t('editar nota') : t('nova nota')}
-                </SectionTitle>
-                <div
-                    role="tablist"
-                    aria-label={t('Modo do editor')}
-                    className="flex gap-1.5"
-                >
-                    {(['edit', 'preview'] as const).map((mode) => (
-                        <button
-                            key={mode}
-                            type="button"
-                            role="tab"
-                            aria-selected={tab === mode}
-                            onClick={() => setTab(mode)}
-                            className={
-                                tab === mode
-                                    ? 'rounded-sm bg-primary px-3 py-1.5 text-xs font-semibold text-white'
-                                    : 'rounded-sm border bg-surface px-3 py-1.5 text-xs text-text hover:bg-active'
-                            }
-                        >
-                            {mode === 'edit' ? t('Editar') : t('Prévia')}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
-                <Field label={t('Livro')}>
-                    <Select
-                        value={bookId}
-                        onChange={(event) => setBookId(event.target.value)}
-                    >
-                        {books.map((book) => (
-                            <option key={book.id} value={book.id}>
-                                {book.title}
-                            </option>
-                        ))}
-                    </Select>
-                </Field>
-                <Field label={t('Tipo')}>
+        <Dialog
+            title={note ? t('Editar nota') : t('Nova nota')}
+            onClose={onClose}
+            className="max-w-160"
+        >
+            <div className="flex flex-wrap items-end gap-3">
+                <Field label={t('Tipo')} className="flex-[2_1_180px]">
                     <Select
                         value={kind}
                         onChange={(event) => setKind(event.target.value)}
@@ -130,7 +77,7 @@ export function NoteEditor({
                         ))}
                     </Select>
                 </Field>
-                <Field label={t('Página')}>
+                <Field label={t('Página')} className="flex-[1_1_100px]">
                     <Input
                         type="number"
                         min={1}
@@ -139,21 +86,45 @@ export function NoteEditor({
                         onChange={(event) => setPage(event.target.value)}
                     />
                 </Field>
+                <div
+                    role="tablist"
+                    aria-label={t('Modo do editor')}
+                    className="flex gap-1 rounded-full bg-bg p-1 inset-ring inset-ring-border"
+                >
+                    {(['edit', 'preview'] as const).map((mode) => (
+                        <button
+                            key={mode}
+                            type="button"
+                            role="tab"
+                            aria-selected={tab === mode}
+                            onClick={() => setTab(mode)}
+                            className={cn(
+                                'h-9 rounded-full px-3.5 text-xs font-bold',
+                                tab === mode
+                                    ? 'bg-text text-bg'
+                                    : 'text-secondary hover:text-text',
+                            )}
+                        >
+                            {mode === 'edit' ? t('Editar') : t('Prévia')}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {tab === 'edit' ? (
                 <Field label={t('Texto (Markdown). Tags: #tema')}>
                     <Textarea
+                        autoFocus
                         value={body}
                         onChange={(event) => setBody(event.target.value)}
-                        className="min-h-64 font-mono text-[14px]"
+                        className="min-h-56 font-mono text-[14px]"
                         placeholder={t(
                             'Escreva o trecho, a reflexão ou a citação…',
                         )}
                     />
                 </Field>
             ) : (
-                <div className="min-h-64 rounded-sm border bg-bg p-4">
+                <div className="min-h-56 rounded-md bg-bg p-4 inset-ring inset-ring-border">
                     {body.trim() === '' ? (
                         <p className="text-sm text-muted">
                             {t('Nada para mostrar ainda.')}
@@ -169,7 +140,7 @@ export function NoteEditor({
                     {note.tags.map((tag) => (
                         <span
                             key={tag}
-                            className="rounded-[10px] bg-elevated px-2 py-0.5 font-mono text-[11px] text-accent"
+                            className="rounded-full bg-active px-3 py-1 text-xs font-bold text-link"
                         >
                             #{tag}
                         </span>
@@ -185,21 +156,19 @@ export function NoteEditor({
                           ? t('Salvar')
                           : t('Criar nota')}
                 </Button>
+                <Button variant="ghost" onClick={onClose}>
+                    {t('Cancelar')}
+                </Button>
                 {note && (
-                    <>
-                        <Link
-                            href={show.url(note.book_id)}
-                            className="text-sm text-muted hover:text-text"
-                        >
-                            {t('Ver no livro')}
-                        </Link>
-                        <span className="ml-auto" />
-                        <Button variant="danger" onClick={remove}>
-                            {t('Excluir')}
-                        </Button>
-                    </>
+                    <Button
+                        variant="danger"
+                        onClick={remove}
+                        className="ml-auto"
+                    >
+                        {t('Excluir')}
+                    </Button>
                 )}
             </div>
-        </section>
+        </Dialog>
     );
 }

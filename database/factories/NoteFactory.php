@@ -23,13 +23,12 @@ class NoteFactory extends Factory
             'page' => fake()->optional()->numberBetween(1, 300),
             'kind' => fake()->randomElement(NoteKind::cases()),
             'body_md' => fake()->sentence(),
-            'next_review_at' => null,
         ];
     }
 
-    /** Tags e texto de busca, como o serviço faria ao salvar. */
+    /** Tags from the text, as the service does when saving. */
     public function configure(): static
     {
-        return $this->afterCreating(fn (Note $note) => app(NoteService::class)->refreshDerived($note));
+        return $this->afterCreating(fn (Note $note) => app(NoteService::class)->syncTags($note));
     }
 }

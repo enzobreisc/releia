@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\NoteKind;
 use App\Enums\ReadingStatus;
 use App\Http\Presenters\BookPresenter;
 use App\Http\Presenters\NotePresenter;
@@ -99,6 +100,7 @@ class BookController extends Controller
                 ->get()
                 ->map(NotePresenter::card(...))
                 ->values(),
+            'note_kinds' => NoteKind::options(),
             'queued' => $queuePosition !== null,
             'queue_position' => $queuePosition === null ? null : (int) $queuePosition,
             // What goes with the book if it is removed (confirmation dialog).
