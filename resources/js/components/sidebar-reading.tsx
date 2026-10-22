@@ -9,11 +9,11 @@ export function SidebarReadingCard({ reading }: { reading: SidebarReading }) {
     const { t, plural } = useTranslation();
 
     return (
-        <div className="mb-2 flex flex-col gap-2 rounded-sm border bg-bg p-3">
-            <span className="font-mono text-[11px] text-faint">
+        <div className="mb-2 flex flex-col gap-2 rounded-sm bg-surface p-3 inset-ring inset-ring-border">
+            <span className="text-[11px] font-extrabold tracking-widest text-faint uppercase">
                 {t('lendo agora')}
             </span>
-            <span className="truncate text-[13px] font-semibold">
+            <span className="truncate text-[13px] font-bold">
                 {reading.title}
             </span>
             <ProgressBar percent={reading.percent} className="h-1" />

@@ -37,10 +37,10 @@ export function QueueButton({
                       )
             }
             className={cn(
-                'h-9 self-start rounded-sm border px-3 text-[13px]',
+                'h-9 self-start rounded-full px-3.5 text-xs font-bold',
                 queued
-                    ? 'border-strong bg-active text-nav hover:text-text'
-                    : 'bg-surface text-accent hover:bg-active',
+                    ? 'bg-active text-link hover:text-text'
+                    : 'bg-elevated text-secondary inset-ring inset-ring-strong hover:text-text',
                 className,
             )}
         >

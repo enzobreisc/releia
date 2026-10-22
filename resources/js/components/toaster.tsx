@@ -150,7 +150,7 @@ function ToastItem({
     }
 
     const button =
-        'h-8 shrink-0 rounded-sm border border-strong px-2.5 text-xs font-semibold text-accent hover:bg-active';
+        'h-8 shrink-0 rounded-full px-3 text-xs font-bold text-link hover:bg-active';
 
     return (
         <div
@@ -158,8 +158,8 @@ function ToastItem({
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             className={cn(
-                'relative flex animate-[toast-in_180ms_ease-out] flex-col gap-2 overflow-hidden rounded-md border bg-elevated py-3 pr-2.5 pl-3.5 shadow-[0_10px_28px_rgba(0,0,0,0.5)]',
-                error ? 'border-danger-line' : 'border-strong',
+                'relative flex animate-[toast-in_180ms_ease-out] flex-col gap-2 overflow-hidden rounded-md bg-elevated py-3 pr-2.5 pl-3.5 shadow-float',
+                error && 'inset-ring inset-ring-danger-line',
             )}
         >
             <div className="flex items-start gap-2.5">
@@ -168,16 +168,14 @@ function ToastItem({
                     className={cn(
                         'mt-px flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold',
                         error
-                            ? 'bg-[#3a1a1e] text-danger'
-                            : 'bg-heat-1 text-accent',
+                            ? 'bg-danger-fill/30 text-danger'
+                            : 'bg-heat-1 text-link',
                     )}
                 >
                     {error ? '!' : '✓'}
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="text-[13px] font-semibold">
-                        {toast.title}
-                    </span>
+                    <span className="text-[13px] font-bold">{toast.title}</span>
                     {toast.sub && (
                         <span
                             className={cn(
@@ -193,7 +191,7 @@ function ToastItem({
                     type="button"
                     aria-label={t('Fechar aviso')}
                     onClick={onClose}
-                    className="-mt-1 size-7 shrink-0 rounded-[5px] text-[15px] text-muted hover:bg-active hover:text-text"
+                    className="-mt-1 size-7 shrink-0 rounded-full text-[15px] text-muted hover:bg-active hover:text-text"
                 >
                     ×
                 </button>
@@ -228,7 +226,7 @@ function ToastItem({
                     style={{
                         animationPlayState: hovered ? 'paused' : 'running',
                     }}
-                    className="absolute bottom-0 left-0 h-0.5 animate-[toast-timer_6s_linear_forwards] bg-primary"
+                    className="absolute bottom-0 left-0 h-0.5 animate-[toast-timer_6s_linear_forwards] bg-accent"
                 />
             )}
         </div>

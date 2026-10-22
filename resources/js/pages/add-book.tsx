@@ -243,7 +243,6 @@ export default function AddBook({
         <>
             <PageHeader
                 title={t('Adicionar livro')}
-                crumb={[t('biblioteca'), t('adicionar')]}
                 actions={<Steps current={editing ? 3 : 1} />}
             />
 

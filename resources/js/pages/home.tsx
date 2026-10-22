@@ -50,7 +50,6 @@ export default function Home({
             <PageHeader
                 title={reader_name ? `${hello}, ${reader_name}` : hello}
                 headTitle={t('Início')}
-                crumb={t('início')}
                 description={t('Um resumo rápido da sua leitura')}
             />
 

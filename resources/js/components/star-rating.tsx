@@ -41,9 +41,9 @@ export function StarRating({
                         <polygon
                             points="12,2 15,9 22,9.5 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9.5 9,9"
                             className={cn(
-                                'stroke-primary',
+                                'stroke-secondary',
                                 value !== null && star <= value
-                                    ? 'fill-primary'
+                                    ? 'fill-text stroke-text'
                                     : 'fill-none',
                             )}
                             strokeWidth="1.5"

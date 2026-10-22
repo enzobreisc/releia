@@ -34,7 +34,6 @@ export default function Author({
         <>
             <PageHeader
                 title={author.name}
-                crumb={[t('autores'), author.name.toLowerCase()]}
                 actions={
                     <Link
                         href={authorsIndex.url()}

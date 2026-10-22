@@ -1,7 +1,8 @@
 import type { useTranslation } from '@/hooks/use-translation';
+import { cn } from '@/lib/utils';
 import type { ReadingProgress } from '@/types';
 
-/** Thin progress bar (elevated track, blue fill). */
+/** Progress bar: dark track, light fill. */
 export function ProgressBar({
     percent,
     className,
@@ -11,10 +12,13 @@ export function ProgressBar({
 }) {
     return (
         <div
-            className={`h-2 overflow-hidden rounded-sm bg-elevated ${className ?? ''}`}
+            className={cn(
+                'h-1.5 overflow-hidden rounded-full bg-border',
+                className,
+            )}
         >
             <div
-                className="h-full rounded-sm bg-primary"
+                className="h-full rounded-full bg-text"
                 style={{ width: `${percent ?? 0}%` }}
             />
         </div>

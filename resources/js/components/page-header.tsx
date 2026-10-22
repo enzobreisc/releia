@@ -5,8 +5,6 @@ type PageHeaderProps = {
     title: string;
     /** Window title. Defaults to the title itself. */
     headTitle?: string;
-    /** Trail after "releia /". Defaults to the lowercased title. */
-    crumb?: string | string[];
     description?: string;
     actions?: ReactNode;
 };
@@ -14,32 +12,19 @@ type PageHeaderProps = {
 export function PageHeader({
     title,
     headTitle,
-    crumb,
     description,
     actions,
 }: PageHeaderProps) {
     return (
         <>
             <Head title={headTitle ?? title} />
-            <div className="font-mono text-[13px] text-muted">
-                {['releia', ...[crumb ?? title.toLowerCase()].flat()].map(
-                    (part, index) => (
-                        <span key={index}>
-                            {index > 0 && (
-                                <span className="text-faint"> / </span>
-                            )}
-                            {part}
-                        </span>
-                    ),
-                )}
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h1 className="font-mono text-[32px] leading-tight font-bold">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+                <div className="flex flex-col gap-1.5">
+                    <h1 className="text-[44px] leading-none font-extrabold tracking-tighter">
                         {title}
                     </h1>
                     {description && (
-                        <p className="mt-1.5 text-[15px] text-muted">
+                        <p className="text-[15px] font-medium text-muted">
                             {description}
                         </p>
                     )}
@@ -50,11 +35,11 @@ export function PageHeader({
     );
 }
 
-/** Markdown-style section title: "## reading now". */
+/** Small uppercase label that opens a section ("LENDO AGORA"). */
 export function SectionTitle({ children }: { children: string }) {
     return (
-        <h2 className="font-mono text-xs text-muted lowercase">
-            ## {children}
+        <h2 className="text-xs font-extrabold tracking-widest text-muted uppercase">
+            {children}
         </h2>
     );
 }

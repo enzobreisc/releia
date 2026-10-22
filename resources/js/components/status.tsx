@@ -13,11 +13,11 @@ export const STATUS_LABELS: Record<Status, TranslationKey> = {
     abandoned: 'Abandonado',
 };
 
-const CHIP_BORDER: Record<Status, string> = {
-    want_to_read: 'border-border',
-    reading: 'border-heat-2',
-    read: 'border-primary',
-    abandoned: 'border-warn-line',
+const CHIP_RING: Record<Status, string> = {
+    want_to_read: 'inset-ring-strong',
+    reading: 'inset-ring-heat-2',
+    read: 'inset-ring-primary',
+    abandoned: 'inset-ring-warn-line',
 };
 
 /**
@@ -41,11 +41,11 @@ export function StatusIcon({
         >
             {status === 'read' ? (
                 <>
-                    <circle cx="6" cy="6" r="5.5" fill="#6ca6ff" />
+                    <circle cx="6" cy="6" r="5.5" className="fill-link" />
                     <path
                         d="m3.5 6.2 1.7 1.7 3.3-3.4"
                         fill="none"
-                        stroke="#0a0e14"
+                        className="stroke-bg"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -58,10 +58,13 @@ export function StatusIcon({
                         cy="6"
                         r="4.5"
                         fill="none"
-                        stroke="#5b9bff"
+                        className="stroke-accent"
                         strokeWidth="1.5"
                     />
-                    <path d="M6 1.5a4.5 4.5 0 0 1 0 9z" fill="#5b9bff" />
+                    <path
+                        d="M6 1.5a4.5 4.5 0 0 1 0 9z"
+                        className="fill-accent"
+                    />
                 </>
             ) : status === 'abandoned' ? (
                 <>
@@ -70,12 +73,12 @@ export function StatusIcon({
                         cy="6"
                         r="4.5"
                         fill="none"
-                        stroke="#e3b263"
+                        className="stroke-warn"
                         strokeWidth="1.5"
                     />
                     <path
                         d="M3.8 6h4.4"
-                        stroke="#e3b263"
+                        className="stroke-warn"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                     />
@@ -86,7 +89,7 @@ export function StatusIcon({
                     cy="6"
                     r="4.5"
                     fill="none"
-                    stroke="#8d9ab0"
+                    className="stroke-muted"
                     strokeWidth="1.5"
                 />
             )}
@@ -103,7 +106,7 @@ export function StatusBadge({
     label: string;
 }) {
     return (
-        <span className="inline-flex items-center gap-1.5 self-start font-mono text-[11px] text-nav">
+        <span className="inline-flex items-center gap-1.5 self-start text-xs font-bold text-secondary">
             <StatusIcon status={status} size={10} />
             {label}
         </span>
@@ -192,8 +195,8 @@ export function StatusMenu({
                 aria-expanded={open}
                 onClick={() => setOpen(!open)}
                 className={cn(
-                    'inline-flex h-10 items-center gap-2 rounded-full border bg-surface pr-3 pl-3.5 text-sm font-semibold hover:bg-active',
-                    CHIP_BORDER[status],
+                    'inline-flex h-10 items-center gap-2 rounded-full bg-elevated pr-3 pl-3.5 text-sm font-bold inset-ring hover:bg-active',
+                    CHIP_RING[status],
                 )}
             >
                 <StatusIcon status={status} />
@@ -216,10 +219,10 @@ export function StatusMenu({
                 <div
                     role="menu"
                     aria-label={t('Mudar estante')}
-                    className="absolute top-12 left-0 z-30 flex w-82 flex-col gap-0.5 rounded-[10px] border border-strong bg-surface p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.55)]"
+                    className="absolute top-12 left-0 z-30 flex w-82 flex-col gap-0.5 rounded-md bg-surface p-1.5 shadow-float"
                 >
-                    <span className="px-2.5 pt-1.5 pb-1 font-mono text-[11px] text-faint">
-                        ## {t('mover para')}
+                    <span className="px-2.5 pt-1.5 pb-1 text-[11px] font-extrabold tracking-widest text-faint uppercase">
+                        {t('mover para')}
                     </span>
                     {options.map((value) => {
                         const current = value === status;

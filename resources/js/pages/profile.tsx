@@ -134,7 +134,7 @@ export default function Profile({
 
     return (
         <>
-            <PageHeader title={t('Perfil')} crumb={t('perfil')} />
+            <PageHeader title={t('Perfil')} />
 
             <div className="flex flex-wrap items-start gap-8">
                 <ReaderCard

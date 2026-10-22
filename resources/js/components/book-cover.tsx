@@ -1,7 +1,7 @@
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 
-/** The book cover, or an empty rectangle with the title when there is no image. */
+/** The book cover, or a dark block with the title when there is no image. */
 export function BookCover({
     src,
     title,
@@ -16,7 +16,7 @@ export function BookCover({
     return (
         <div
             className={cn(
-                'relative aspect-[2/3] shrink-0 overflow-hidden rounded-[4px] border bg-elevated',
+                'relative aspect-[2/3] shrink-0 overflow-hidden rounded-cover bg-elevated shadow-cover',
                 className,
             )}
         >
@@ -28,7 +28,7 @@ export function BookCover({
                     className="size-full object-cover"
                 />
             ) : (
-                <span className="absolute inset-0 flex items-center p-2 text-center font-mono text-[10px] leading-tight text-faint">
+                <span className="absolute inset-0 flex items-start p-3 text-left text-[13px] leading-tight font-extrabold text-secondary">
                     {title}
                 </span>
             )}

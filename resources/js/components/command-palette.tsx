@@ -43,7 +43,7 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 px-4 pt-[15vh]"
+            className="fixed inset-0 z-50 flex items-start justify-center bg-bg/75 px-4 pt-[15vh] backdrop-blur-sm"
             onMouseDown={(event) => {
                 if (event.target === event.currentTarget) {
                     onClose();
@@ -54,7 +54,7 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
                 role="dialog"
                 aria-modal="true"
                 aria-label={t('Ir para')}
-                className="w-full max-w-lg overflow-hidden rounded-md border bg-surface shadow-2xl shadow-black/60"
+                className="w-full max-w-lg overflow-hidden rounded-lg bg-surface shadow-float"
             >
                 <label className="flex items-center gap-3 border-b px-4 text-muted">
                     <SearchIcon />
@@ -69,7 +69,7 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
                         onKeyDown={onKeyDown}
                         placeholder={t('Ir para…')}
                         aria-label={t('Buscar telas')}
-                        className="h-12 flex-1 bg-transparent text-[15px] text-text outline-none placeholder:text-muted"
+                        className="h-13 flex-1 bg-transparent text-[15px] font-semibold text-text outline-none placeholder:text-faint"
                     />
                 </label>
                 <ul
@@ -88,7 +88,7 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
                                 onClick={() => go(item.href)}
                                 onMouseEnter={() => setSelected(index)}
                                 className={cn(
-                                    'flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm',
+                                    'flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm font-semibold',
                                     index === selected
                                         ? 'bg-active text-text'
                                         : 'text-nav',
@@ -100,7 +100,7 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
                         </li>
                     ))}
                     {results.length === 0 && (
-                        <li className="px-3 py-2.5 font-mono text-sm text-muted">
+                        <li className="px-3 py-2.5 text-sm font-medium text-muted">
                             {t('nada encontrado')}
                         </li>
                     )}
