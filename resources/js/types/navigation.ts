@@ -9,3 +9,9 @@ export type NavItem = {
     /** Key of the counter in `counts` (shared data). */
     count?: 'books' | 'notes' | 'queue' | 'shopping';
 };
+
+/** A titled block of the sidebar; the first one has no title. */
+export type NavGroup = {
+    title?: TranslationKey;
+    items: NavItem[];
+};

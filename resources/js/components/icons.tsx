@@ -27,8 +27,9 @@ function LineIcon({ children, ...props }: IconProps) {
 export function HomeIcon(props: IconProps) {
     return (
         <LineIcon {...props}>
-            <path d="M2 7.5 8 2.5l6 5" />
-            <path d="M3.5 6.5v7h3.5v-3.5h2v3.5h3.5v-7" />
+            <path d="M2 12.5h12" />
+            <path d="M4.5 12.5a3.5 3.5 0 0 1 7 0" />
+            <path d="M8 3.5v2M3.6 6.6l1.3 1.1M12.4 6.6l-1.3 1.1" />
         </LineIcon>
     );
 }
@@ -36,18 +37,10 @@ export function HomeIcon(props: IconProps) {
 export function LibraryIcon(props: IconProps) {
     return (
         <LineIcon {...props}>
-            <path d="M2 3.5h4a2 2 0 0 1 2 2V13a1.5 1.5 0 0 0-1.5-1.5H2z" />
-            <path d="M14 3.5h-4a2 2 0 0 0-2 2V13a1.5 1.5 0 0 1 1.5-1.5H14z" />
-        </LineIcon>
-    );
-}
-
-export function NotesIcon(props: IconProps) {
-    return (
-        <LineIcon {...props}>
-            <path d="M3.5 2h6l3 3v9h-9z" />
-            <path d="M9.5 2v3h3" />
-            <path d="M5.5 8.5h5M5.5 11h5" />
+            <path d="M2 13.5h12" />
+            <rect x="3" y="3.5" width="2.5" height="10" />
+            <rect x="6.5" y="5.5" width="2.5" height="8" />
+            <path d="m10.2 6.2 2.3-.6 2 7.3-2.3.6z" />
         </LineIcon>
     );
 }
@@ -55,19 +48,18 @@ export function NotesIcon(props: IconProps) {
 export function QueueIcon(props: IconProps) {
     return (
         <LineIcon {...props}>
-            <path d="m2.5 4.2 1.2 1.2 2-2.4" />
-            <path d="m2.5 10.2 1.2 1.2 2-2.4" />
-            <path d="M8 4.5h5.5M8 10.5h5.5" />
+            <rect x="2.5" y="10.5" width="11" height="3" />
+            <rect x="3.5" y="6.75" width="9" height="3" />
+            <rect x="2.5" y="3" width="10" height="3" />
         </LineIcon>
     );
 }
 
-export function CartIcon(props: IconProps) {
+export function ShoppingIcon(props: IconProps) {
     return (
         <LineIcon {...props}>
-            <path d="M1.5 2.5h2l1.6 7.2h6.6l1.3-5H4.2" />
-            <circle cx="6" cy="12.8" r="0.9" />
-            <circle cx="10.8" cy="12.8" r="0.9" />
+            <path d="M3.5 5.5h9l-.8 8H4.3z" />
+            <path d="M6 5.5v-1a2 2 0 0 1 4 0v1" />
         </LineIcon>
     );
 }
@@ -75,8 +67,9 @@ export function CartIcon(props: IconProps) {
 export function ProfileIcon(props: IconProps) {
     return (
         <LineIcon {...props}>
-            <circle cx="8" cy="5.5" r="2.5" />
-            <path d="M3 13.5c.5-2.5 2.5-3.8 5-3.8s4.5 1.3 5 3.8" />
+            <circle cx="8" cy="8" r="6" />
+            <circle cx="8" cy="6.8" r="2" />
+            <path d="M4.4 12.3c.8-1.5 2-2.2 3.6-2.2s2.8.7 3.6 2.2" />
         </LineIcon>
     );
 }
@@ -85,7 +78,7 @@ export function StatsIcon(props: IconProps) {
     return (
         <LineIcon {...props}>
             <path d="M2.5 13.5h11" />
-            <path d="M4.5 11V8M8 11V3.5M11.5 11V6" />
+            <path d="m3 10.5 3-3 2.5 2 4.5-5" />
         </LineIcon>
     );
 }
@@ -93,18 +86,17 @@ export function StatsIcon(props: IconProps) {
 export function WrappedIcon(props: IconProps) {
     return (
         <LineIcon {...props}>
-            <rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1" />
-            <rect x="9" y="2.5" width="4.5" height="4.5" rx="1" />
-            <rect x="2.5" y="9" width="4.5" height="4.5" rx="1" />
-            <rect x="9" y="9" width="4.5" height="4.5" rx="1" />
+            <circle cx="8" cy="6.5" r="3.5" />
+            <path d="m6 9.6-1 3.9 3-1.5 3 1.5-1-3.9" />
         </LineIcon>
     );
 }
 
-export function SparkleIcon(props: IconProps) {
+export function SuggestionsIcon(props: IconProps) {
     return (
         <LineIcon {...props}>
-            <path d="M8 2.5 9.4 6.6 13.5 8 9.4 9.4 8 13.5 6.6 9.4 2.5 8 6.6 6.6z" />
+            <circle cx="8" cy="8" r="5.5" />
+            <path d="m10.4 5.6-1.5 3.3-3.3 1.5 1.5-3.3z" />
         </LineIcon>
     );
 }
@@ -211,8 +203,9 @@ export function LogoMark({ size = 24 }: { size?: number }) {
 export function AuthorsIcon(props: IconProps) {
     return (
         <LineIcon {...props}>
-            <path d="M13 2.5c-4 .5-7 3-8.5 7L3 13.5l4-1.5c3-1 5.500-3.500 6-9.500z" />
-            <path d="M4 12.500 9 7.500" />
+            <path d="M13.5 2.5C8.5 3 5.5 6.5 4.5 11.5" />
+            <path d="M13.5 2.5c-.5 4-3 6.6-7.2 7.6" />
+            <path d="M2.5 13.5l2-2" />
         </LineIcon>
     );
 }

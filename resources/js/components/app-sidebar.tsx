@@ -26,7 +26,7 @@ export function AppSidebar({
         <nav
             aria-label={t('Principal')}
             className={cn(
-                'flex h-screen shrink-0 flex-col gap-0.5 overflow-y-auto border-r bg-sidebar pb-4',
+                'flex h-screen shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-active/60 bg-sidebar pb-4',
                 collapsed ? 'w-14 px-2' : 'w-61 px-3.5',
             )}
         >
@@ -38,13 +38,15 @@ export function AppSidebar({
                 aria-label={t('releia: ir para o Início')}
                 title={t('Início')}
                 className={cn(
-                    'mb-4.5 flex items-center gap-2.5 self-start rounded-sm',
+                    'mb-5 flex items-center gap-2.5 self-start rounded-sm',
                     collapsed ? 'self-center' : 'px-3',
                 )}
             >
-                <LogoMark />
+                <LogoMark size={22} />
                 {!collapsed && (
-                    <span className="font-mono text-lg font-bold">releia</span>
+                    <span className="font-brand text-[17px] font-bold">
+                        releia
+                    </span>
                 )}
             </Link>
 
@@ -54,11 +56,11 @@ export function AppSidebar({
                 aria-label={t('Ir para (⌘P)')}
                 title={t('Ir para… (⌘P)')}
                 className={cn(
-                    'mb-3.5 flex h-10 items-center gap-2 rounded-sm border bg-bg text-left text-[13px] text-muted hover:text-text',
-                    collapsed ? 'justify-center' : 'px-3',
+                    'mb-3.5 flex h-10 items-center gap-2.5 rounded-full bg-elevated text-left text-[13px] font-medium text-muted hover:text-text',
+                    collapsed ? 'justify-center' : 'px-3.5',
                 )}
             >
-                <SearchIcon />
+                <SearchIcon strokeWidth={1.9} />
                 {!collapsed && (
                     <>
                         <span className="flex-1">{t('Ir para…')}</span>
@@ -68,11 +70,16 @@ export function AppSidebar({
             </button>
 
             {navGroups.map((group, index) => (
-                <Fragment key={index}>
-                    {index > 0 && (
-                        <div className="mx-2 my-2.5 h-px bg-border" />
-                    )}
-                    {group.map((item) => (
+                <Fragment key={group.title ?? index}>
+                    {group.title &&
+                        (collapsed ? (
+                            <div className="mx-2 my-2.5 h-px bg-border" />
+                        ) : (
+                            <span className="px-3 pt-4.5 pb-1.5 text-xs font-bold text-faint">
+                                {t(group.title)}
+                            </span>
+                        ))}
+                    {group.items.map((item) => (
                         <SidebarLink
                             key={item.href}
                             item={item}
@@ -99,11 +106,11 @@ export function AppSidebar({
                 aria-label={t(addBookItem.title)}
                 title={t(addBookItem.title)}
                 className={cn(
-                    'mt-2 flex items-center gap-2 rounded-sm bg-primary py-3.25 text-sm font-semibold text-white hover:bg-primary/90',
-                    collapsed ? 'justify-center' : 'px-3',
+                    'mt-2 flex h-11 items-center gap-2 rounded-full bg-elevated text-sm font-bold text-text inset-ring inset-ring-strong hover:bg-active',
+                    collapsed ? 'justify-center' : 'justify-center px-3',
                 )}
             >
-                <addBookItem.icon />
+                <addBookItem.icon strokeWidth={2} />
                 {!collapsed && <span>{t(addBookItem.title)}</span>}
             </Link>
 
@@ -121,7 +128,7 @@ export function AppSidebar({
                         : t('Recolher barra lateral (⌘B)')
                 }
                 className={cn(
-                    'mt-1.5 flex h-10 items-center gap-2.5 rounded-sm text-left text-[13px] text-muted hover:text-text',
+                    'mt-1.5 flex h-10 items-center gap-2.5 rounded-sm text-left text-[13px] font-medium text-muted hover:text-text',
                     collapsed ? 'justify-center' : 'px-3',
                 )}
             >
@@ -152,17 +159,27 @@ function SidebarLink({
             aria-current={active ? 'page' : undefined}
             title={t(item.title)}
             className={cn(
-                'flex items-center gap-2.5 rounded-sm border-l-2 py-3 text-sm',
+                'group flex h-10.5 items-center gap-3 rounded-sm text-sm',
                 collapsed ? 'justify-center' : 'px-3',
                 active
-                    ? 'border-primary bg-active font-semibold text-text'
-                    : 'border-transparent text-nav hover:bg-active/60 hover:text-text',
+                    ? 'bg-active font-bold text-white'
+                    : 'font-semibold text-nav hover:bg-active/60 hover:text-text',
             )}
         >
-            <item.icon />
+            <item.icon
+                width={18}
+                height={18}
+                strokeWidth={1.9}
+                className={cn('shrink-0', active && 'text-accent')}
+            />
             {!collapsed && <span>{t(item.title)}</span>}
             {!collapsed && count !== undefined && (
-                <span className="ml-auto font-mono text-[11px] font-normal text-faint">
+                <span
+                    className={cn(
+                        'ml-auto font-mono text-[11px] font-normal',
+                        active ? 'text-muted' : 'text-faint',
+                    )}
+                >
                     {count}
                 </span>
             )}
@@ -171,9 +188,5 @@ function SidebarLink({
 }
 
 export function Kbd({ children }: { children: string }) {
-    return (
-        <kbd className="rounded-[4px] border px-1.5 py-0.5 font-mono text-[11px] text-muted">
-            {children}
-        </kbd>
-    );
+    return <kbd className="font-mono text-[11px] text-muted">{children}</kbd>;
 }
