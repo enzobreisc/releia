@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\Locale;
 use App\Models\Book;
 use App\Models\Note;
 use App\Models\QueueItem;
@@ -45,7 +46,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
-            // Dentro do app nativo, links externos abrem no navegador pelo servidor (Shell).
+            'locale' => app()->getLocale(),
+            'language_tag' => Locale::from(app()->getLocale())->languageTag(),
+            // Inside the native app, external links open in the browser through the server (Shell).
             'native' => (bool) config('nativephp-internal.running'),
             'counts' => fn () => [
                 'books' => Book::count(),
@@ -53,9 +56,9 @@ class HandleInertiaRequests extends Middleware
                 'queue' => QueueItem::count(),
                 'shopping' => ShoppingItem::query()->whereNull('bought_at')->count(),
             ],
-            // Aviso da última ação (App\Support\Toast), uma vez só.
+            // Notice for the last action (App\Support\Toast), shown once.
             'toast' => fn () => $request->session()->get(Toast::SESSION_KEY),
-            // Mini cartão "lendo agora" da barra lateral; null quando nada está em andamento.
+            // Mini "reading now" card in the sidebar; null when nothing is in progress.
             'reading_now' => fn () => app(DashboardService::class)->sidebarCard(Carbon::today()),
         ];
     }

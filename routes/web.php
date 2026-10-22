@@ -8,6 +8,7 @@ use App\Http\Controllers\BookshelfController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QueueController;
@@ -44,7 +45,7 @@ Route::get('/authors', [AuthorController::class, 'index'])->name('authors.index'
 Route::get('/authors/{author}', [AuthorController::class, 'show'])->whereNumber('author')->name('authors.show');
 Route::get('/authors/{author}/works', [AuthorController::class, 'works'])->whereNumber('author')->name('authors.works');
 
-// Onda 1: ciclo de cada leitura e desfazer
+// Lifecycle of each reading, and undo
 Route::post('/readings/{reading}/finish', [ReadingController::class, 'finish'])->whereNumber('reading')->name('readings.finish');
 Route::post('/readings/{reading}/abandon', [ReadingController::class, 'abandon'])->whereNumber('reading')->name('readings.abandon');
 Route::post('/readings/{reading}/reopen', [ReadingController::class, 'reopen'])->whereNumber('reading')->name('readings.reopen');
@@ -67,6 +68,7 @@ Route::delete('/quick-log/timer', [QuickLogController::class, 'discard'])->name(
 Route::post('/quick-log/books', [QuickLogController::class, 'startBook'])->name('quick-log.books');
 
 // Fase 4
+Route::put('/locale', [LocaleController::class, 'update'])->name('locale.update');
 Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
 Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 Route::post('/profile/pins', [ProfileController::class, 'pin'])->name('profile.pins.store');
