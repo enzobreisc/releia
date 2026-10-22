@@ -1,14 +1,15 @@
 import { useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { Button, Input } from '@/components/form';
+import { useTranslation } from '@/hooks/use-translation';
 import { store } from '@/routes/sessions';
 import type { ReadingProgress } from '@/types';
 
 const BUMPS = [10, 20, 50];
 
 /**
- * Registro de hoje: página em que você parou, atalhos de +páginas e minutos opcionais.
- * A chave pelo progresso faz o formulário recomeçar do valor novo depois de salvar.
+ * Today's log: the page where you stopped, +pages shortcuts and optional minutes.
+ * Keying by progress makes the form restart from the new value after saving.
  */
 export function SessionForm({
     bookId,
@@ -19,6 +20,7 @@ export function SessionForm({
     progress: ReadingProgress;
     onFinish?: () => void;
 }) {
+    const { t } = useTranslation();
     const form = useForm({
         page_to: String(progress.current_page),
         minutes: '',
@@ -47,7 +49,7 @@ export function SessionForm({
             className="flex flex-wrap items-end gap-2.5"
         >
             <label className="flex min-w-0 flex-[1_1_150px] flex-col gap-1 text-xs text-muted">
-                Parei na página
+                {t('Parei na página')}
                 <Input
                     type="number"
                     min={1}
@@ -72,11 +74,11 @@ export function SessionForm({
                 ))}
             </div>
             <label className="flex min-w-0 flex-[0_1_110px] flex-col gap-1 text-xs text-muted">
-                Minutos
+                {t('Minutos')}
                 <Input
                     type="number"
                     min={1}
-                    placeholder="opcional"
+                    placeholder={t('opcional')}
                     value={form.data.minutes}
                     onChange={(event) =>
                         form.setData('minutes', event.target.value)
@@ -85,14 +87,14 @@ export function SessionForm({
                 />
             </label>
             <Button type="submit" disabled={form.processing} className="h-10.5">
-                {form.processing ? 'Salvando…' : 'Registrar'}
+                {form.processing ? t('Salvando…') : t('Registrar')}
                 <span className="font-mono text-[11px] font-medium opacity-85">
                     ↵
                 </span>
             </Button>
             {onFinish && (
                 <Button variant="ghost" onClick={onFinish} className="h-10.5">
-                    Terminei
+                    {t('Terminei')}
                 </Button>
             )}
             {(form.errors.page_to || form.errors.minutes) && (

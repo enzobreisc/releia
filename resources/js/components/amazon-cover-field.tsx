@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Button, Input } from '@/components/form';
+import { useTranslation } from '@/hooks/use-translation';
 import { amazonCover } from '@/routes/books';
 
 /**
- * Pega a capa de um link de produto da Amazon. Só acha a imagem; quem usa
- * decide o que fazer com ela (a capa é baixada ao salvar o livro).
+ * Gets the cover from an Amazon product link. It only finds the image; the caller
+ * decides what to do with it (the cover is downloaded when the book is saved).
  */
 export function AmazonCoverField({
     onFound,
 }: {
     onFound: (coverUrl: string) => void;
 }) {
+    const { t } = useTranslation();
     const [link, setLink] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ ok: boolean; text: string }>();
@@ -36,17 +38,17 @@ export function AmazonCoverField({
 
             if (response.ok && body.cover_url) {
                 onFound(body.cover_url);
-                setMessage({ ok: true, text: 'Capa encontrada.' });
+                setMessage({ ok: true, text: t('Capa encontrada.') });
             } else {
                 setMessage({
                     ok: false,
-                    text: body.message ?? 'Não foi possível buscar a capa.',
+                    text: body.message ?? t('Não foi possível buscar a capa.'),
                 });
             }
         } catch {
             setMessage({
                 ok: false,
-                text: 'Sem conexão para buscar a capa.',
+                text: t('Sem conexão para buscar a capa.'),
             });
         } finally {
             setLoading(false);
@@ -55,7 +57,7 @@ export function AmazonCoverField({
 
     function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
         if (event.key === 'Enter') {
-            // Dentro de um formulário, Enter salvaria o livro.
+            // Inside a form, Enter would save the book.
             event.preventDefault();
             void search();
         }
@@ -63,7 +65,9 @@ export function AmazonCoverField({
 
     return (
         <div className="flex flex-col gap-1.5 text-[13px] text-muted">
-            <label htmlFor="amazon-cover-link">Capa pelo link da Amazon</label>
+            <label htmlFor="amazon-cover-link">
+                {t('Capa pelo link da Amazon')}
+            </label>
             <div className="flex gap-2">
                 <Input
                     id="amazon-cover-link"
@@ -80,7 +84,7 @@ export function AmazonCoverField({
                     onClick={() => void search()}
                     className="h-9 px-3 text-[13px]"
                 >
-                    {loading ? 'buscando…' : 'buscar capa'}
+                    {loading ? t('buscando…') : t('buscar capa')}
                 </Button>
             </div>
             {message && (

@@ -5,7 +5,9 @@ import { DatePicker } from '@/components/date-picker';
 import { Dialog, DialogChoice, DialogList } from '@/components/dialog';
 import { Button, Input } from '@/components/form';
 import { StarRating } from '@/components/star-rating';
-import { plural, shortDate, today } from '@/lib/dates';
+import { useTranslation } from '@/hooks/use-translation';
+import { today } from '@/lib/dates';
+import type { TranslationKey } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { destroy as destroyBook, reread } from '@/routes/books';
 import {
@@ -19,7 +21,7 @@ import type { ReadingHistory } from '@/types';
 
 const options = { preserveScroll: true };
 
-/** Dias entre duas datas "AAAA-MM-DD", contando as duas pontas. */
+/** Days between two "YYYY-MM-DD" dates, counting both ends. */
 function daysBetween(start: string, end: string): number {
     const ms =
         new Date(`${end}T12:00:00`).getTime() -
@@ -56,6 +58,8 @@ function CancelButton({
     onClick: () => void;
     autoFocus?: boolean;
 }) {
+    const { t } = useTranslation();
+
     return (
         <Button
             variant="ghost"
@@ -63,7 +67,7 @@ function CancelButton({
             onClick={onClick}
             className="h-10 bg-elevated text-[13px]"
         >
-            Cancelar
+            {t('Cancelar')}
         </Button>
     );
 }
@@ -98,7 +102,7 @@ function Chip({
     );
 }
 
-/** ⌘↵ envia o diálogo de qualquer campo. */
+/** ⌘↵ submits the dialog from any field. */
 function useSubmitShortcut(submit: () => void, enabled: boolean) {
     useEffect(() => {
         function onKeyDown(event: KeyboardEvent) {
@@ -115,8 +119,8 @@ function useSubmitShortcut(submit: () => void, enabled: boolean) {
 }
 
 /**
- * Terminar e avaliar (D5): data de término, nota e uma linha de resenha.
- * "Pular" marca como lido hoje, sem nota.
+ * Finish and rate: end date, rating and a one-line review.
+ * "Skip" marks it as read today, without a rating.
  */
 export function FinishDialog({
     title,
@@ -126,10 +130,11 @@ export function FinishDialog({
 }: {
     title: string;
     reading: ReadingHistory;
-    /** Leitura anterior terminada, para comparar ("da 1ª vez você levou 9 dias"). */
+    /** Previous finished reading, for comparison ("the 1st time it took 9 days"). */
     previous: ReadingHistory | null;
     onClose: () => void;
 }) {
+    const { t, plural, shortDate, ordinal } = useTranslation();
     const [choice, setChoice] = useState<
         'today' | 'yesterday' | 'other' | 'undated'
     >('today');
@@ -155,9 +160,17 @@ export function FinishDialog({
         date === null
             ? null
             : date > today()
-              ? 'O término não pode ser depois de hoje.'
+              ? t('O término não pode ser depois de hoje.')
               : minimum && date < minimum
-                ? `${reading.last_session_on === minimum ? 'A última sessão foi' : 'A leitura começou'} em ${shortDate(minimum)}. Escolha essa data ou depois.`
+                ? reading.last_session_on === minimum
+                    ? t(
+                          'A última sessão foi em :date. Escolha essa data ou depois.',
+                          { date: shortDate(minimum) },
+                      )
+                    : t(
+                          'A leitura começou em :date. Escolha essa data ou depois.',
+                          { date: shortDate(minimum) },
+                      )
                 : null;
     const days =
         reading.started_at && date !== null
@@ -193,47 +206,55 @@ export function FinishDialog({
     useSubmitShortcut(save, !form.processing);
 
     return (
-        <Dialog title={`## terminou ${title}`} onClose={onClose}>
+        <Dialog
+            title={`## ${t('terminou :title', { title })}`}
+            onClose={onClose}
+        >
             <div className="flex flex-wrap gap-x-4 gap-y-1 rounded-sm bg-bg px-3 py-2.5 font-mono text-xs text-nav">
                 {days !== null && <span>{plural(days, 'dia', 'dias')}</span>}
                 <span>
                     {plural(reading.sessions_count, 'sessão', 'sessões')}
                 </span>
-                {pace !== null && <span>{pace} págs/dia</span>}
+                {pace !== null && (
+                    <span>{t(':pages págs/dia', { pages: pace })}</span>
+                )}
                 {previous?.days && (
                     <span className="text-muted">
-                        da {previous.number}ª vez: {previous.days} dias
+                        {t('da :ordinal vez: :duration', {
+                            ordinal: ordinal(previous.number, 'feminine'),
+                            duration: plural(previous.days, 'dia', 'dias'),
+                        })}
                     </span>
                 )}
             </div>
 
             <div className="flex flex-col gap-1.5">
-                <span className="text-xs text-muted">Terminou em</span>
+                <span className="text-xs text-muted">{t('Terminou em')}</span>
                 <div className="flex flex-wrap gap-1.5">
                     <Chip
-                        label="hoje"
+                        label={t('hoje')}
                         selected={choice === 'today'}
                         onClick={() => setChoice('today')}
                     />
                     <Chip
-                        label="ontem"
+                        label={t('ontem')}
                         selected={choice === 'yesterday'}
                         onClick={() => setChoice('yesterday')}
                     />
                     <Chip
-                        label="outra data…"
+                        label={t('outra data…')}
                         selected={choice === 'other'}
                         onClick={() => setChoice('other')}
                     />
                     <Chip
-                        label="sem data"
+                        label={t('sem data')}
                         selected={undated}
                         onClick={() => setChoice('undated')}
                     />
                 </div>
                 {choice === 'other' && (
                     <DatePicker
-                        aria-label="Data de término"
+                        aria-label={t('Data de término')}
                         max={today()}
                         min={minimum}
                         value={form.data.finished_on}
@@ -246,8 +267,9 @@ export function FinishDialog({
                 )}
                 {undated && (
                     <span className="text-[11px] text-faint">
-                        Fica como lido, mas não entra nas estatísticas por
-                        período nem na meta do ano.
+                        {t(
+                            'Fica como lido, mas não entra nas estatísticas por período nem na meta do ano.',
+                        )}
                     </span>
                 )}
                 {(clientError ?? form.errors.finished_on) && (
@@ -258,7 +280,7 @@ export function FinishDialog({
             </div>
 
             <div className="flex flex-col gap-1">
-                <span className="text-xs text-muted">Sua nota</span>
+                <span className="text-xs text-muted">{t('Sua nota')}</span>
                 <StarRating
                     value={form.data.rating || null}
                     onChange={(value) => form.setData('rating', value ?? 0)}
@@ -266,19 +288,20 @@ export function FinishDialog({
             </div>
 
             <label className="flex flex-col gap-1.5 text-xs text-muted">
-                Em uma linha (opcional)
+                {t('Em uma linha (opcional)')}
                 <Input
                     value={form.data.line}
                     maxLength={280}
                     onChange={(event) =>
                         form.setData('line', event.target.value)
                     }
-                    placeholder="O que ficou do livro?"
+                    placeholder={t('O que ficou do livro?')}
                     className="h-10.5 bg-bg text-sm"
                 />
                 <span className="text-[11px] text-faint">
-                    Vira o começo da resenha. A resenha completa fica na aba
-                    Resenha.
+                    {t(
+                        'Vira o começo da resenha. A resenha completa fica na aba Resenha.',
+                    )}
                 </span>
             </label>
 
@@ -289,7 +312,7 @@ export function FinishDialog({
                     disabled={form.processing}
                     className="h-10 border-transparent bg-transparent text-[13px] text-muted"
                 >
-                    Pular
+                    {t('Pular')}
                 </Button>
                 <Button
                     autoFocus
@@ -297,7 +320,7 @@ export function FinishDialog({
                     disabled={form.processing || clientError !== null}
                     className="h-10 text-[13px]"
                 >
-                    {form.processing ? 'Salvando…' : 'Salvar'}
+                    {form.processing ? t('Salvando…') : t('Salvar')}
                     <span className="font-mono text-[11px] opacity-85">⌘↵</span>
                 </Button>
             </div>
@@ -305,9 +328,15 @@ export function FinishDialog({
     );
 }
 
-const REASONS = ['não prendeu', 'sem tempo agora', 'não era o momento'];
+const REASONS: TranslationKey[] = [
+    'não prendeu',
+    'sem tempo agora',
+    'não era o momento',
+];
 
-/** Abandonar (D6): motivo opcional e, se quiser, uma nota. A página fica guardada. */
+const OTHER_REASON: TranslationKey = 'outro';
+
+/** Abandon: optional reason and, if wanted, a rating. The page is kept. */
 export function AbandonDialog({
     title,
     reading,
@@ -319,7 +348,8 @@ export function AbandonDialog({
     pages: number | null;
     onClose: () => void;
 }) {
-    const [choice, setChoice] = useState<string | null>(null);
+    const { t } = useTranslation();
+    const [choice, setChoice] = useState<TranslationKey | null>(null);
     const [other, setOther] = useState('');
     const [rate, setRate] = useState(false);
     const [rating, setRating] = useState<number | null>(null);
@@ -332,7 +362,10 @@ export function AbandonDialog({
         router.post(
             abandon(reading.id).url,
             {
-                reason: choice === 'outro' ? other.trim() || null : choice,
+                reason:
+                    choice === OTHER_REASON
+                        ? other.trim() || null
+                        : choice && t(choice),
                 rating: rate ? rating : null,
             },
             {
@@ -345,20 +378,25 @@ export function AbandonDialog({
     }
 
     return (
-        <Dialog title={`## abandonar ${title}?`} onClose={onClose}>
+        <Dialog
+            title={`## ${t('abandonar :title?', { title })}`}
+            onClose={onClose}
+        >
             <p className="text-sm leading-relaxed text-[#c9d3e3]">
-                Você parou na p. {reading.current_page}
-                {pages ? ` de ${pages}` : ''}
-                {percent !== null ? ` (${percent}%)` : ''}. A página fica
-                guardada para retomar.
+                {t('Você parou na p. :page.', {
+                    page: `${reading.current_page}${pages ? ` ${t('de')} ${pages}` : ''}${percent !== null ? ` (${percent}%)` : ''}`,
+                })}{' '}
+                {t('A página fica guardada para retomar.')}
             </p>
             <div className="flex flex-col gap-1.5">
-                <span className="text-xs text-muted">Por quê? (opcional)</span>
+                <span className="text-xs text-muted">
+                    {t('Por quê? (opcional)')}
+                </span>
                 <div className="flex flex-wrap gap-1.5">
-                    {[...REASONS, 'outro'].map((reason) => (
+                    {[...REASONS, OTHER_REASON].map((reason) => (
                         <Chip
                             key={reason}
-                            label={reason}
+                            label={t(reason)}
                             tone="warn"
                             selected={choice === reason}
                             onClick={() =>
@@ -367,14 +405,14 @@ export function AbandonDialog({
                         />
                     ))}
                 </div>
-                {choice === 'outro' && (
+                {choice === OTHER_REASON && (
                     <Input
                         autoFocus
-                        aria-label="Outro motivo"
+                        aria-label={t('Outro motivo')}
                         maxLength={120}
                         value={other}
                         onChange={(event) => setOther(event.target.value)}
-                        placeholder="Conte em poucas palavras"
+                        placeholder={t('Conte em poucas palavras')}
                         className="h-10 bg-bg"
                     />
                 )}
@@ -386,7 +424,7 @@ export function AbandonDialog({
                     onChange={(event) => setRate(event.target.checked)}
                     className="size-4 accent-primary"
                 />
-                Dar uma nota mesmo assim
+                {t('Dar uma nota mesmo assim')}
             </label>
             {rate && <StarRating value={rating} onChange={setRating} />}
             <div className="flex justify-end gap-2">
@@ -398,14 +436,14 @@ export function AbandonDialog({
                     disabled={processing}
                     className="h-10 rounded-sm border border-warn-line bg-warn-fill px-4 text-[13px] font-semibold text-warn disabled:opacity-60"
                 >
-                    Abandonar
+                    {t('Abandonar')}
                 </button>
             </div>
         </Dialog>
     );
 }
 
-/** Ler de novo: hoje ou depois (quero ler, no fim da fila). */
+/** Read again: today or later (want to read, at the end of the queue). */
 export function RereadDialog({
     bookId,
     onClose,
@@ -413,6 +451,8 @@ export function RereadDialog({
     bookId: number;
     onClose: () => void;
 }) {
+    const { t } = useTranslation();
+
     function start(status: 'reading' | 'want_to_read') {
         router.post(
             reread(bookId).url,
@@ -422,21 +462,22 @@ export function RereadDialog({
     }
 
     return (
-        <Dialog title="## ler de novo" onClose={onClose}>
+        <Dialog title={`## ${t('ler de novo')}`} onClose={onClose}>
             <p className="text-sm leading-relaxed text-[#c9d3e3]">
-                Uma nova leitura, com sessões, nota e resenha próprias. A
-                anterior fica no histórico.
+                {t(
+                    'Uma nova leitura, com sessões, nota e resenha próprias. A anterior fica no histórico.',
+                )}
             </p>
             <DialogChoice
                 autoFocus
                 recommended
-                title="Começar hoje"
-                description="Vai para Lendo, a partir da p. 0."
+                title={t('Começar hoje')}
+                description={t('Vai para Lendo, a partir da p. 0.')}
                 onClick={() => start('reading')}
             />
             <DialogChoice
-                title="Quero reler depois"
-                description="Vai para Quero ler e entra no fim da fila."
+                title={t('Quero reler depois')}
+                description={t('Vai para Quero ler e entra no fim da fila.')}
                 onClick={() => start('want_to_read')}
             />
             <div className="flex justify-end">
@@ -446,7 +487,7 @@ export function RereadDialog({
     );
 }
 
-/** Lido → Lendo (D1): ler de novo (padrão) ou corrigir uma marcação errada. */
+/** Read → Reading: read again (default) or fix a wrong mark. */
 export function BackToReadingDialog({
     title,
     reading,
@@ -460,6 +501,7 @@ export function BackToReadingDialog({
     onCorrect: () => void;
     onClose: () => void;
 }) {
+    const { t, plural, shortDate, ordinal } = useTranslation();
     const summary = [
         reading.days && plural(reading.days, 'dia', 'dias'),
         reading.rating && '★'.repeat(reading.rating),
@@ -468,25 +510,41 @@ export function BackToReadingDialog({
         .join(', ');
 
     return (
-        <Dialog title={`## voltar a ler ${title}?`} onClose={onClose}>
+        <Dialog
+            title={`## ${t('voltar a ler :title?', { title })}`}
+            onClose={onClose}
+        >
             <p className="text-sm leading-relaxed text-[#c9d3e3]">
-                Você terminou este livro
                 {reading.finished_at
-                    ? ` em ${shortDate(reading.finished_at)}`
-                    : ''}
-                . O que quer fazer?
+                    ? t(
+                          'Você terminou este livro em :date. O que quer fazer?',
+                          {
+                              date: shortDate(reading.finished_at),
+                          },
+                      )
+                    : t('Você terminou este livro. O que quer fazer?')}
             </p>
             <DialogChoice
                 autoFocus
                 recommended
-                title="Ler de novo"
-                badge="recomendado"
-                description={`Começa uma ${reading.number + 1}ª leitura hoje, da página 0. A ${reading.number}ª${summary ? ` (${summary})` : ''} fica guardada no histórico.`}
+                title={t('Ler de novo')}
+                badge={t('recomendado')}
+                description={t(
+                    'Começa uma :next leitura hoje, da página 0. A :current:summary fica guardada no histórico.',
+                    {
+                        next: ordinal(reading.number + 1, 'feminine'),
+                        current: ordinal(reading.number, 'feminine'),
+                        summary: summary ? ` (${summary})` : '',
+                    },
+                )}
                 onClick={onReread}
             />
             <DialogChoice
-                title="Corrigir: ainda não terminei"
-                description={`Reabre a mesma leitura na p. ${reading.current_page} e apaga a data de término. Use se marcou como lido por engano.`}
+                title={t('Corrigir: ainda não terminei')}
+                description={t(
+                    'Reabre a mesma leitura na p. :page e apaga a data de término. Use se marcou como lido por engano.',
+                    { page: reading.current_page },
+                )}
                 onClick={onCorrect}
             />
             <div className="flex justify-end">
@@ -496,7 +554,7 @@ export function BackToReadingDialog({
     );
 }
 
-/** Corrigir: o único caminho que apaga a data de término. */
+/** Fix: the only path that clears the end date. */
 export function CorrectDialog({
     reading,
     onClose,
@@ -504,23 +562,32 @@ export function CorrectDialog({
     reading: ReadingHistory;
     onClose: () => void;
 }) {
+    const { t, shortDate } = useTranslation();
     const year = reading.finished_at?.slice(0, 4);
 
     return (
-        <Dialog title="## desmarcar como lido?" onClose={onClose}>
+        <Dialog title={`## ${t('desmarcar como lido?')}`} onClose={onClose}>
             <p className="text-sm leading-relaxed text-[#c9d3e3]">
-                A leitura volta para <strong>Lendo</strong>, na p.{' '}
-                {reading.current_page}. Isto apaga:
+                {t('A leitura volta para Lendo, na p. :page. Isto apaga:', {
+                    page: reading.current_page,
+                })}
             </p>
             <DialogList
                 items={[
-                    `a data de término${reading.finished_at ? ` (${shortDate(reading.finished_at)})` : ''}`,
-                    `a contagem do livro nos lidos de ${year ?? 'seu ano'}`,
+                    reading.finished_at
+                        ? t('a data de término (:date)', {
+                              date: shortDate(reading.finished_at),
+                          })
+                        : t('a data de término'),
+                    t('a contagem do livro nos lidos de :year', {
+                        year: year ?? t('seu ano'),
+                    }),
                 ]}
             />
             <p className="text-xs text-muted">
-                Nota, resenha e sessões continuam. Para ler o livro outra vez,
-                use "Ler de novo".
+                {t(
+                    'Nota, resenha e sessões continuam. Para ler o livro outra vez, use "Ler de novo".',
+                )}
             </p>
             <div className="flex justify-end gap-2">
                 <CancelButton autoFocus onClick={onClose} />
@@ -536,7 +603,7 @@ export function CorrectDialog({
                         )
                     }
                 >
-                    Desmarcar como lido
+                    {t('Desmarcar como lido')}
                 </DangerButton>
             </div>
         </Dialog>
@@ -544,8 +611,8 @@ export function CorrectDialog({
 }
 
 /**
- * Datas da leitura. Lendo: só o início. Lida ou abandonada: início e fim.
- * Sessões fora do período não bloqueiam: o aviso oferece a correção.
+ * Reading dates. Reading: start only. Read or abandoned: start and end.
+ * Sessions outside the period do not block: the notice offers the fix.
  */
 export function DatesDialog({
     reading,
@@ -554,8 +621,9 @@ export function DatesDialog({
     reading: ReadingHistory;
     onClose: () => void;
 }) {
+    const { t, plural, shortDate, ordinal } = useTranslation();
     const closed = reading.status === 'read' || reading.status === 'abandoned';
-    // Só uma leitura lida pode ficar sem datas (lida há muito tempo).
+    // Only a read reading can have no dates (read long ago).
     const canBeUndated = reading.status === 'read';
     const form = useForm({
         started_at:
@@ -570,16 +638,21 @@ export function DatesDialog({
         ? null
         : closed
           ? end === ''
-              ? 'Informe o término.'
+              ? t('Informe o término.')
               : end > today()
-                ? `O término não pode ser depois de hoje (${shortDate(today())}).`
+                ? t('O término não pode ser depois de hoje (:date).', {
+                      date: shortDate(today()),
+                  })
                 : end < start
-                  ? 'O término não pode ser antes do início.'
+                  ? t('O término não pode ser antes do início.')
                   : reading.last_session_on && end < reading.last_session_on
-                    ? `A última sessão foi em ${shortDate(reading.last_session_on)}. Escolha essa data ou depois.`
+                    ? t(
+                          'A última sessão foi em :date. Escolha essa data ou depois.',
+                          { date: shortDate(reading.last_session_on) },
+                      )
                     : null
           : start > today()
-            ? 'O início não pode ser depois de hoje.'
+            ? t('O início não pode ser depois de hoje.')
             : null;
     const earlySessions =
         start !== '' &&
@@ -604,15 +677,15 @@ export function DatesDialog({
 
     return (
         <Dialog
-            title={`## datas da ${reading.number}ª leitura`}
+            title={`## ${t('datas da :ordinal leitura', { ordinal: ordinal(reading.number, 'feminine') })}`}
             onClose={onClose}
         >
             <form onSubmit={save} className="flex flex-col gap-3.5">
                 <div className="grid grid-cols-2 gap-3">
                     <div className="flex flex-col gap-1.5 text-xs text-muted">
-                        Começou em
+                        {t('Começou em')}
                         <DatePicker
-                            aria-label="Data de início"
+                            aria-label={t('Data de início')}
                             max={today()}
                             clearable={undated}
                             value={start}
@@ -626,9 +699,9 @@ export function DatesDialog({
                         />
                     </div>
                     <div className="flex flex-col gap-1.5 text-xs text-muted">
-                        Terminou em
+                        {t('Terminou em')}
                         <DatePicker
-                            aria-label="Data de término"
+                            aria-label={t('Data de término')}
                             max={today()}
                             disabled={!closed || undated}
                             value={closed && !undated ? end : ''}
@@ -653,19 +726,21 @@ export function DatesDialog({
                             }
                             className="accent-primary"
                         />
-                        Sem data de término (lido há muito tempo)
+                        {t('Sem data de término (lido há muito tempo)')}
                     </label>
                 )}
 
                 {earlySessions.length > 0 && reading.first_session_on && (
                     <div className="flex flex-col items-start gap-2 rounded-sm border border-warn-line bg-[#1a1610] px-3 py-2.5 text-xs leading-relaxed text-warn">
                         <span>
-                            {plural(
-                                earlySessions.length,
-                                'sessão fica',
-                                'sessões ficam',
-                            )}{' '}
-                            antes do novo início ({shortDate(start)}).
+                            {t(':sessions antes do novo início (:date).', {
+                                sessions: plural(
+                                    earlySessions.length,
+                                    'sessão fica',
+                                    'sessões ficam',
+                                ),
+                                date: shortDate(start),
+                            })}
                         </span>
                         <button
                             type="button"
@@ -677,8 +752,9 @@ export function DatesDialog({
                             }
                             className="h-8 rounded-sm border border-warn-line px-2.5 hover:bg-warn-fill"
                         >
-                            Usar {shortDate(reading.first_session_on)} como
-                            início
+                            {t('Usar :date como início', {
+                                date: shortDate(reading.first_session_on),
+                            })}
                         </button>
                     </div>
                 )}
@@ -695,9 +771,18 @@ export function DatesDialog({
 
                 {!error && earlySessions.length === 0 && closed && (
                     <span className="text-xs text-muted">
-                        {plural(daysBetween(start, end), 'dia', 'dias')} ·{' '}
-                        {plural(reading.sessions_count, 'sessão', 'sessões')}{' '}
-                        dentro do período
+                        {t(':days · :sessions dentro do período', {
+                            days: plural(
+                                daysBetween(start, end),
+                                'dia',
+                                'dias',
+                            ),
+                            sessions: plural(
+                                reading.sessions_count,
+                                'sessão',
+                                'sessões',
+                            ),
+                        })}
                     </span>
                 )}
 
@@ -709,7 +794,7 @@ export function DatesDialog({
                         disabled={form.processing || error !== null}
                         className="h-10 text-[13px]"
                     >
-                        Salvar datas
+                        {t('Salvar datas')}
                     </Button>
                 </div>
             </form>
@@ -725,7 +810,7 @@ export type Removal = {
     notes: number;
 };
 
-/** Remover livro (D4): diz o que vai junto. Não tem desfazer. */
+/** Remove book: says what goes with it. There is no undo. */
 export function RemoveBookDialog({
     bookId,
     title,
@@ -739,39 +824,45 @@ export function RemoveBookDialog({
     queued: boolean;
     onClose: () => void;
 }) {
+    const { t, plural } = useTranslation();
     const items = [
         removal.readings > 1
-            ? `${plural(removal.readings, 'leitura', 'leituras')} (${removal.finished} ${removal.finished === 1 ? 'terminada' : 'terminadas'})`
+            ? t(':readings (:finished)', {
+                  readings: plural(removal.readings, 'leitura', 'leituras'),
+                  finished: plural(removal.finished, 'terminada', 'terminadas'),
+              })
             : plural(removal.readings, 'leitura', 'leituras'),
         removal.sessions > 0 &&
             `${plural(removal.sessions, 'sessão', 'sessões')} · ${plural(removal.pages, 'página', 'páginas')}`,
         removal.notes > 0 && plural(removal.notes, 'nota', 'notas'),
-        queued && 'a posição na fila',
+        queued && t('a posição na fila'),
     ].filter((item): item is string => typeof item === 'string');
 
     return (
-        <Dialog title="## remover livro?" onClose={onClose}>
+        <Dialog title={`## ${t('remover livro?')}`} onClose={onClose}>
             <p className="text-sm leading-relaxed text-[#c9d3e3]">
-                <strong>{title}</strong> sai da biblioteca junto com tudo o que
-                foi registrado nele:
+                {t(
+                    ':title sai da biblioteca junto com tudo o que foi registrado nele:',
+                    { title },
+                )}
             </p>
             <DialogList items={items} />
             <p className="text-xs text-muted">
-                Não dá para desfazer.
+                {t('Não dá para desfazer.')}
                 {removal.finished > 0 &&
-                    ' As estatísticas dos anos em que você leu este livro vão mudar.'}
+                    ` ${t('As estatísticas dos anos em que você leu este livro vão mudar.')}`}
             </p>
             <div className="flex justify-end gap-2">
                 <CancelButton autoFocus onClick={onClose} />
                 <DangerButton onClick={() => router.visit(destroyBook(bookId))}>
-                    Remover livro
+                    {t('Remover livro')}
                 </DangerButton>
             </div>
         </Dialog>
     );
 }
 
-/** Apagar uma leitura do histórico, com as sessões dela. */
+/** Deletes a reading from the history, with its sessions. */
 export function DeleteReadingDialog({
     reading,
     title,
@@ -781,22 +872,29 @@ export function DeleteReadingDialog({
     title: string;
     onClose: () => void;
 }) {
+    const { t, plural, ordinal } = useTranslation();
+    const readingOrdinal = ordinal(reading.number, 'feminine');
+
     return (
         <Dialog
-            title={`## apagar a ${reading.number}ª leitura?`}
+            title={`## ${t('apagar a :ordinal leitura?', { ordinal: readingOrdinal })}`}
             onClose={onClose}
         >
             <p className="text-sm leading-relaxed text-[#c9d3e3]">
-                A {reading.number}ª leitura de <strong>{title}</strong> sai do
-                histórico com:
+                {t('A :ordinal leitura de :title sai do histórico com:', {
+                    ordinal: readingOrdinal,
+                    title,
+                })}
             </p>
             <DialogList
                 items={[
                     plural(reading.sessions_count, 'sessão', 'sessões'),
                     reading.rating
-                        ? `a nota (${'★'.repeat(reading.rating)})`
-                        : 'sem nota',
-                    reading.review ? 'a resenha' : 'sem resenha',
+                        ? t('a nota (:stars)', {
+                              stars: '★'.repeat(reading.rating),
+                          })
+                        : t('sem nota'),
+                    reading.review ? t('a resenha') : t('sem resenha'),
                 ]}
             />
             <div className="flex justify-end gap-2">
@@ -809,7 +907,7 @@ export function DeleteReadingDialog({
                         })
                     }
                 >
-                    Apagar leitura
+                    {t('Apagar leitura')}
                 </DangerButton>
             </div>
         </Dialog>

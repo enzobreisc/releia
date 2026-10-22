@@ -3,18 +3,17 @@ import { useEffect, useState } from 'react';
 import type { DragEvent, FormEvent } from 'react';
 import { BookCover } from '@/components/book-cover';
 import { Button } from '@/components/form';
-import { ClockIcon, GripIcon, PlusIcon } from '@/components/icons';
+import { GripIcon, PlusIcon } from '@/components/icons';
 import { PageHeader, SectionTitle } from '@/components/page-header';
+import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import {
     destroy as destroyQueueItem,
     reorder,
     store as storeQueueItem,
 } from '@/routes/queue';
-import type { Option } from '@/types';
 import { start as startBook } from '@/routes/books';
 import { index as shoppingIndex } from '@/routes/shopping';
-import type { Candidate } from '@/types/library';
 import type { NoteBook } from '@/types/notes';
 import type { Pace, QueueEntry } from '@/types/queue';
 
@@ -31,11 +30,13 @@ export default function Queue({
     available,
     shopping_pending,
 }: QueueProps) {
+    const { t } = useTranslation();
+
     return (
         <>
             <PageHeader
-                title="Fila"
-                description="O que ler a seguir"
+                title={t('Fila')}
+                description={t('O que ler a seguir')}
                 actions={<PaceTiles pace={pace} />}
             />
 
@@ -45,8 +46,10 @@ export default function Queue({
                 href={shoppingIndex.url()}
                 className="mt-4 inline-flex text-[13px] text-accent hover:underline"
             >
-                Lista de compras
-                {shopping_pending > 0 && ` (${shopping_pending} por comprar)`} →
+                {t('Lista de compras')}
+                {shopping_pending > 0 &&
+                    ` (${t(':count por comprar', { count: shopping_pending })})`}{' '}
+                →
             </Link>
         </>
     );
@@ -59,13 +62,15 @@ function QueueSection({
     queue: QueueEntry[];
     available: NoteBook[];
 }) {
+    const translator = useTranslation();
+    const { t } = translator;
     const [items, setItems] = useState(queue);
     const [dragging, setDragging] = useState<number | null>(null);
     const [addId, setAddId] = useState(String(available[0]?.id ?? ''));
 
     useEffect(() => setItems(queue), [queue]);
 
-    /** Otimista: a ordem muda na tela e depois é gravada; se o servidor recusar, recarrega. */
+    /** Optimistic: the order changes on screen and is saved afterwards; if the server refuses, it reloads. */
     function commit(next: QueueEntry[]) {
         setItems(next);
         router.patch(
@@ -106,22 +111,25 @@ function QueueSection({
 
     return (
         <section
-            aria-label="Próximos a ler"
+            aria-label={t('Próximos a ler')}
             className="flex min-w-0 flex-[1_1_340px] flex-col gap-2.5"
         >
             <div className="flex items-baseline justify-between gap-3">
-                <SectionTitle>{`próximos a ler · ${items.length}`}</SectionTitle>
+                <SectionTitle>
+                    {t('próximos a ler · :count', { count: items.length })}
+                </SectionTitle>
                 {items.length > 1 && (
                     <span className="font-mono text-[11px] text-faint">
-                        arraste para reordenar
+                        {t('arraste para reordenar')}
                     </span>
                 )}
             </div>
 
             {items.length === 0 ? (
                 <p className="rounded-md border bg-surface p-5 text-sm text-muted">
-                    A fila está vazia. Adicione um livro da sua lista "quero
-                    ler" abaixo ou pelo botão "+ fila" na biblioteca.
+                    {t(
+                        'A fila está vazia. Adicione um livro da sua lista "quero ler" abaixo ou pelo botão "+ fila" na biblioteca.',
+                    )}
                 </p>
             ) : (
                 <ol className="flex flex-col gap-2">
@@ -167,18 +175,18 @@ function QueueSection({
                                     </span>
                                     {index === 0 && (
                                         <span className="shrink-0 rounded-[4px] bg-bg px-1.5 py-px font-mono text-[10px] text-accent">
-                                            próximo
+                                            {t('próximo')}
                                         </span>
                                     )}
                                 </div>
                                 <span className="truncate text-[13px] text-muted">
-                                    {item.authors || 'Autor desconhecido'}
+                                    {item.authors || t('Autor desconhecido')}
                                 </span>
                                 <span className="font-mono text-[11px] text-muted">
-                                    {queueMeta(item)}
+                                    {queueMeta(item, translator)}
                                 </span>
                             </div>
-                            {/* Começar vale para qualquer item; o primeiro fica em destaque. */}
+                            {/* Start works for any item; the first one is highlighted. */}
                             <button
                                 type="button"
                                 onClick={() =>
@@ -191,13 +199,15 @@ function QueueSection({
                                         : 'border text-nav hover:bg-bg hover:text-text',
                                 )}
                             >
-                                Começar
+                                {t('Começar')}
                             </button>
-                            {/* Teclado: subir e descer, além do arrastar. */}
+                            {/* Keyboard: move up and down, besides dragging. */}
                             <div className="flex shrink-0 gap-0.5">
                                 <button
                                     type="button"
-                                    aria-label={`Subir ${item.title}`}
+                                    aria-label={t('Subir :title', {
+                                        title: item.title,
+                                    })}
                                     disabled={index === 0}
                                     onClick={() => move(index, -1)}
                                     className="size-8 rounded-sm text-[11px] text-muted hover:bg-bg hover:text-text disabled:opacity-30"
@@ -206,7 +216,9 @@ function QueueSection({
                                 </button>
                                 <button
                                     type="button"
-                                    aria-label={`Descer ${item.title}`}
+                                    aria-label={t('Descer :title', {
+                                        title: item.title,
+                                    })}
                                     disabled={index === items.length - 1}
                                     onClick={() => move(index, 1)}
                                     className="size-8 rounded-sm text-[11px] text-muted hover:bg-bg hover:text-text disabled:opacity-30"
@@ -216,7 +228,9 @@ function QueueSection({
                             </div>
                             <button
                                 type="button"
-                                aria-label={`Tirar ${item.title} da fila`}
+                                aria-label={t('Tirar :title da fila', {
+                                    title: item.title,
+                                })}
                                 onClick={() =>
                                     router.delete(
                                         destroyQueueItem.url(
@@ -249,7 +263,7 @@ function QueueSection({
                     <label className="flex min-w-0 flex-1 items-center gap-2.5 px-2">
                         <PlusIcon className="shrink-0 text-muted" />
                         <span className="sr-only">
-                            Adicionar da biblioteca (quero ler)
+                            {t('Adicionar da biblioteca (quero ler)')}
                         </span>
                         <select
                             value={addId}
@@ -264,7 +278,7 @@ function QueueSection({
                         </select>
                     </label>
                     <Button type="submit" variant="ghost" className="h-10">
-                        Adicionar
+                        {t('Adicionar')}
                     </Button>
                 </form>
             )}
@@ -272,47 +286,45 @@ function QueueSection({
     );
 }
 
-/** "264 págs · ~9 dias · termina ~23 out" */
-function queueMeta(item: QueueEntry) {
-    const parts = [item.pages ? `${item.pages} págs` : 'sem número de páginas'];
+/** "264 pp · ~9 days · ends ~Oct 23" */
+function queueMeta(
+    item: QueueEntry,
+    { t, plural, shortDate }: ReturnType<typeof useTranslation>,
+) {
+    const parts = [
+        item.pages
+            ? t(':pages págs', { pages: item.pages })
+            : t('sem número de páginas'),
+    ];
 
     if (item.estimated_days !== null) {
-        parts.push(
-            `~${item.estimated_days} ${item.estimated_days === 1 ? 'dia' : 'dias'}`,
-        );
+        parts.push(`~${plural(item.estimated_days, 'dia', 'dias')}`);
     }
 
     if (item.finishes_on) {
-        parts.push(`termina ~${shortDate(item.finishes_on)}`);
+        parts.push(t('termina ~:date', { date: shortDate(item.finishes_on) }));
     }
 
     return parts.join(' · ');
 }
 
-/** "2026-10-23" vira "23 out". */
-function shortDate(date: string) {
-    return new Date(`${date}T00:00:00`)
-        .toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })
-        .replace('.', '')
-        .replace(' de ', ' ');
-}
-
 function PaceTiles({ pace }: { pace: Pace }) {
+    const { t } = useTranslation();
     const perDay = Math.round(pace.pages_per_day * 10) / 10;
     const tiles = [
         {
-            label: 'seu ritmo',
+            label: t('seu ritmo'),
             value: String(perDay),
-            unit: 'págs/dia',
+            unit: t('págs/dia'),
             title: pace.from_sessions
-                ? 'Média dos dias lidos nos últimos 30 dias'
-                : 'Padrão, sem sessões registradas',
+                ? t('Média dos dias lidos nos últimos 30 dias')
+                : t('Padrão, sem sessões registradas'),
         },
         {
-            label: 'fila inteira',
+            label: t('fila inteira'),
             value: pace.queue_days ? `~${pace.queue_days}` : '—',
-            unit: 'dias',
-            title: 'Soma da previsão de cada livro da fila',
+            unit: t('dias'),
+            title: t('Soma da previsão de cada livro da fila'),
         },
     ];
 

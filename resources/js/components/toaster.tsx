@@ -1,13 +1,14 @@
 import { router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { undo } from '@/routes';
 import type { Toast } from '@/types';
 
-/** No máximo três avisos na tela; o mais antigo sai primeiro. */
+/** At most three notices on screen; the oldest leaves first. */
 const MAX_VISIBLE = 3;
 
-/** ⌘Z desfaz a última ação desfazível por até um minuto (UndoService::TTL_SECONDS). */
+/** ⌘Z undoes the last undoable action for up to a minute (UndoService::TTL_SECONDS). */
 const UNDO_WINDOW_MS = 60_000;
 
 let lastUndo: { token: string; at: number } | null = null;
@@ -26,8 +27,8 @@ function isEditable(target: EventTarget | null): boolean {
 }
 
 /**
- * Avisos das ações (App\Support\Toast). `corner` fica no canto inferior direito
- * da janela; `bar` é a faixa da janela da barra de menu, acima do rodapé.
+ * Action notices (App\Support\Toast). `corner` sits in the bottom right corner
+ * of the window; `bar` is the strip of the menu bar window, above the footer.
  */
 export function Toaster({
     variant = 'corner',
@@ -38,8 +39,8 @@ export function Toaster({
     const [items, setItems] = useState<Toast[]>([]);
     const [seen, setSeen] = useState<string | null>(null);
 
-    // Cada aviso novo do servidor entra uma vez na pilha. Só a última ação se desfaz:
-    // qualquer ação nova (aviso de sucesso) tira o desfazer dos avisos anteriores.
+    // Each new server notice enters the stack once. Only the last action can be undone:
+    // any new action (success notice) removes undo from the previous notices.
     if (toast && toast.id !== seen) {
         const supersedes = toast.kind === 'success';
 
@@ -80,7 +81,7 @@ export function Toaster({
                 runUndo(lastUndo.token);
             }
 
-            // Esc fecha o aviso mais recente, mas não briga com diálogos e menus abertos.
+            // Esc closes the most recent notice, but does not fight with open dialogs and menus.
             if (
                 key === 'escape' &&
                 !document.querySelector('[role="dialog"], [role="menu"]')
@@ -130,6 +131,7 @@ function ToastItem({
     onClose: () => void;
 }) {
     const [hovered, setHovered] = useState(false);
+    const { t } = useTranslation();
     const error = toast.kind === 'error';
 
     function act() {
@@ -189,14 +191,14 @@ function ToastItem({
                 </span>
                 <button
                     type="button"
-                    aria-label="Fechar aviso"
+                    aria-label={t('Fechar aviso')}
                     onClick={onClose}
                     className="-mt-1 size-7 shrink-0 rounded-[5px] text-[15px] text-muted hover:bg-active hover:text-text"
                 >
                     ×
                 </button>
             </div>
-            {/* Botões numa linha própria: o título nunca fica espremido. */}
+            {/* Buttons on their own row: the title is never squeezed. */}
             {(toast.action || toast.undo) && (
                 <div className="flex flex-wrap justify-end gap-1.5 pr-1">
                     {toast.action && (
@@ -213,12 +215,12 @@ function ToastItem({
                             }}
                             className={button}
                         >
-                            Desfazer{compact ? '' : ' ⌘Z'}
+                            {compact ? t('Desfazer') : t('Desfazer ⌘Z')}
                         </button>
                     )}
                 </div>
             )}
-            {/* O tempo é a própria animação: pausa com o mouse em cima; erro não some sozinho. */}
+            {/* The timer is the animation itself: it pauses on hover; errors do not disappear on their own. */}
             {!error && (
                 <span
                     aria-hidden="true"

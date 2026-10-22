@@ -1,6 +1,7 @@
+import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 
-/** Nota de 1 a 5. Clicar na nota atual apaga a nota. */
+/** Rating from 1 to 5. Clicking the current rating clears it. */
 export function StarRating({
     value,
     onChange,
@@ -12,15 +13,21 @@ export function StarRating({
     disabled?: boolean;
     size?: number;
 }) {
+    const { t } = useTranslation();
+
     return (
-        <div role="radiogroup" aria-label="Sua nota" className="flex gap-1">
+        <div
+            role="radiogroup"
+            aria-label={t('Sua nota')}
+            className="flex gap-1"
+        >
             {[1, 2, 3, 4, 5].map((star) => (
                 <button
                     key={star}
                     type="button"
                     role="radio"
                     aria-checked={value === star}
-                    aria-label={`${star} de 5`}
+                    aria-label={t(':star de 5', { star })}
                     disabled={disabled}
                     onClick={() => onChange(value === star ? null : star)}
                     className="rounded-sm p-0.5 hover:bg-active"

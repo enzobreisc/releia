@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { HeatMap } from '@/components/heat-map';
 import { Field, Select } from '@/components/form';
 import { PageHeader, SectionTitle } from '@/components/page-header';
+import { useTranslation } from '@/hooks/use-translation';
 import { index as statsIndex } from '@/routes/stats';
 import type {
     CalendarDay,
@@ -30,18 +31,21 @@ type StatsProps = {
     forecast: Forecast | null;
 };
 
-const formatNumber = (value: number | null, digits = 0) =>
-    value === null
-        ? '—'
-        : value.toLocaleString('pt-BR', {
-              maximumFractionDigits: digits,
-          });
+/** Horizontal bars proportional to the largest value. */
+function Bars({
+    items,
+    translateLabels = false,
+}: {
+    items: NamedCount[];
+    translateLabels?: boolean;
+}) {
+    const { t, translateText } = useTranslation();
 
-/** Barras horizontais com proporção sobre o maior valor. */
-function Bars({ items }: { items: NamedCount[] }) {
     if (items.length === 0) {
         return (
-            <p className="text-sm text-muted">Nada concluído neste período.</p>
+            <p className="text-sm text-muted">
+                {t('Nada concluído neste período.')}
+            </p>
         );
     }
 
@@ -52,7 +56,11 @@ function Bars({ items }: { items: NamedCount[] }) {
             {items.map((item) => (
                 <div key={item.label} className="flex flex-col gap-1">
                     <div className="flex justify-between text-sm">
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate">
+                            {translateLabels
+                                ? translateText(item.label)
+                                : item.label}
+                        </span>
                         <span className="font-mono text-muted">
                             {item.count}
                         </span>
@@ -69,7 +77,7 @@ function Bars({ items }: { items: NamedCount[] }) {
     );
 }
 
-/** Colunas de livros concluídos por mês (ou por ano no histórico). */
+/** Columns of finished books per month (or per year in the history). */
 function MonthlyChart({ bars }: { bars: MonthlyBar[] }) {
     const max = Math.max(1, ...bars.map((bar) => bar.count));
 
@@ -105,6 +113,8 @@ function Highlight({
     label: string;
     reading: ReadingRef | null;
 }) {
+    const { plural } = useTranslation();
+
     return (
         <div className="flex flex-col gap-1">
             <span className="font-mono text-xs text-muted lowercase">
@@ -114,9 +124,11 @@ function Highlight({
                 <>
                     <span className="font-semibold">{reading.title}</span>
                     <span className="text-sm text-muted">
-                        {reading.days !== null ? `${reading.days} dias` : ''}
+                        {reading.days !== null
+                            ? plural(reading.days, 'dia', 'dias')
+                            : ''}
                         {reading.pages !== null
-                            ? ` · ${reading.pages} páginas`
+                            ? ` · ${plural(reading.pages, 'página', 'páginas')}`
                             : ''}
                     </span>
                 </>
@@ -142,23 +154,41 @@ export default function Stats({
     calendar,
     forecast,
 }: StatsProps) {
+    const { t, plural, languageTag } = useTranslation();
+    const formatNumber = (value: number | null, digits = 0) =>
+        value === null
+            ? '—'
+            : value.toLocaleString(languageTag, {
+                  maximumFractionDigits: digits,
+              });
     const kpis = [
         {
-            label: 'livros lidos',
+            label: t('livros lidos'),
             value: formatNumber(indicators.books_read),
             note:
                 indicators.rereads > 0
-                    ? `inclui ${indicators.rereads} ${indicators.rereads === 1 ? 'releitura' : 'releituras'}`
+                    ? t('inclui :rereads', {
+                          rereads: plural(
+                              indicators.rereads,
+                              'releitura',
+                              'releituras',
+                          ),
+                      })
                     : undefined,
         },
-        { label: 'páginas lidas', value: formatNumber(indicators.pages_read) },
         {
-            label: 'páginas por dia',
-            value: formatNumber(indicators.pages_per_day, 1),
-            note: `${formatNumber(indicators.pages_per_reading_day, 1)} nos dias com leitura`,
+            label: t('páginas lidas'),
+            value: formatNumber(indicators.pages_read),
         },
         {
-            label: 'dias por livro',
+            label: t('páginas por dia'),
+            value: formatNumber(indicators.pages_per_day, 1),
+            note: t(':pages nos dias com leitura', {
+                pages: formatNumber(indicators.pages_per_reading_day, 1),
+            }),
+        },
+        {
+            label: t('dias por livro'),
             value: formatNumber(indicators.days_per_book, 1),
         },
     ];
@@ -166,9 +196,9 @@ export default function Stats({
     return (
         <>
             <PageHeader
-                title="Estatísticas"
+                title={t('Estatísticas')}
                 actions={
-                    <Field label="Período" className="w-44">
+                    <Field label={t('Período')} className="w-44">
                         <Select
                             value={selected}
                             onChange={(event) =>
@@ -184,7 +214,7 @@ export default function Stats({
                                     {year}
                                 </option>
                             ))}
-                            <option value="all">Todo o histórico</option>
+                            <option value="all">{t('Todo o histórico')}</option>
                         </Select>
                     </Field>
                 }
@@ -213,16 +243,15 @@ export default function Stats({
 
             {forecast && (
                 <p className="text-sm text-muted">
-                    Previsão para o ano:{' '}
+                    {t('Previsão para o ano:')}{' '}
                     <span className="font-mono text-text">
-                        {forecast.projection}
+                        {plural(forecast.projection, 'livro', 'livros')}
                     </span>{' '}
-                    {forecast.projection === 1 ? 'livro' : 'livros'} no ritmo
-                    atual
+                    {t('no ritmo atual')}
                     {forecast.goal !== null && (
                         <>
                             {' '}
-                            · meta de{' '}
+                            · {t('meta de')}{' '}
                             <span className="font-mono text-text">
                                 {forecast.goal}
                             </span>
@@ -234,31 +263,37 @@ export default function Stats({
 
             <div className="flex flex-wrap gap-4">
                 <section className={`${card} min-w-0 flex-[3_1_360px]`}>
-                    <SectionTitle>livros por mês</SectionTitle>
+                    <SectionTitle>{t('livros por mês')}</SectionTitle>
                     <MonthlyChart bars={monthly} />
                 </section>
                 <section className={`${card} min-w-0 flex-[2_1_260px]`}>
-                    <SectionTitle>gêneros mais lidos</SectionTitle>
-                    <Bars items={genres} />
+                    <SectionTitle>{t('gêneros mais lidos')}</SectionTitle>
+                    <Bars items={genres} translateLabels />
                 </section>
             </div>
 
             <div className="flex flex-wrap gap-4">
                 <section className={`${card} min-w-0 flex-[1_1_260px]`}>
-                    <SectionTitle>autores mais lidos</SectionTitle>
+                    <SectionTitle>{t('autores mais lidos')}</SectionTitle>
                     <Bars items={authors} />
                 </section>
                 <section className={`${card} min-w-0 flex-[1_1_260px]`}>
-                    <SectionTitle>destaques</SectionTitle>
-                    <Highlight label="mais rápido" reading={extremes.fastest} />
-                    <Highlight label="mais longo" reading={extremes.longest} />
+                    <SectionTitle>{t('destaques')}</SectionTitle>
+                    <Highlight
+                        label={t('mais rápido')}
+                        reading={extremes.fastest}
+                    />
+                    <Highlight
+                        label={t('mais longo')}
+                        reading={extremes.longest}
+                    />
                     <div className="flex flex-col gap-1">
                         <span className="font-mono text-xs text-muted lowercase">
-                            melhor mês
+                            {t('melhor mês')}
                         </span>
                         <span className="text-sm">
                             {best_month
-                                ? `${best_month.label}: ${best_month.count} ${best_month.count === 1 ? 'livro' : 'livros'}`
+                                ? `${best_month.label}: ${plural(best_month.count, 'livro', 'livros')}`
                                 : '—'}
                         </span>
                     </div>
@@ -266,14 +301,14 @@ export default function Stats({
             </div>
 
             <section className={card}>
-                <SectionTitle>dias em que você leu</SectionTitle>
+                <SectionTitle>{t('dias em que você leu')}</SectionTitle>
                 <HeatMap days={calendar} showLegend />
                 <p className="text-sm text-muted">
-                    Maior sequência:{' '}
+                    {t('Maior sequência:')}{' '}
                     <span className="font-mono text-text">
-                        {streak.longest}
+                        {plural(streak.longest, 'dia', 'dias')}
                     </span>{' '}
-                    {streak.longest === 1 ? 'dia' : 'dias'} · Sequência atual:{' '}
+                    · {t('Sequência atual:')}{' '}
                     <span className="font-mono text-text">
                         {streak.current}
                     </span>

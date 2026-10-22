@@ -6,6 +6,7 @@ import { Button } from '@/components/form';
 import { SuggestionEditions } from '@/components/suggestion-editions';
 import type { Choosing } from '@/components/suggestion-editions';
 import { PageHeader } from '@/components/page-header';
+import { useTranslation } from '@/hooks/use-translation';
 import { index as libraryIndex } from '@/routes/library';
 import { accept, alreadyRead, dismiss, generate } from '@/routes/suggestions';
 import type { Suggestion } from '@/types';
@@ -19,9 +20,10 @@ export default function Suggestions({
     suggestions,
     hasSources,
 }: SuggestionsProps) {
+    const { t } = useTranslation();
     const [busy, setBusy] = useState(false);
 
-    // As ações trocam a lista na própria página; o Inertia recarrega as sugestões.
+    // Actions swap the list on the page itself; Inertia reloads the suggestions.
     const options = {
         preserveScroll: true,
         onStart: () => setBusy(true),
@@ -31,34 +33,37 @@ export default function Suggestions({
     return (
         <>
             <PageHeader
-                title="Sugestões"
-                description="Livros novos, sempre com o motivo"
+                title={t('Sugestões')}
+                description={t('Livros novos, sempre com o motivo')}
                 actions={
                     <Button
                         disabled={busy || !hasSources}
                         onClick={() => router.visit(generate(), options)}
                     >
-                        {busy ? 'Buscando…' : 'Buscar novas sugestões'}
+                        {busy ? t('Buscando…') : t('Buscar novas sugestões')}
                     </Button>
                 }
             />
 
             {!hasSources && (
                 <EmptyState>
-                    Avalie livros com 4 ou 5 estrelas para receber sugestões.{' '}
+                    {t(
+                        'Avalie livros com 4 ou 5 estrelas para receber sugestões.',
+                    )}{' '}
                     <Link
                         href={libraryIndex.url()}
                         className="text-accent hover:underline"
                     >
-                        Ir para a biblioteca
+                        {t('Ir para a biblioteca')}
                     </Link>
                 </EmptyState>
             )}
 
             {hasSources && suggestions.length === 0 && (
                 <EmptyState>
-                    Nenhuma sugestão no momento. Use "Buscar novas sugestões"
-                    para procurar mais.
+                    {t(
+                        'Nenhuma sugestão no momento. Use "Buscar novas sugestões" para procurar mais.',
+                    )}
                 </EmptyState>
             )}
 
@@ -80,11 +85,12 @@ export default function Suggestions({
                         disabled={busy}
                         onClick={() => router.visit(generate(), options)}
                     >
-                        {busy ? 'Buscando…' : 'Buscar mais sugestões'}
+                        {busy ? t('Buscando…') : t('Buscar mais sugestões')}
                     </Button>
                     <span className="text-xs text-muted">
-                        Cada busca sorteia outros dos seus livros e lê novos
-                        resultados, e acrescenta à lista.
+                        {t(
+                            'Cada busca sorteia outros dos seus livros e lê novos resultados, e acrescenta à lista.',
+                        )}
                     </span>
                 </div>
             )}
@@ -109,6 +115,7 @@ function SuggestionCard({
     disabled: boolean;
     options: { preserveScroll: boolean };
 }) {
+    const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [choosing, setChoosing] = useState<Choosing | null>(null);
 
@@ -127,9 +134,11 @@ function SuggestionCard({
                 {suggestion.authors && (
                     <p className="text-sm text-muted">{suggestion.authors}</p>
                 )}
-                <p className="text-sm">Por quê: {suggestion.reason}</p>
+                <p className="text-sm">
+                    {t('Por quê: :reason', { reason: suggestion.reason })}
+                </p>
                 <span className="self-start rounded-full bg-elevated px-3 py-1 font-mono text-xs text-muted">
-                    Parecido com: {suggestion.based_on}
+                    {t('Parecido com: :book', { book: suggestion.based_on })}
                 </span>
                 {suggestion.has_editions && (
                     <button
@@ -138,7 +147,9 @@ function SuggestionCard({
                         onClick={() => setOpen(!open)}
                         className="self-start text-sm text-accent hover:underline"
                     >
-                        {open ? '− Esconder edições' : '+ Escolher edição'}
+                        {open
+                            ? t('− Esconder edições')
+                            : t('+ Escolher edição')}
                     </button>
                 )}
             </div>
@@ -153,7 +164,7 @@ function SuggestionCard({
                             : router.visit(accept(suggestion.id), options)
                     }
                 >
-                    Quero ler
+                    {t('Quero ler')}
                 </Button>
                 <Button
                     variant="ghost"
@@ -164,7 +175,7 @@ function SuggestionCard({
                             : router.visit(alreadyRead(suggestion.id), options)
                     }
                 >
-                    Já li
+                    {t('Já li')}
                 </Button>
                 <Button
                     variant="ghost"
@@ -173,7 +184,7 @@ function SuggestionCard({
                         router.visit(dismiss(suggestion.id), options)
                     }
                 >
-                    Sem interesse
+                    {t('Sem interesse')}
                 </Button>
             </div>
 

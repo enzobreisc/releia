@@ -5,6 +5,8 @@ import { AmazonCoverField } from '@/components/amazon-cover-field';
 import { BookCover } from '@/components/book-cover';
 import { GenreSelect } from '@/components/genre-select';
 import { Button, Field, Input, Textarea } from '@/components/form';
+import { useTranslation } from '@/hooks/use-translation';
+import type { TranslationKey } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { show, update } from '@/routes/books';
 import type { BookDetail, Candidate } from '@/types';
@@ -34,7 +36,7 @@ type Diff = {
         | 'genre'
         | 'description'
         | 'cover_url';
-    label: string;
+    label: TranslationKey;
     from: string;
     to: string;
 };
@@ -43,7 +45,7 @@ function initialFields(book: BookDetail): Fields {
     return {
         title: book.title,
         subtitle: book.subtitle ?? '',
-        // Um a um, como estão salvos: separar o texto "A, B" por vírgula quebra nomes como "Silva, João".
+        // One by one, as saved: splitting the text "A, B" on commas breaks names like "Silva, João".
         authors: book.author_links.map((author) => author.name),
         pages: book.pages?.toString() ?? '',
         genre: book.genre ?? '',
@@ -56,9 +58,13 @@ function initialFields(book: BookDetail): Fields {
     };
 }
 
-/** O que a fonte tem de diferente do que está salvo. */
-function diffsFrom(fields: Fields, candidate: Candidate): Diff[] {
-    const pairs: [Diff['key'], string, string, string | null][] = [
+/** What the source has that differs from what is saved. */
+function diffsFrom(
+    fields: Fields,
+    candidate: Candidate,
+    emptyLabel: string,
+): Diff[] {
+    const pairs: [Diff['key'], TranslationKey, string, string | null][] = [
         ['title', 'título', fields.title, candidate.title],
         ['subtitle', 'subtítulo', fields.subtitle, candidate.subtitle],
         [
@@ -90,14 +96,14 @@ function diffsFrom(fields: Fields, candidate: Candidate): Diff[] {
         .map(([key, label, from, to]) => ({
             key,
             label,
-            from: from === '' ? '(vazio)' : from,
+            from: from === '' ? emptyLabel : from,
             to: to!,
         }));
 }
 
 /**
- * Painel "editar dados" (gaveta à direita). Corrige o que veio errado do cadastro:
- * título, autores, páginas, capa… Esc com alterações pede para descartar ali mesmo.
+ * "Edit data" panel (drawer on the right). Fixes what came wrong from the registration:
+ * title, authors, pages, cover… Esc with changes asks to discard right there.
  */
 export function BookEditor({
     book,
@@ -112,6 +118,7 @@ export function BookEditor({
     onClose: () => void;
     onShowSessions: () => void;
 }) {
+    const { t, plural } = useTranslation();
     const initial = useRef(initialFields(book)).current;
     const form = useForm<Fields>(initial);
     const [confirmClose, setConfirmClose] = useState(false);
@@ -128,7 +135,9 @@ export function BookEditor({
             : form.data[key] !== initial[key],
     ).length;
     const diffs =
-        lookup && !dismissedLookup ? diffsFrom(form.data, lookup) : [];
+        lookup && !dismissedLookup
+            ? diffsFrom(form.data, lookup, t('(vazio)'))
+            : [];
     const preview = form.data.cover_file
         ? URL.createObjectURL(form.data.cover_file)
         : form.data.cover_url || book.cover_url;
@@ -220,7 +229,7 @@ export function BookEditor({
             addAuthor();
         } else if (
             event.key === 'Backspace' &&
-            // Segurar a tecla repete o evento e apagaria vários autores de uma vez.
+            // Holding the key repeats the event and would delete several authors at once.
             !event.repeat &&
             authorDraft === '' &&
             form.data.authors.length > 0
@@ -250,13 +259,13 @@ export function BookEditor({
             <aside
                 role="dialog"
                 aria-modal="true"
-                aria-label="Editar dados do livro"
+                aria-label={t('Editar dados do livro')}
                 className="absolute inset-y-0 right-0 flex w-115 max-w-full flex-col border-l border-strong bg-surface shadow-[-24px_0_60px_rgba(0,0,0,0.5)]"
             >
                 <div className="flex h-9 shrink-0 app-drag" />
                 <div className="flex items-center justify-between gap-3 border-b px-5 pb-4">
                     <h2 className="font-mono text-[15px] font-bold">
-                        ## editar dados
+                        ## {t('editar dados')}
                     </h2>
                     <span
                         className={cn(
@@ -265,8 +274,8 @@ export function BookEditor({
                         )}
                     >
                         {changed === 0
-                            ? 'sem alterações'
-                            : `${changed} ${changed === 1 ? 'alteração' : 'alterações'}`}
+                            ? t('sem alterações')
+                            : plural(changed, 'alteração', 'alterações')}
                     </span>
                 </div>
 
@@ -274,7 +283,7 @@ export function BookEditor({
                     {diffs.length > 0 && (
                         <div className="flex flex-col gap-2 rounded-md border border-primary bg-active p-3">
                             <span className="text-[13px] font-semibold">
-                                A fonte tem dados diferentes
+                                {t('A fonte tem dados diferentes')}
                             </span>
                             {diffs.map((diff) => (
                                 <label
@@ -294,7 +303,7 @@ export function BookEditor({
                                         className="mt-0.5 size-3.5 accent-primary"
                                     />
                                     <span className="text-muted">
-                                        {diff.label}
+                                        {t(diff.label)}
                                     </span>
                                     <span className="line-clamp-2">
                                         <span className="text-muted line-through">
@@ -306,26 +315,30 @@ export function BookEditor({
                             ))}
                             <div className="flex items-center justify-between gap-2">
                                 <span className="text-[11px] text-muted">
-                                    Só aplica o marcado. Nada muda sem salvar.
+                                    {t(
+                                        'Só aplica o marcado. Nada muda sem salvar.',
+                                    )}
                                 </span>
                                 <Button
                                     variant="ghost"
                                     onClick={applyDiffs}
                                     className="h-8 px-3 text-xs"
                                 >
-                                    Aplicar
+                                    {t('Aplicar')}
                                 </Button>
                             </div>
                         </div>
                     )}
                     {lookup === null && !searching && !dismissedLookup && (
                         <p className="text-xs text-muted">
-                            Nada encontrado para este ISBN.
+                            {t('Nada encontrado para este ISBN.')}
                         </p>
                     )}
                     {lookup && diffs.length === 0 && !dismissedLookup && (
                         <p className="text-xs text-muted">
-                            A fonte não tem nada diferente do que está aqui.
+                            {t(
+                                'A fonte não tem nada diferente do que está aqui.',
+                            )}
                         </p>
                     )}
 
@@ -333,7 +346,7 @@ export function BookEditor({
                         <div className="flex w-24 shrink-0 flex-col gap-1.5">
                             <BookCover
                                 src={preview}
-                                title={form.data.title || 'sem capa'}
+                                title={form.data.title || t('sem capa')}
                                 className="w-24"
                             />
                             <button
@@ -342,11 +355,14 @@ export function BookEditor({
                                 aria-expanded={coverOpen}
                                 className="h-8 rounded-sm border text-xs text-accent hover:bg-active"
                             >
-                                Trocar capa
+                                {t('Trocar capa')}
                             </button>
                         </div>
                         <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-                            <Field label="Título" error={form.errors.title}>
+                            <Field
+                                label={t('Título')}
+                                error={form.errors.title}
+                            >
                                 <Input
                                     required
                                     value={form.data.title}
@@ -360,12 +376,12 @@ export function BookEditor({
                                 />
                             </Field>
                             <Field
-                                label="Subtítulo"
+                                label={t('Subtítulo')}
                                 error={form.errors.subtitle}
                             >
                                 <Input
                                     value={form.data.subtitle}
-                                    placeholder="opcional"
+                                    placeholder={t('opcional')}
                                     onChange={(event) =>
                                         form.setData(
                                             'subtitle',
@@ -381,7 +397,7 @@ export function BookEditor({
                     {coverOpen && (
                         <div className="flex flex-col gap-2 rounded-md border bg-bg p-3">
                             <span className="font-mono text-[11px] text-muted">
-                                ## nova capa
+                                ## {t('nova capa')}
                             </span>
                             <div
                                 onDragOver={(event) => event.preventDefault()}
@@ -390,15 +406,15 @@ export function BookEditor({
                             >
                                 {form.data.cover_file
                                     ? form.data.cover_file.name
-                                    : 'Arraste uma imagem aqui ou'}
+                                    : t('Arraste uma imagem aqui ou')}
                                 <button
                                     type="button"
                                     onClick={() => fileInput.current?.click()}
                                     className="text-accent hover:underline"
                                 >
                                     {form.data.cover_file
-                                        ? 'trocar'
-                                        : 'escolha um arquivo'}
+                                        ? t('trocar')
+                                        : t('escolha um arquivo')}
                                 </button>
                                 <input
                                     ref={fileInput}
@@ -414,7 +430,7 @@ export function BookEditor({
                                 />
                             </div>
                             <Field
-                                label="Ou cole o link de uma imagem"
+                                label={t('Ou cole o link de uma imagem')}
                                 error={
                                     form.errors.cover_url ??
                                     form.errors.cover_file
@@ -435,7 +451,7 @@ export function BookEditor({
                             </Field>
                             <AmazonCoverField
                                 onFound={(coverUrl) => {
-                                    // Um arquivo escolhido antes vale mais que o link; o link novo é o que vale agora.
+                                    // A file chosen earlier is superseded: the new link is the one that counts now.
                                     form.setData((data) => ({
                                         ...data,
                                         cover_file: null,
@@ -444,13 +460,14 @@ export function BookEditor({
                                 }}
                             />
                             <span className="text-[11px] text-faint">
-                                A imagem é guardada no Mac; não depende do link.
-                                Trocar a capa não tem desfazer.
+                                {t(
+                                    'A imagem é guardada no Mac; não depende do link. Trocar a capa não tem desfazer.',
+                                )}
                             </span>
                         </div>
                     )}
 
-                    <Field label="Autores" error={form.errors.authors}>
+                    <Field label={t('Autores')} error={form.errors.authors}>
                         <span className="flex min-h-10 flex-wrap items-center gap-1.5 rounded-sm border bg-bg px-2 py-1">
                             {form.data.authors.map((name, index) => (
                                 <span
@@ -460,7 +477,7 @@ export function BookEditor({
                                     {name}
                                     <button
                                         type="button"
-                                        aria-label={`Tirar ${name}`}
+                                        aria-label={t('Tirar :name', { name })}
                                         onClick={() =>
                                             form.setData(
                                                 'authors',
@@ -485,17 +502,17 @@ export function BookEditor({
                                 onBlur={addAuthor}
                                 placeholder={
                                     form.data.authors.length
-                                        ? 'adicionar…'
-                                        : 'Nome do autor'
+                                        ? t('adicionar…')
+                                        : t('Nome do autor')
                                 }
-                                aria-label="Adicionar autor"
+                                aria-label={t('Adicionar autor')}
                                 className="h-7 min-w-24 flex-1 bg-transparent text-[13px] text-text outline-none placeholder:text-faint"
                             />
                         </span>
                     </Field>
 
                     <div className="grid grid-cols-2 gap-2.5">
-                        <Field label="Páginas">
+                        <Field label={t('Páginas')}>
                             <Input
                                 type="number"
                                 min={1}
@@ -511,7 +528,7 @@ export function BookEditor({
                             />
                         </Field>
                         <div className="flex flex-col gap-1.5 text-[13px] text-muted">
-                            <span>Gênero</span>
+                            <span>{t('Gênero')}</span>
                             <GenreSelect
                                 value={form.data.genre}
                                 onChange={(value) =>
@@ -539,14 +556,17 @@ export function BookEditor({
                                     onClick={onShowSessions}
                                     className="font-semibold text-accent hover:underline"
                                 >
-                                    Editar essa sessão primeiro ›
+                                    {t('Editar essa sessão primeiro ›')}
                                 </button>
                             )}
                         </div>
                     )}
 
                     <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-2.5">
-                        <Field label="Editora" error={form.errors.publisher}>
+                        <Field
+                            label={t('Editora')}
+                            error={form.errors.publisher}
+                        >
                             <Input
                                 value={form.data.publisher}
                                 onChange={(event) =>
@@ -558,7 +578,10 @@ export function BookEditor({
                                 className="h-10 bg-bg text-sm"
                             />
                         </Field>
-                        <Field label="Ano" error={form.errors.published_year}>
+                        <Field
+                            label={t('Ano')}
+                            error={form.errors.published_year}
+                        >
                             <Input
                                 type="number"
                                 value={form.data.published_year}
@@ -594,10 +617,12 @@ export function BookEditor({
                                 disabled={
                                     searching || form.data.isbn_13.trim() === ''
                                 }
-                                title="Buscar os dados de novo por este ISBN"
+                                title={t(
+                                    'Buscar os dados de novo por este ISBN',
+                                )}
                                 className="h-10 shrink-0 px-3 text-xs text-accent"
                             >
-                                {searching ? 'buscando…' : '↻ buscar'}
+                                {searching ? t('buscando…') : t('↻ buscar')}
                             </Button>
                         </span>
                     </div>
@@ -610,8 +635,9 @@ export function BookEditor({
                             {errors.isbn_13_book && (
                                 <>
                                     <span className="text-nav">
-                                        Se são edições diferentes, cada uma pode
-                                        ficar com seu ISBN.
+                                        {t(
+                                            'Se são edições diferentes, cada uma pode ficar com seu ISBN.',
+                                        )}
                                     </span>
                                     <Link
                                         href={show.url(
@@ -619,14 +645,14 @@ export function BookEditor({
                                         )}
                                         className="font-semibold text-accent hover:underline"
                                     >
-                                        Abrir o outro livro ›
+                                        {t('Abrir o outro livro ›')}
                                     </Link>
                                 </>
                             )}
                         </div>
                     )}
 
-                    <Field label="Sinopse" error={form.errors.description}>
+                    <Field label={t('Sinopse')} error={form.errors.description}>
                         <Textarea
                             value={form.data.description}
                             onChange={(event) =>
@@ -642,11 +668,11 @@ export function BookEditor({
                             className="flex flex-wrap items-center gap-2 rounded-sm border border-warn-line bg-[#1a1610] px-3 py-2.5 text-[13px] text-warn"
                         >
                             <span className="flex-1">
-                                Descartar{' '}
                                 {changed === 1
-                                    ? 'a alteração'
-                                    : `${changed} alterações`}
-                                ?
+                                    ? t('Descartar a alteração?')
+                                    : t('Descartar :count alterações?', {
+                                          count: changed,
+                                      })}
                             </span>
                             <Button
                                 variant="ghost"
@@ -654,14 +680,14 @@ export function BookEditor({
                                 onClick={() => setConfirmClose(false)}
                                 className="h-8 bg-elevated px-2.5 text-xs"
                             >
-                                Continuar editando
+                                {t('Continuar editando')}
                             </Button>
                             <button
                                 type="button"
                                 onClick={onClose}
                                 className="h-8 rounded-sm bg-danger-fill px-2.5 text-xs font-semibold text-white"
                             >
-                                Descartar
+                                {t('Descartar')}
                             </button>
                         </div>
                     )}
@@ -673,14 +699,14 @@ export function BookEditor({
                         onClick={requestClose}
                         className="h-10 bg-elevated text-[13px]"
                     >
-                        Cancelar
+                        {t('Cancelar')}
                     </Button>
                     <Button
                         onClick={save}
                         disabled={form.processing || changed === 0}
                         className="h-10 text-[13px]"
                     >
-                        {form.processing ? 'Salvando…' : 'Salvar'}
+                        {form.processing ? t('Salvando…') : t('Salvar')}
                         <span className="font-mono text-[11px] opacity-85">
                             ⌘S
                         </span>

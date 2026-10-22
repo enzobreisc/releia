@@ -1,6 +1,7 @@
+import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 
-/** Capa do livro, ou um retângulo vazio com o título quando não há imagem. */
+/** The book cover, or an empty rectangle with the title when there is no image. */
 export function BookCover({
     src,
     title,
@@ -10,6 +11,8 @@ export function BookCover({
     title: string;
     className?: string;
 }) {
+    const { t } = useTranslation();
+
     return (
         <div
             className={cn(
@@ -20,7 +23,7 @@ export function BookCover({
             {src ? (
                 <img
                     src={src}
-                    alt={`Capa de ${title}`}
+                    alt={t('Capa de :title', { title })}
                     loading="lazy"
                     className="size-full object-cover"
                 />

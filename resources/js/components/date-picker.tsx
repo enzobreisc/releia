@@ -1,24 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { longDate, today } from '@/lib/dates';
+import { useTranslation } from '@/hooks/use-translation';
+import { today } from '@/lib/dates';
 import { cn } from '@/lib/utils';
-
-const MONTHS = [
-    'janeiro',
-    'fevereiro',
-    'março',
-    'abril',
-    'maio',
-    'junho',
-    'julho',
-    'agosto',
-    'setembro',
-    'outubro',
-    'novembro',
-    'dezembro',
-];
-
-const WEEKDAYS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
 function parse(value: string): Date {
     const [year, month, day] = value.split('-').map(Number);
@@ -42,8 +26,8 @@ function shift(value: string, days: number): string {
 }
 
 /**
- * Calendário próprio no lugar do `<input type="date">`, cujo seletor nativo
- * não combina com o tema. Valor em "2026-10-14" (vazio = sem data).
+ * Custom calendar in place of `<input type="date">`, whose native picker
+ * does not match the theme. Value as "2026-10-14" (empty = no date).
  */
 export function DatePicker({
     value,
@@ -52,7 +36,7 @@ export function DatePicker({
     max,
     disabled = false,
     clearable = false,
-    placeholder = 'dd/mm/aaaa',
+    placeholder,
     className,
     ...aria
 }: {
@@ -66,10 +50,11 @@ export function DatePicker({
     className?: string;
     'aria-label'?: string;
 }) {
+    const { t, longDate, languageTag } = useTranslation();
     const root = useRef<HTMLDivElement>(null);
     const trigger = useRef<HTMLButtonElement>(null);
     const [open, setOpen] = useState(false);
-    // Dia com o foco do teclado; o mês mostrado acompanha.
+    // Day with keyboard focus; the displayed month follows.
     const [focused, setFocused] = useState(value || today());
 
     const view = parse(focused);
@@ -139,7 +124,7 @@ export function DatePicker({
         };
 
         if (event.key === 'Escape') {
-            // O diálogo de fora também fecha com Esc; aqui fecha só o calendário.
+            // The outer dialog also closes on Esc; here only the calendar closes.
             event.preventDefault();
             event.stopPropagation();
             setOpen(false);
@@ -167,7 +152,7 @@ export function DatePicker({
             inMonth: date.getMonth() === view.getMonth(),
         };
     });
-    // A última semana só entra se tiver dia do mês.
+    // The last week only shows if it has a day of the month.
     const weeks = days.slice(35).some((day) => day.inMonth) ? 6 : 5;
 
     return (
@@ -191,7 +176,9 @@ export function DatePicker({
                     className,
                 )}
             >
-                <span>{value ? longDate(value) : placeholder}</span>
+                <span>
+                    {value ? longDate(value) : (placeholder ?? t('dd/mm/aaaa'))}
+                </span>
                 <svg
                     width="16"
                     height="16"
@@ -210,34 +197,37 @@ export function DatePicker({
             {open && (
                 <div
                     role="dialog"
-                    aria-label="Escolher data"
+                    aria-label={t('Escolher data')}
                     onKeyDown={onKeyDown}
                     className="absolute top-full left-0 z-60 mt-1.5 w-64 rounded-lg border border-strong bg-surface p-3 shadow-[0_16px_40px_rgba(0,0,0,0.55)]"
                 >
                     <div className="mb-2 flex items-center justify-between gap-1">
                         <NavButton
-                            label="Ano anterior"
+                            label={t('Ano anterior')}
                             onClick={() => moveMonth(-12)}
                         >
                             «
                         </NavButton>
                         <NavButton
-                            label="Mês anterior"
+                            label={t('Mês anterior')}
                             onClick={() => moveMonth(-1)}
                         >
                             ‹
                         </NavButton>
                         <span className="min-w-0 flex-1 text-center text-[13px] font-semibold">
-                            {MONTHS[view.getMonth()]} {view.getFullYear()}
+                            {view.toLocaleDateString(languageTag, {
+                                month: 'long',
+                            })}{' '}
+                            {view.getFullYear()}
                         </span>
                         <NavButton
-                            label="Próximo mês"
+                            label={t('Próximo mês')}
                             onClick={() => moveMonth(1)}
                         >
                             ›
                         </NavButton>
                         <NavButton
-                            label="Próximo ano"
+                            label={t('Próximo ano')}
                             onClick={() => moveMonth(12)}
                         >
                             »
@@ -245,8 +235,16 @@ export function DatePicker({
                     </div>
 
                     <div className="grid grid-cols-7 gap-0.5 pb-1 text-center font-mono text-[11px] text-faint">
-                        {WEEKDAYS.map((weekday, index) => (
-                            <span key={index}>{weekday}</span>
+                        {Array.from({ length: 7 }, (_, index) => (
+                            <span key={index}>
+                                {new Date(
+                                    2023,
+                                    0,
+                                    1 + index,
+                                ).toLocaleDateString(languageTag, {
+                                    weekday: 'narrow',
+                                })}
+                            </span>
                         ))}
                     </div>
 
@@ -303,7 +301,7 @@ export function DatePicker({
                             onClick={() => pick(today())}
                             className="rounded-sm px-2 py-1 text-accent hover:bg-elevated disabled:opacity-40"
                         >
-                            hoje
+                            {t('hoje')}
                         </button>
                         {clearable && value && (
                             <button
@@ -315,7 +313,7 @@ export function DatePicker({
                                 }}
                                 className="rounded-sm px-2 py-1 text-muted hover:bg-elevated hover:text-text"
                             >
-                                limpar
+                                {t('limpar')}
                             </button>
                         )}
                     </div>

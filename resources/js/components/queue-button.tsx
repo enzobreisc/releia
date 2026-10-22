@@ -1,11 +1,12 @@
 import { router } from '@inertiajs/react';
+import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { store } from '@/routes/queue';
 import { destroy as removeBook } from '@/routes/queue/books';
 
 /**
- * Alterna o livro na fila. Fora dela: "+ fila" põe no fim. Dentro: mostra a
- * posição ("na fila · 2º") e clicar tira da fila; o aviso oferece desfazer.
+ * Toggles the book in the queue. Outside it: "+ queue" puts it at the end. Inside: shows the
+ * position ("in queue · 2nd") and clicking removes it; the notice offers undo.
  */
 export function QueueButton({
     bookId,
@@ -16,13 +17,14 @@ export function QueueButton({
     position: number | null;
     className?: string;
 }) {
+    const { t, ordinal } = useTranslation();
     const queued = position !== null;
 
     return (
         <button
             type="button"
             aria-pressed={queued}
-            title={queued ? 'Tirar da fila' : 'Pôr no fim da fila'}
+            title={queued ? t('Tirar da fila') : t('Pôr no fim da fila')}
             onClick={() =>
                 queued
                     ? router.delete(removeBook(bookId).url, {
@@ -42,7 +44,9 @@ export function QueueButton({
                 className,
             )}
         >
-            {queued ? `na fila · ${position}º` : '+ fila'}
+            {queued
+                ? t('na fila · :position', { position: ordinal(position) })
+                : t('+ fila')}
         </button>
     );
 }

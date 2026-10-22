@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { SearchIcon } from '@/components/icons';
+import { useTranslation } from '@/hooks/use-translation';
 import { commandItems } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 
@@ -9,13 +10,14 @@ type CommandPaletteProps = {
     onClose: () => void;
 };
 
-/** "Ir para" (⌘P): busca rápida de telas. Livros entram na fase 1. */
+/** "Go to" (⌘P): quick search for screens. */
 export function CommandPalette({ onClose }: CommandPaletteProps) {
     const [query, setQuery] = useState('');
     const [selected, setSelected] = useState(0);
+    const { t } = useTranslation();
 
     const results = commandItems.filter((item) =>
-        normalize(item.title).includes(normalize(query)),
+        normalize(t(item.title)).includes(normalize(query)),
     );
 
     function go(href: string) {
@@ -51,7 +53,7 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
             <div
                 role="dialog"
                 aria-modal="true"
-                aria-label="Ir para"
+                aria-label={t('Ir para')}
                 className="w-full max-w-lg overflow-hidden rounded-md border bg-surface shadow-2xl shadow-black/60"
             >
                 <label className="flex items-center gap-3 border-b px-4 text-muted">
@@ -65,14 +67,14 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
                             setSelected(0);
                         }}
                         onKeyDown={onKeyDown}
-                        placeholder="Ir para…"
-                        aria-label="Buscar telas"
+                        placeholder={t('Ir para…')}
+                        aria-label={t('Buscar telas')}
                         className="h-12 flex-1 bg-transparent text-[15px] text-text outline-none placeholder:text-muted"
                     />
                 </label>
                 <ul
                     role="listbox"
-                    aria-label="Telas"
+                    aria-label={t('Telas')}
                     className="max-h-80 overflow-y-auto p-2"
                 >
                     {results.map((item, index) => (
@@ -93,13 +95,13 @@ export function CommandPalette({ onClose }: CommandPaletteProps) {
                                 )}
                             >
                                 <item.icon />
-                                {item.title}
+                                {t(item.title)}
                             </button>
                         </li>
                     ))}
                     {results.length === 0 && (
                         <li className="px-3 py-2.5 font-mono text-sm text-muted">
-                            nada encontrado
+                            {t('nada encontrado')}
                         </li>
                     )}
                 </ul>

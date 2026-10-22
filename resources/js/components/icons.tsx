@@ -1,8 +1,9 @@
 import type { SVGProps } from 'react';
+import { useTranslation } from '@/hooks/use-translation';
 
 export type IconProps = SVGProps<SVGSVGElement>;
 
-/** Ícones de linha, 16 px, traço de 1,5 px (identidade, seção 8). */
+/** Line icons, 16 px, 1.5 px stroke. */
 function LineIcon({ children, ...props }: IconProps) {
     return (
         <svg
@@ -142,7 +143,7 @@ export function ClockIcon(props: IconProps) {
     );
 }
 
-/** Alça de arrastar: seis pontos, preenchidos. */
+/** Drag handle: six filled dots. */
 export function GripIcon(props: IconProps) {
     return (
         <svg
@@ -172,8 +173,9 @@ export function SidebarIcon(props: IconProps) {
     );
 }
 
-/** Símbolo da releia: grade 3×3 em tons de azul do mapa de calor. */
+/** The releia mark: a 3×3 grid in the heat map's blues. */
 export function LogoMark({ size = 24 }: { size?: number }) {
+    const { t } = useTranslation();
     const cells = [
         ['#17365F', '#1F55A8', '#5B9BFF'],
         ['#1F55A8', '#5B9BFF', '#1F55A8'],
@@ -183,7 +185,7 @@ export function LogoMark({ size = 24 }: { size?: number }) {
     return (
         <svg
             role="img"
-            aria-label="Logo da releia"
+            aria-label={t('Logo da releia')}
             width={size}
             height={size}
             viewBox="0 0 64 64"

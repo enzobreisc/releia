@@ -24,7 +24,7 @@ import { show as wrappedShow } from '@/routes/wrapped';
 import { index as suggestionsIndex } from '@/routes/suggestions';
 import type { NavItem } from '@/types';
 
-/** Grupos da barra lateral, na ordem do escopo (seção 3). */
+/** Sidebar groups, in display order. */
 export const navGroups: NavItem[][] = [
     [
         { title: 'Início', href: home.url(), icon: HomeIcon },
@@ -68,7 +68,7 @@ export const addBookItem: NavItem = {
     icon: PlusIcon,
 };
 
-/** Tudo o que o "Ir para" (⌘P) encontra. Livros entram na fase 1. */
+/** Everything "Go to" (⌘P) can find. */
 export const commandItems: NavItem[] = [...navGroups.flat(), addBookItem];
 
 export function isActive(currentUrl: string, href: string): boolean {

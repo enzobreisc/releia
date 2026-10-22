@@ -3,9 +3,9 @@ import type { ReactNode } from 'react';
 
 type PageHeaderProps = {
     title: string;
-    /** Título da janela. Padrão: o próprio título. */
+    /** Window title. Defaults to the title itself. */
     headTitle?: string;
-    /** Trilha depois de "releia /". Padrão: título em minúsculas. */
+    /** Trail after "releia /". Defaults to the lowercased title. */
     crumb?: string | string[];
     description?: string;
     actions?: ReactNode;
@@ -50,7 +50,7 @@ export function PageHeader({
     );
 }
 
-/** Título de seção no estilo Markdown: "## lendo agora". */
+/** Markdown-style section title: "## reading now". */
 export function SectionTitle({ children }: { children: string }) {
     return (
         <h2 className="font-mono text-xs text-muted lowercase">

@@ -2,8 +2,8 @@ import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 
 /**
- * Markdown das notas. HTML cru no texto não é renderizado (padrão do react-markdown),
- * então o conteúdo digitado não vira marcação na tela.
+ * Markdown for notes. Raw HTML in the text is not rendered (react-markdown's default),
+ * so typed content never becomes markup on screen.
  */
 export function Markdown({
     source,

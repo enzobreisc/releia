@@ -23,7 +23,8 @@ import { SessionLog } from '@/components/session-log';
 import { StarRating } from '@/components/star-rating';
 import { STATUS_LABELS, StatusIcon, StatusMenu } from '@/components/status';
 import type { Status } from '@/components/status';
-import { monthYear, plural, shortDate } from '@/lib/dates';
+import { useTranslation } from '@/hooks/use-translation';
+import type { TranslationKey } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import {
     reading as readingRoute,
@@ -75,6 +76,7 @@ export default function Book({
     genres,
     lookup,
 }: BookProps) {
+    const { t, plural, monthYear, translateText, ordinal } = useTranslation();
     const status = (book.reading?.status ?? 'want_to_read') as Status;
     const current = readings.at(-1) ?? null;
     const previous =
@@ -89,7 +91,7 @@ export default function Book({
     const [editing, setEditing] = useState(false);
     const close = () => setDialog(null);
 
-    // ⌘E abre a edição dos dados.
+    // ⌘E opens the data editor.
     useEffect(() => {
         function onKeyDown(event: KeyboardEvent) {
             if (event.metaKey && event.key.toLowerCase() === 'e') {
@@ -107,7 +109,7 @@ export default function Book({
         router.patch(readingRoute.url(book.id), { status: next }, options);
     }
 
-    // Estante pelo menu: o que pede dados abre um painel; o resto muda na hora, com desfazer.
+    // Shelf from the menu: what needs data opens a panel; the rest changes right away, with undo.
     function pickStatus(next: Status) {
         if (status === 'read' && next === 'reading') {
             setDialog({ kind: 'back' });
@@ -120,30 +122,31 @@ export default function Book({
         }
     }
 
-    const primary: Record<Status, { label: string; run: () => void }> = {
-        want_to_read: {
-            label: 'Começar a ler',
-            run: () => setStatus('reading'),
-        },
-        reading: {
-            label: 'Terminei',
-            run: () => setDialog({ kind: 'finish' }),
-        },
-        read: {
-            label: 'Ler de novo',
-            run: () => setDialog({ kind: 'reread' }),
-        },
-        abandoned: { label: 'Retomar', run: () => setStatus('reading') },
-    };
+    const primary: Record<Status, { label: TranslationKey; run: () => void }> =
+        {
+            want_to_read: {
+                label: 'Começar a ler',
+                run: () => setStatus('reading'),
+            },
+            reading: {
+                label: 'Terminei',
+                run: () => setDialog({ kind: 'finish' }),
+            },
+            read: {
+                label: 'Ler de novo',
+                run: () => setDialog({ kind: 'reread' }),
+            },
+            abandoned: { label: 'Retomar', run: () => setStatus('reading') },
+        };
 
     const chips = [
-        book.pages && `${book.pages} págs`,
+        book.pages && t(':pages págs', { pages: book.pages }),
         book.publisher,
         book.published_year,
-        book.genre && `#${book.genre.toLowerCase()}`,
+        book.genre && `#${translateText(book.genre).toLowerCase()}`,
     ].filter(Boolean);
 
-    const tabs: { id: Tab; label: string; count?: number }[] = [
+    const tabs: { id: Tab; label: TranslationKey; count?: number }[] = [
         { id: 'sessions', label: 'Sessões', count: sessions.length },
         { id: 'notes', label: 'Notas', count: notes.length },
         { id: 'review', label: 'Resenha' },
@@ -158,12 +161,13 @@ export default function Book({
             <div className="flex items-center justify-between gap-3">
                 <div className="font-mono text-[13px] text-muted">
                     <Link href={libraryIndex.url()} className="hover:text-text">
-                        releia <span className="text-faint">/</span> biblioteca
+                        releia <span className="text-faint">/</span>{' '}
+                        {t('biblioteca')}
                     </Link>{' '}
                     <span className="text-faint">/</span> {slug}
                 </div>
                 <span className="font-mono text-[11px] text-faint">
-                    ⌘E edita
+                    {t('⌘E edita')}
                 </span>
             </div>
 
@@ -177,11 +181,20 @@ export default function Book({
                     <div className="flex flex-col gap-1.5">
                         {number > 1 && previous && (
                             <span className="self-start rounded-full bg-elevated px-2.5 py-1 font-mono text-[11px] text-nav">
-                                ↻ {number}ª leitura · a {previous.number}ª foi
-                                em{' '}
-                                {previous.finished_at
-                                    ? monthYear(previous.finished_at)
-                                    : '—'}
+                                ↻{' '}
+                                {t(
+                                    ':ordinal leitura · a :previous foi em :date',
+                                    {
+                                        ordinal: ordinal(number, 'feminine'),
+                                        previous: ordinal(
+                                            previous.number,
+                                            'feminine',
+                                        ),
+                                        date: previous.finished_at
+                                            ? monthYear(previous.finished_at)
+                                            : '—',
+                                    },
+                                )}
                                 {previous.rating ? `, ★${previous.rating}` : ''}
                             </span>
                         )}
@@ -195,7 +208,7 @@ export default function Book({
                         )}
                         <p className="text-base text-nav">
                             {book.author_links.length === 0
-                                ? 'Autor desconhecido'
+                                ? t('Autor desconhecido')
                                 : book.author_links.map((author, index) => (
                                       <span key={author.id}>
                                           {index > 0 && ', '}
@@ -233,8 +246,8 @@ export default function Book({
                             status={status}
                             label={
                                 status === 'want_to_read' && number > 1
-                                    ? 'Quero reler'
-                                    : STATUS_LABELS[status]
+                                    ? t('Quero reler')
+                                    : t(STATUS_LABELS[status])
                             }
                             onPick={pickStatus}
                         />
@@ -256,7 +269,7 @@ export default function Book({
                                 onClick={primary[status].run}
                                 className="h-10"
                             >
-                                {primary[status].label}
+                                {t(primary[status].label)}
                             </Button>
                             {status === 'want_to_read' && (
                                 <QueueButton
@@ -275,7 +288,7 @@ export default function Book({
                                             }}
                                             hint="⌘E"
                                         >
-                                            Editar dados do livro
+                                            {t('Editar dados do livro')}
                                         </MenuItem>
                                         {status === 'want_to_read' &&
                                             readings.length <= 1 &&
@@ -291,7 +304,7 @@ export default function Book({
                                                         );
                                                     }}
                                                 >
-                                                    Mover para compras
+                                                    {t('Mover para compras')}
                                                 </MenuItem>
                                             )}
                                         {current &&
@@ -305,7 +318,9 @@ export default function Book({
                                                         });
                                                     }}
                                                 >
-                                                    Editar datas da leitura
+                                                    {t(
+                                                        'Editar datas da leitura',
+                                                    )}
                                                 </MenuItem>
                                             )}
                                         {status === 'read' && (
@@ -317,7 +332,7 @@ export default function Book({
                                                     });
                                                 }}
                                             >
-                                                Desmarcar como lido…
+                                                {t('Desmarcar como lido…')}
                                             </MenuItem>
                                         )}
                                         <div className="mx-1.5 my-1 h-px bg-border" />
@@ -328,7 +343,7 @@ export default function Book({
                                                 setDialog({ kind: 'remove' });
                                             }}
                                         >
-                                            Remover da biblioteca…
+                                            {t('Remover da biblioteca…')}
                                         </MenuItem>
                                     </>
                                 )}
@@ -347,19 +362,36 @@ export default function Book({
                     <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-1">
                         <p className="text-[15px] font-semibold">
                             {number > 1
-                                ? 'Releitura planejada'
-                                : 'Ainda não começou'}
+                                ? t('Releitura planejada')
+                                : t('Ainda não começou')}
                         </p>
                         <p className="text-[13px] text-muted">
                             {progress?.pages && progress.pace
-                                ? `No seu ritmo (${Math.round(progress.pace)} págs/dia), ${progress.pages} páginas levam ~${plural(Math.ceil((progress.pages - progress.current_page) / progress.pace), 'dia', 'dias')}. `
+                                ? `${t(
+                                      'No seu ritmo (:pace págs/dia), :pages páginas levam ~:duration.',
+                                      {
+                                          pace: Math.round(progress.pace),
+                                          pages: progress.pages,
+                                          duration: plural(
+                                              Math.ceil(
+                                                  (progress.pages -
+                                                      progress.current_page) /
+                                                      progress.pace,
+                                              ),
+                                              'dia',
+                                              'dias',
+                                          ),
+                                      },
+                                  )} `
                                 : ''}
                             {queue_position !== null
-                                ? `Está em ${queue_position}º na fila.`
-                                : 'Fora da fila.'}
+                                ? t('Está em :position na fila.', {
+                                      position: ordinal(queue_position),
+                                  })
+                                : t('Fora da fila.')}
                             {progress &&
                                 progress.current_page > 0 &&
-                                ` Parou na p. ${progress.current_page}; ao começar, continua dela.`}
+                                ` ${t('Parou na p. :page; ao começar, continua dela.', { page: progress.current_page })}`}
                         </p>
                     </div>
                 </section>
@@ -383,8 +415,10 @@ export default function Book({
                     tone="read"
                     title={
                         current.days
-                            ? `Lido em ${plural(current.days, 'dia', 'dias')}`
-                            : 'Lido'
+                            ? t('Lido em :duration', {
+                                  duration: plural(current.days, 'dia', 'dias'),
+                              })
+                            : t('Lido')
                     }
                     reading={current}
                     onEditDates={() =>
@@ -393,7 +427,7 @@ export default function Book({
                     extra={
                         current.rating === null && (
                             <span className="text-[13px] text-warn">
-                                sem nota ainda: dê estrelas acima
+                                {t('sem nota ainda: dê estrelas acima')}
                             </span>
                         )
                     }
@@ -403,14 +437,27 @@ export default function Book({
             {status === 'abandoned' && current && (
                 <ClosedCard
                     tone="abandoned"
-                    title={`Abandonado na p. ${current.current_page}${book.pages ? ` de ${book.pages}` : ''}`}
+                    title={
+                        book.pages
+                            ? t('Abandonado na p. :page de :pages', {
+                                  page: current.current_page,
+                                  pages: book.pages,
+                              })
+                            : t('Abandonado na p. :page', {
+                                  page: current.current_page,
+                              })
+                    }
                     reading={current}
                     onEditDates={() =>
                         setDialog({ kind: 'dates', reading: current })
                     }
                     extra={
                         <span className="text-[13px] text-muted">
-                            motivo: {current.abandon_reason ?? 'não informado'}
+                            {t('motivo: :reason', {
+                                reason:
+                                    current.abandon_reason ??
+                                    t('não informado'),
+                            })}
                         </span>
                     }
                 />
@@ -419,7 +466,7 @@ export default function Book({
             <section className="flex flex-col gap-1">
                 <div
                     role="tablist"
-                    aria-label="Detalhes"
+                    aria-label={t('Detalhes')}
                     className="flex gap-0.5 border-b"
                 >
                     {tabs.map((item) => (
@@ -436,7 +483,7 @@ export default function Book({
                                     : 'border-transparent text-muted hover:text-text',
                             )}
                         >
-                            {item.label}
+                            {t(item.label)}
                             {item.count !== undefined && (
                                 <span className="ml-1.5 font-mono text-[11px] text-faint">
                                     {item.count}
@@ -451,7 +498,9 @@ export default function Book({
                         sessions={sessions}
                         emptyText={
                             number > 1
-                                ? 'Nenhuma sessão nesta leitura. Registre a página em que você parou.'
+                                ? t(
+                                      'Nenhuma sessão nesta leitura. Registre a página em que você parou.',
+                                  )
                                 : undefined
                         }
                     />
@@ -459,13 +508,15 @@ export default function Book({
                 {tab === 'notes' && (
                     <BookNotes bookId={book.id} notes={notes} />
                 )}
-                {/* A resenha fica montada: o rascunho não se perde ao trocar de aba. */}
+                {/* The review stays mounted: the draft is not lost when switching tabs. */}
                 <div hidden={tab !== 'review'}>
                     <ReviewForm
                         key={current?.id ?? 'none'}
                         bookId={book.id}
                         review={book.reading?.review ?? ''}
-                        label={`${number}ª leitura`}
+                        label={t(':ordinal leitura', {
+                            ordinal: ordinal(number, 'feminine'),
+                        })}
                         active={tab === 'review'}
                     />
                 </div>
@@ -484,7 +535,7 @@ export default function Book({
             </section>
 
             <p className="font-mono text-[11px] text-faint">
-                dados: {book.source_label}
+                {t('dados: :source', { source: book.source_label })}
             </p>
 
             {dialog?.kind === 'finish' && current && (
@@ -553,8 +604,9 @@ export default function Book({
     );
 }
 
-/** Sinopse com no máximo três linhas, expansível. */
+/** Synopsis limited to three lines, expandable. */
 function Description({ text }: { text: string }) {
+    const { t } = useTranslation();
     const [open, setOpen] = useState(false);
 
     return (
@@ -572,18 +624,19 @@ function Description({ text }: { text: string }) {
                 onClick={() => setOpen(!open)}
                 className="font-mono text-xs text-accent hover:underline"
             >
-                {open ? '− menos' : '+ sinopse completa'}
+                {open ? t('− menos') : t('+ sinopse completa')}
             </button>
         </div>
     );
 }
 
-/** Ações raras ficam no "⋯", longe dos cliques do dia a dia. */
+/** Rare actions live under "⋯", away from everyday clicks. */
 function MoreMenu({
     children,
 }: {
     children: (close: () => void) => ReactNode;
 }) {
+    const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
@@ -617,7 +670,7 @@ function MoreMenu({
         <div ref={ref} className="relative">
             <button
                 type="button"
-                aria-label="Mais ações"
+                aria-label={t('Mais ações')}
                 aria-haspopup="menu"
                 aria-expanded={open}
                 onClick={() => setOpen(!open)}
@@ -683,6 +736,7 @@ function ProgressCard({
     onFinish: () => void;
     onEditDates: () => void;
 }) {
+    const { t, shortDate, ordinal } = useTranslation();
     const finishesOn =
         progress.days_left === null
             ? null
@@ -697,30 +751,37 @@ function ProgressCard({
 
     const stats = [
         {
-            label: 'ritmo',
+            label: t('ritmo'),
             value:
                 progress.pace === null
                     ? '—'
-                    : `${Math.round(progress.pace)} págs/dia`,
+                    : t(':pages págs/dia', {
+                          pages: Math.round(progress.pace),
+                      }),
         },
-        { label: 'termina', value: finishesOn ? `~${finishesOn}` : '—' },
-        { label: 'sessões', value: String(reading.sessions_count) },
+        {
+            label: t('termina'),
+            value: finishesOn ? `~${finishesOn}` : '—',
+        },
+        { label: t('sessões'), value: String(reading.sessions_count) },
     ];
 
     return (
         <section
-            aria-label="Progresso"
+            aria-label={t('Progresso')}
             className="flex flex-col rounded-md border bg-surface"
         >
             <div className="flex flex-wrap items-end justify-between gap-4 px-5 pt-4.5 pb-3.5">
                 <div className="flex flex-col gap-1">
                     <SectionTitle>
                         {reading.number > 1
-                            ? `progresso · ${reading.number}ª leitura`
-                            : 'progresso'}
+                            ? t('progresso · :ordinal leitura', {
+                                  ordinal: ordinal(reading.number, 'feminine'),
+                              })
+                            : t('progresso')}
                     </SectionTitle>
                     <p className="font-mono text-[30px] font-bold">
-                        pág. {progress.current_page}{' '}
+                        {t('pág. :page', { page: progress.current_page })}{' '}
                         {progress.pages !== null && (
                             <span className="text-base font-medium text-muted">
                                 / {progress.pages} · {progress.percent}%
@@ -741,13 +802,13 @@ function ProgressCard({
                     ))}
                     <div>
                         <dt className="font-mono text-[11px] text-muted">
-                            começou
+                            {t('começou')}
                         </dt>
                         <dd className="mt-0.5">
                             <button
                                 type="button"
                                 onClick={onEditDates}
-                                title="Editar data de início"
+                                title={t('Editar data de início')}
                                 className="font-mono text-[15px] font-bold hover:text-accent"
                             >
                                 {reading.started_at
@@ -771,9 +832,11 @@ function ProgressCard({
 
             {progress.finish_suggested && (
                 <div className="mx-5 mt-3.5 flex flex-wrap items-center gap-3 rounded-sm border border-primary bg-active px-3.5 py-3 text-sm">
-                    <span className="flex-1">Você chegou à última página.</span>
+                    <span className="flex-1">
+                        {t('Você chegou à última página.')}
+                    </span>
                     <Button onClick={onFinish} className="h-9 text-[13px]">
-                        Terminar e avaliar
+                        {t('Terminar e avaliar')}
                     </Button>
                 </div>
             )}
@@ -783,8 +846,9 @@ function ProgressCard({
                     <SessionForm bookId={bookId} progress={progress} />
                 ) : (
                     <p className="text-sm text-muted">
-                        Para registrar sessões, a leitura precisa estar em
-                        andamento.
+                        {t(
+                            'Para registrar sessões, a leitura precisa estar em andamento.',
+                        )}
                     </p>
                 )}
             </div>
@@ -792,7 +856,7 @@ function ProgressCard({
     );
 }
 
-/** Cartão de leitura fechada: lida ou abandonada, com as datas editáveis. */
+/** Closed reading card: read or abandoned, with editable dates. */
 function ClosedCard({
     tone,
     title,
@@ -806,11 +870,12 @@ function ClosedCard({
     extra?: ReactNode;
     onEditDates: () => void;
 }) {
+    const { t, plural, shortDate } = useTranslation();
     const details = [
         plural(reading.sessions_count, 'sessão', 'sessões'),
         reading.pages_per_day !== null &&
             tone === 'read' &&
-            `${Math.round(reading.pages_per_day)} págs/dia`,
+            t(':pages págs/dia', { pages: Math.round(reading.pages_per_day) }),
     ].filter(Boolean);
 
     return (
@@ -827,7 +892,7 @@ function ClosedCard({
             <button
                 type="button"
                 onClick={onEditDates}
-                title="Editar datas"
+                title={t('Editar datas')}
                 className="font-mono text-[13px] text-nav hover:text-text"
             >
                 {reading.started_at ? shortDate(reading.started_at) : '—'} →{' '}
@@ -853,6 +918,7 @@ function ReviewForm({
     label: string;
     active: boolean;
 }) {
+    const { t } = useTranslation();
     const form = useForm({ review });
 
     function save(event?: FormEvent) {
@@ -868,7 +934,7 @@ function ReviewForm({
         });
     }
 
-    // ⌘S salva a resenha enquanto a aba está aberta.
+    // ⌘S saves the review while the tab is open.
     useEffect(() => {
         if (!active) {
             return;
@@ -889,16 +955,18 @@ function ReviewForm({
     return (
         <form onSubmit={save} className="flex flex-col gap-2.5 pt-3">
             <span className="font-mono text-[11px] text-muted">
-                resenha · {label} · cada leitura tem a sua
+                {t('resenha · :label · cada leitura tem a sua', { label })}
             </span>
             <label htmlFor="review" className="sr-only">
-                Resenha
+                {t('Resenha')}
             </label>
             <Textarea
                 id="review"
                 value={form.data.review}
                 onChange={(event) => form.setData('review', event.target.value)}
-                placeholder="O que você achou do livro? Ideias, trechos, impressões."
+                placeholder={t(
+                    'O que você achou do livro? Ideias, trechos, impressões.',
+                )}
                 className="min-h-36 leading-relaxed"
             />
             <div className="flex items-center justify-between gap-3">
@@ -909,24 +977,24 @@ function ReviewForm({
                     )}
                 >
                     {form.recentlySuccessful
-                        ? 'salvo'
+                        ? t('salvo')
                         : form.isDirty
-                          ? 'alterações não salvas · ⌘S salva'
-                          : 'markdown · ⌘S salva'}
+                          ? t('alterações não salvas · ⌘S salva')
+                          : t('markdown · ⌘S salva')}
                 </span>
                 <Button
                     type="submit"
                     variant="ghost"
                     disabled={!form.isDirty || form.processing}
                 >
-                    {form.processing ? 'Salvando…' : 'Salvar resenha'}
+                    {form.processing ? t('Salvando…') : t('Salvar resenha')}
                 </Button>
             </div>
         </form>
     );
 }
 
-/** Aba Leituras: o histórico do livro, a mais recente primeiro, com a comparação. */
+/** Readings tab: the book's history, most recent first, with the comparison. */
 function ReadingsTab({
     readings,
     pages,
@@ -938,6 +1006,7 @@ function ReadingsTab({
     onEditDates: (reading: ReadingHistory) => void;
     onDelete: (reading: ReadingHistory) => void;
 }) {
+    const { t, plural, shortDate, ordinal } = useTranslation();
     const [open, setOpen] = useState<number | null>(null);
     const finished = readings.filter((item) => item.status === 'read');
 
@@ -949,9 +1018,19 @@ function ReadingsTab({
                 const expanded = open === item.id;
                 const detail =
                     item.status === 'want_to_read'
-                        ? 'ainda não começou'
+                        ? t('ainda não começou')
                         : item.status === 'reading'
-                          ? `desde ${item.started_at ? shortDate(item.started_at) : '—'} · p. ${item.current_page}${pages ? ` de ${pages}` : ''}`
+                          ? t('desde :date · p. :page', {
+                                date: item.started_at
+                                    ? shortDate(item.started_at)
+                                    : '—',
+                                page: pages
+                                    ? t(':page de :pages', {
+                                          page: item.current_page,
+                                          pages,
+                                      })
+                                    : item.current_page,
+                            })
                           : [
                                 item.started_at && item.finished_at
                                     ? `${shortDate(item.started_at)} → ${shortDate(item.finished_at)} ${item.finished_at.slice(0, 4)}`
@@ -963,7 +1042,9 @@ function ReadingsTab({
                                     'sessões',
                                 ),
                                 item.abandon_reason &&
-                                    `motivo: ${item.abandon_reason}`,
+                                    t('motivo: :reason', {
+                                        reason: item.abandon_reason,
+                                    }),
                             ]
                                 .filter(Boolean)
                                 .join(' · ');
@@ -978,7 +1059,9 @@ function ReadingsTab({
                     >
                         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3.5">
                             <span className="font-mono text-[13px] font-bold">
-                                {item.number}ª leitura
+                                {t(':ordinal leitura', {
+                                    ordinal: ordinal(item.number, 'feminine'),
+                                })}
                             </span>
                             <span className="inline-flex items-center gap-1.5 text-[13px]">
                                 <StatusIcon status={item.status} size={10} />
@@ -989,7 +1072,9 @@ function ReadingsTab({
                             </span>
                             {item.rating !== null && (
                                 <span
-                                    aria-label={`Nota ${item.rating} de 5`}
+                                    aria-label={t('Nota :rating de 5', {
+                                        rating: item.rating,
+                                    })}
                                     className="font-mono text-xs text-accent"
                                 >
                                     {'★'.repeat(item.rating)}
@@ -1006,8 +1091,8 @@ function ReadingsTab({
                                         className="text-accent hover:underline"
                                     >
                                         {expanded
-                                            ? 'fechar'
-                                            : 'sessões e resenha ›'}
+                                            ? t('fechar')
+                                            : t('sessões e resenha ›')}
                                     </button>
                                 )}
                                 {item.status !== 'want_to_read' && (
@@ -1016,7 +1101,7 @@ function ReadingsTab({
                                         onClick={() => onEditDates(item)}
                                         className="text-muted hover:text-text"
                                     >
-                                        datas
+                                        {t('datas')}
                                     </button>
                                 )}
                                 {readings.length > 1 && (
@@ -1025,7 +1110,7 @@ function ReadingsTab({
                                         onClick={() => onDelete(item)}
                                         className="text-muted hover:text-danger"
                                     >
-                                        apagar
+                                        {t('apagar')}
                                     </button>
                                 )}
                             </span>
@@ -1036,7 +1121,7 @@ function ReadingsTab({
                                 {item.review && (
                                     <div className="flex flex-col gap-1">
                                         <span className="font-mono text-[11px] text-muted">
-                                            ## resenha
+                                            ## {t('resenha')}
                                         </span>
                                         <p className="text-sm leading-relaxed whitespace-pre-line text-[#c9d3e3]">
                                             {item.review}
@@ -1052,9 +1137,13 @@ function ReadingsTab({
     );
 }
 
-/** Leituras terminadas lado a lado: duração, ritmo, sessões e nota. Só com você mesmo. */
+/** Finished readings side by side: duration, pace, sessions and rating. Only against yourself. */
 function Comparison({ readings }: { readings: ReadingHistory[] }) {
-    const rows: { label: string; value: (item: ReadingHistory) => string }[] = [
+    const { t, plural, monthYear, ordinal } = useTranslation();
+    const rows: {
+        label: TranslationKey;
+        value: (item: ReadingHistory) => string;
+    }[] = [
         {
             label: 'duração',
             value: (item) =>
@@ -1064,12 +1153,14 @@ function Comparison({ readings }: { readings: ReadingHistory[] }) {
             label: 'ritmo',
             value: (item) =>
                 item.pages_per_day
-                    ? `${Math.round(item.pages_per_day)} págs/dia`
+                    ? t(':pages págs/dia', {
+                          pages: Math.round(item.pages_per_day),
+                      })
                     : '—',
         },
         { label: 'sessões', value: (item) => String(item.sessions_count) },
         {
-            label: 'nota',
+            label: 'Nota',
             value: (item) => (item.rating ? '★'.repeat(item.rating) : '—'),
         },
     ];
@@ -1084,14 +1175,14 @@ function Comparison({ readings }: { readings: ReadingHistory[] }) {
             <span />
             {readings.map((item) => (
                 <span key={item.id} className="text-muted">
-                    {item.number}ª ·{' '}
+                    {ordinal(item.number, 'feminine')} ·{' '}
                     {item.finished_at ? monthYear(item.finished_at) : '—'}
                 </span>
             ))}
             {rows.map((row) => (
                 <ComparisonRow
                     key={row.label}
-                    label={row.label}
+                    label={t(row.label).toLowerCase()}
                     values={readings.map(row.value)}
                 />
             ))}

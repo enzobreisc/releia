@@ -1,10 +1,22 @@
+import type { useTranslation } from '@/hooks/use-translation';
+import type { TranslationKey } from '@/lib/i18n';
 import type { Bookshelf, SpineBook } from '@/types';
 
-/** `given` mantém a ordem recebida (o Perfil manda os livros por data de término). */
-export type ShelfGroup =
-    'genre' | 'author' | 'title' | 'year' | 'custom' | 'given';
+type Translator = Pick<
+    ReturnType<typeof useTranslation>,
+    't' | 'translateText'
+>;
 
-export const SHELF_GROUPS: { value: ShelfGroup; label: string }[] = [
+/** `given` keeps the received order (the Profile sends books by finish date). */
+export type ShelfGroup =
+    | 'genre'
+    | 'author'
+    | 'title'
+    | 'year'
+    | 'custom'
+    | 'given';
+
+export const SHELF_GROUPS: { value: ShelfGroup; label: TranslationKey }[] = [
     { value: 'genre', label: 'Gênero' },
     { value: 'author', label: 'Autor (A–Z)' },
     { value: 'title', label: 'Título (A–Z)' },
@@ -14,15 +26,15 @@ export const SHELF_GROUPS: { value: ShelfGroup; label: string }[] = [
 
 export type ShelfSection = {
     key: string;
-    /** Nome da prateleira; sem nome, a seção é só uma estante contínua. */
+    /** Shelf name; without one, the section is just a continuous shelf. */
     label: string | null;
     books: SpineBook[];
-    /** Só nas prateleiras personalizadas: onde soltar um livro. */
+    /** Only on custom shelves: where a book can be dropped. */
     bookshelfId?: number | null;
     renamable?: boolean;
 };
 
-/** Cores de lombada: fundo e texto, foscas para combinar com o tema escuro. */
+/** Spine colors: background and text, matte to match the dark theme. */
 const PALETTE: [string, string][] = [
     ['#7a2e2e', '#f6e3d8'],
     ['#2f4f6f', '#e3eef8'],
@@ -63,9 +75,9 @@ function luminance([r, g, b]: number[]): number {
 }
 
 /**
- * Cores da capa: a mais frequente entre as que têm cor (tons quase brancos, pretos ou
- * cinzas pesam pouco) vira o fundo; a segunda, bem diferente da primeira, vira a faixa.
- * O texto é claro ou escuro conforme o fundo. Sem capa legível, devolve null.
+ * Cover colors: the most frequent among those with color (near-white, black or
+ * gray tones weigh little) becomes the background; the second, quite different from the first, becomes the stripe.
+ * The text is light or dark depending on the background. Without a readable cover, returns null.
  */
 export function extractColors(src: string): Promise<SpineColors | null> {
     const cached = extracted.get(src);
@@ -104,7 +116,7 @@ export function extractColors(src: string): Promise<SpineColors | null> {
                     const min = Math.min(r, g, b);
                     const saturation = max === 0 ? 0 : (max - min) / max;
                     const light = max / 255;
-                    // Fundo branco/preto de capa e cinzas não dizem qual é o livro.
+                    // White/black cover backgrounds and grays do not say which book it is.
                     const weight =
                         0.15 +
                         saturation *
@@ -157,7 +169,7 @@ export function extractColors(src: string): Promise<SpineColors | null> {
     return promise;
 }
 
-/** Cor provisória (e reserva, sem capa): sai do título, para não ficar tudo igual. */
+/** Provisional color (and fallback, without a cover): derived from the title, so not everything looks the same. */
 export function spineColors(book: SpineBook): SpineColors {
     const [bg, fg] =
         PALETTE[hash(`${book.title}${book.author ?? ''}`) % PALETTE.length];
@@ -165,7 +177,7 @@ export function spineColors(book: SpineBook): SpineColors {
     return { bg, fg, accent: fg };
 }
 
-/** Espessura e altura pelas páginas, com uma variação fixa por livro para não ficar uniforme. */
+/** Thickness and height from the pages, with a fixed variation per book so it is not uniform. */
 export function spineSize(book: SpineBook): { width: number; height: number } {
     const pages = Math.min(book.pages ?? 280, 800);
     const jitter = hash(String(book.id)) % 17;
@@ -186,7 +198,7 @@ const SUFFIXES = new Set([
     'sobrinho',
 ]);
 
-/** "Itamar Vieira Junior" → "vieira": sobrenome para ordenar, sem acento nem caixa. */
+/** "Itamar Vieira Junior" → "vieira": surname for sorting, without accents or case. */
 function surname(author: string | null): string {
     const words = (author ?? '').trim().split(/\s+/).filter(Boolean);
 
@@ -225,6 +237,7 @@ export function buildSections(
     books: SpineBook[],
     group: ShelfGroup,
     bookshelves: Bookshelf[],
+    translator: Translator,
 ): ShelfSection[] {
     switch (group) {
         case 'given':
@@ -242,15 +255,18 @@ export function buildSections(
                 { key: 'title', label: null, books: [...books].sort(byTitle) },
             ];
         case 'year':
-            return decades(books);
+            return decades(books, translator);
         case 'genre':
-            return genres(books);
+            return genres(books, translator);
         case 'custom':
-            return custom(books, bookshelves);
+            return custom(books, bookshelves, translator);
     }
 }
 
-function genres(books: SpineBook[]): ShelfSection[] {
+function genres(
+    books: SpineBook[],
+    { t, translateText }: Translator,
+): ShelfSection[] {
     const map = new Map<string, SpineBook[]>();
 
     for (const book of books) {
@@ -268,12 +284,12 @@ function genres(books: SpineBook[]): ShelfSection[] {
         )
         .map(([genre, list]) => ({
             key: `genre:${genre}`,
-            label: genre || 'Sem gênero',
+            label: genre ? translateText(genre) : t('Sem gênero'),
             books: list.sort(byAuthor),
         }));
 }
 
-function decades(books: SpineBook[]): ShelfSection[] {
+function decades(books: SpineBook[], { t }: Translator): ShelfSection[] {
     const map = new Map<number | null, SpineBook[]>();
 
     for (const book of books) {
@@ -288,12 +304,17 @@ function decades(books: SpineBook[]): ShelfSection[] {
         .sort(([a], [b]) => (a ?? 9999) - (b ?? 9999))
         .map(([decade, list]) => ({
             key: `decade:${decade}`,
-            label: decade === null ? 'Sem ano' : `Anos ${decade}`,
+            label:
+                decade === null ? t('Sem ano') : t('Anos :decade', { decade }),
             books: list.sort(byYear),
         }));
 }
 
-function custom(books: SpineBook[], bookshelves: Bookshelf[]): ShelfSection[] {
+function custom(
+    books: SpineBook[],
+    bookshelves: Bookshelf[],
+    { t }: Translator,
+): ShelfSection[] {
     const sections: ShelfSection[] = bookshelves.map((shelf) => ({
         key: `shelf:${shelf.id}`,
         label: shelf.name,
@@ -306,7 +327,7 @@ function custom(books: SpineBook[], bookshelves: Bookshelf[]): ShelfSection[] {
 
     sections.push({
         key: 'shelf:none',
-        label: 'Sem prateleira',
+        label: t('Sem prateleira'),
         bookshelfId: null,
         books: books.filter((book) => book.bookshelf_id === null).sort(byTitle),
     });
@@ -314,7 +335,7 @@ function custom(books: SpineBook[], bookshelves: Bookshelf[]): ShelfSection[] {
     return sections;
 }
 
-/** Divide uma prateleira em fileiras que cabem na largura, como os livros em pé numa estante real. */
+/** Splits a shelf into rows that fit the width, like upright books on a real bookcase. */
 export function chunkRows(books: SpineBook[], width: number): SpineBook[][] {
     const rows: SpineBook[][] = [];
     let row: SpineBook[] = [];

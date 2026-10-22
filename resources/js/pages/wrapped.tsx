@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { BookCover } from '@/components/book-cover';
 import { buttonClass, Field, Select } from '@/components/form';
 import { PageHeader, SectionTitle } from '@/components/page-header';
+import { useTranslation } from '@/hooks/use-translation';
 import { show as wrappedShow } from '@/routes/wrapped';
 import type { NamedCount, ReadingRef } from '@/types';
 
@@ -18,14 +19,14 @@ type WrappedProps = {
     best_month: { label: string; count: number } | null;
     streak: number;
     top: ReadingRef[];
-    /** Títulos relidos e terminados no ano. */
+    /** Titles reread and finished in the year. */
     rereads: string[];
 };
 
 const card =
     'flex min-w-0 flex-[1_1_220px] flex-col gap-2 rounded-md border bg-surface p-5';
 
-/** Cartão de destaque: rótulo, valor grande e uma linha de apoio. */
+/** Highlight card: label, big value and a supporting line. */
 function Highlight({
     label,
     value,
@@ -46,11 +47,14 @@ function Highlight({
     );
 }
 
-function readingNote(reading: ReadingRef) {
+function readingNote(
+    reading: ReadingRef,
+    plural: ReturnType<typeof useTranslation>['plural'],
+) {
     const parts = [reading.authors];
 
     if (reading.days !== null) {
-        parts.push(`${reading.days} ${reading.days === 1 ? 'dia' : 'dias'}`);
+        parts.push(plural(reading.days, 'dia', 'dias'));
     }
 
     return parts.filter(Boolean).join(' · ');
@@ -69,11 +73,12 @@ export default function Wrapped({
     top,
     rereads,
 }: WrappedProps) {
+    const { t, plural, translateText, ordinal } = useTranslation();
     const exportRef = useRef<HTMLDivElement>(null);
     const [exporting, setExporting] = useState(false);
     const [exportError, setExportError] = useState<string | null>(null);
 
-    /** Gera o PNG do conteúdo e dispara o download. Falhas aparecem na tela. */
+    /** Renders the content to PNG and triggers the download. Failures show on screen. */
     async function exportImage() {
         if (!exportRef.current) {
             return;
@@ -92,8 +97,10 @@ export default function Wrapped({
             link.download = `releia-wrapped-${year}.png`;
             link.click();
         } catch {
-            // Fontes externas de outra origem costumam impedir a leitura do CSS.
-            setExportError('Não foi possível gerar a imagem. Tente de novo.');
+            // Cross-origin external fonts often prevent reading the CSS.
+            setExportError(
+                t('Não foi possível gerar a imagem. Tente de novo.'),
+            );
         } finally {
             setExporting(false);
         }
@@ -101,10 +108,10 @@ export default function Wrapped({
 
     return (
         <>
-            <PageHeader title="Wrapped" headTitle={`Wrapped ${year}`} />
+            <PageHeader title={t('Wrapped')} headTitle={`Wrapped ${year}`} />
 
             <div className="flex flex-wrap items-end gap-3">
-                <Field label="Ano" className="w-40">
+                <Field label={t('Ano')} className="w-40">
                     <Select
                         value={String(year)}
                         onChange={(event) =>
@@ -128,7 +135,9 @@ export default function Wrapped({
                     disabled={exporting}
                     className={buttonClass('ghost')}
                 >
-                    {exporting ? 'Gerando imagem…' : 'Exportar como imagem'}
+                    {exporting
+                        ? t('Gerando imagem…')
+                        : t('Exportar como imagem')}
                 </button>
                 {exportError && (
                     <p role="alert" className="text-sm text-red-300">
@@ -142,69 +151,76 @@ export default function Wrapped({
                 className="flex flex-col gap-6 rounded-md bg-bg p-1"
             >
                 <section className="flex flex-col gap-3 rounded-md border border-[#243e6b] bg-[#12233f] p-10">
-                    <SectionTitle>seu ano em livros</SectionTitle>
+                    <SectionTitle>{t('seu ano em livros')}</SectionTitle>
                     <h2 className="font-mono text-[56px] leading-none font-bold">
                         {year}
                     </h2>
                     <p className="text-lg text-[#a9b8d0]">
-                        Você leu{' '}
+                        {t('Você leu')}{' '}
                         <strong className="text-white">
-                            {summary.books_read}{' '}
-                            {summary.books_read === 1 ? 'livro' : 'livros'}
+                            {plural(summary.books_read, 'livro', 'livros')}
                         </strong>{' '}
-                        e{' '}
+                        {t('e')}{' '}
                         <strong className="text-white">
-                            {summary.pages_read} páginas
+                            {plural(summary.pages_read, 'página', 'páginas')}
                         </strong>{' '}
-                        neste ano.
+                        {t('neste ano.')}
                     </p>
                 </section>
 
                 <div className="flex flex-wrap gap-4">
                     <Highlight
-                        label="gênero favorito"
-                        value={genre?.label ?? '—'}
+                        label={t('gênero favorito')}
+                        value={genre ? translateText(genre.label) : '—'}
                         note={
                             genre
-                                ? `${genre.count} ${genre.count === 1 ? 'livro' : 'livros'}`
+                                ? plural(genre.count, 'livro', 'livros')
                                 : undefined
                         }
                     />
                     <Highlight
-                        label="autor mais lido"
+                        label={t('autor mais lido')}
                         value={author?.label ?? '—'}
                         note={
                             author
-                                ? `${author.count} ${author.count === 1 ? 'livro' : 'livros'}`
+                                ? plural(author.count, 'livro', 'livros')
                                 : undefined
                         }
                     />
                     <Highlight
-                        label="mais rápido"
+                        label={t('mais rápido')}
                         value={fastest?.title ?? '—'}
-                        note={fastest ? readingNote(fastest) : undefined}
+                        note={
+                            fastest ? readingNote(fastest, plural) : undefined
+                        }
                     />
                     <Highlight
-                        label="mais longo"
+                        label={t('mais longo')}
                         value={longest?.title ?? '—'}
-                        note={longest ? readingNote(longest) : undefined}
+                        note={
+                            longest ? readingNote(longest, plural) : undefined
+                        }
                     />
                     <Highlight
-                        label="melhor mês"
+                        label={t('melhor mês')}
                         value={best_month?.label ?? '—'}
                         note={
                             best_month
-                                ? `${best_month.count} ${best_month.count === 1 ? 'livro concluído' : 'livros concluídos'}`
+                                ? plural(
+                                      best_month.count,
+                                      'livro concluído',
+                                      'livros concluídos',
+                                  )
                                 : undefined
                         }
                     />
                     <Highlight
-                        label="maior sequência"
-                        value={`${streak} ${streak === 1 ? 'dia' : 'dias'}`}
+                        label={t('maior sequência')}
+                        value={plural(streak, 'dia', 'dias')}
                     />
                     {rereads.length > 0 && (
                         <Highlight
-                            label="releituras do ano"
+                            label={t('releituras do ano')}
                             value={`↻ ${rereads.length}`}
                             note={rereads.join(' · ')}
                         />
@@ -213,11 +229,11 @@ export default function Wrapped({
 
                 <section className="flex flex-col gap-4 rounded-md border bg-surface p-5">
                     <SectionTitle>
-                        seus 5 melhores do ano (pela nota)
+                        {t('seus 5 melhores do ano (pela nota)')}
                     </SectionTitle>
                     {top.length === 0 ? (
                         <p className="text-sm text-muted">
-                            Nenhum livro avaliado neste ano.
+                            {t('Nenhum livro avaliado neste ano.')}
                         </p>
                     ) : (
                         <div className="flex flex-wrap gap-5">
@@ -232,7 +248,10 @@ export default function Wrapped({
                                         className="w-24"
                                     />
                                     <span className="text-xs text-muted">
-                                        {index + 1}º · nota {reading.rating}
+                                        {t(':position · nota :rating', {
+                                            position: ordinal(index + 1),
+                                            rating: reading.rating ?? '',
+                                        })}
                                     </span>
                                     <span className="text-xs leading-tight">
                                         {reading.title}

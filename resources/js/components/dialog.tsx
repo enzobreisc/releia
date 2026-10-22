@@ -3,9 +3,9 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * Diálogo de confirmação ou de dados (substitui o confirm() nativo).
- * Título em Markdown ("## remover livro?"), Esc e clique fora fecham sem fazer nada.
- * O foco inicial fica no elemento com autoFocus: em ações destrutivas, o Cancelar.
+ * Confirmation or data dialog (replaces the native confirm()).
+ * Markdown title ("## remove book?"); Esc and clicking outside close it without doing anything.
+ * Initial focus goes to the element with autoFocus: on destructive actions, Cancel.
  */
 export function Dialog({
     title,
@@ -56,7 +56,7 @@ export function Dialog({
     );
 }
 
-/** Lista "o que vai junto" de um diálogo destrutivo. */
+/** "What goes with it" list of a destructive dialog. */
 export function DialogList({ items }: { items: string[] }) {
     return (
         <ul className="flex flex-col gap-1 rounded-sm bg-bg px-3 py-2.5 font-mono text-xs text-nav">
@@ -67,7 +67,7 @@ export function DialogList({ items }: { items: string[] }) {
     );
 }
 
-/** Opção grande de um diálogo de escolha (ex.: "Ler de novo" ou "Corrigir"). */
+/** Large option of a choice dialog (e.g. "Read again" or "Fix"). */
 export function DialogChoice({
     title,
     badge,

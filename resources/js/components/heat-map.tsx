@@ -1,8 +1,10 @@
 import { Fragment, useState } from 'react';
+import { useTranslation } from '@/hooks/use-translation';
+import type { TranslationKey } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { CalendarDay } from '@/types';
 
-const LEVEL_HINTS = [
+const LEVEL_HINTS: TranslationKey[] = [
     'sem leitura',
     '1–20 páginas',
     '21–40 páginas',
@@ -10,9 +12,17 @@ const LEVEL_HINTS = [
     '71+ páginas',
 ];
 
-const WEEKDAYS = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'];
+const WEEKDAYS: TranslationKey[] = [
+    'seg',
+    'ter',
+    'qua',
+    'qui',
+    'sex',
+    'sáb',
+    'dom',
+];
 
-// Classes escritas por extenso: o Tailwind só gera o que aparece assim no código.
+// Classes written out in full: Tailwind only generates what appears like this in the code.
 const HEAT_CLASSES = [
     'bg-heat-0',
     'bg-heat-1',
@@ -21,28 +31,16 @@ const HEAT_CLASSES = [
     'bg-heat-4',
 ];
 
-/** Classe de cor para um nível do mapa de calor (0 = sem leitura, 4 = mais). */
+/** Color class for a heat map level (0 = no reading, 4 = most). */
 export function heatClass(level: number): string {
     return HEAT_CLASSES[level] ?? HEAT_CLASSES[0];
 }
 
-function formatDate(date: string) {
-    return new Date(`${date}T00:00:00`).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-    });
-}
-
-function dayTitle(day: CalendarDay) {
-    return `${formatDate(day.date)} · ${day.pages} ${day.pages === 1 ? 'página' : 'páginas'}`;
-}
-
 /**
- * Mapa de calor de dias lidos.
+ * Heat map of reading days.
  *
- * Padrão: estilo GitHub, uma coluna por semana e uma linha por dia da semana.
- * `compact`: uma linha só, sem rótulos e sem preenchimento (ex.: 7 dias na barra lateral).
+ * Default: GitHub style, one column per week and one row per weekday.
+ * `compact`: a single row, no labels and no padding (e.g. 7 days in the sidebar).
  */
 export function HeatMap({
     days,
@@ -56,12 +54,25 @@ export function HeatMap({
     className?: string;
 }) {
     const [selected, setSelected] = useState<string | null>(null);
+    const { t, plural, languageTag } = useTranslation();
+
+    function formatDate(date: string) {
+        return new Date(`${date}T00:00:00`).toLocaleDateString(languageTag, {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+    }
+
+    function dayTitle(day: CalendarDay) {
+        return `${formatDate(day.date)} · ${plural(day.pages, 'página', 'páginas')}`;
+    }
 
     if (compact) {
         return (
             <div
                 role="img"
-                aria-label="Mapa de calor de dias lidos"
+                aria-label={t('Mapa de calor de dias lidos')}
                 className={cn('flex gap-[3px]', className)}
             >
                 {days.map((day) => (
@@ -78,7 +89,7 @@ export function HeatMap({
         );
     }
 
-    // Preenche o começo da primeira semana com células vazias para alinhar os dias.
+    // Pads the start of the first week with empty cells to align the days.
     const firstWeekday =
         days.length > 0
             ? (new Date(`${days[0].date}T00:00:00`).getDay() + 6) % 7
@@ -88,10 +99,10 @@ export function HeatMap({
         ...days,
     ];
 
-    // As colunas dividem a largura disponível: o mapa nunca rola de lado.
+    // The columns share the available width: the map never scrolls sideways.
     const weeks = Math.ceil(cells.length / 7);
 
-    // Rótulo do mês na primeira semana em que ele aparece.
+    // Month label on the first week it appears.
     const monthLabels = new Map<number, string>();
     let lastMonth = -1;
     for (let week = 0; week < weeks; week++) {
@@ -106,7 +117,7 @@ export function HeatMap({
             monthLabels.set(
                 week,
                 new Date(`${first.date}T00:00:00`)
-                    .toLocaleDateString('pt-BR', { month: 'short' })
+                    .toLocaleDateString(languageTag, { month: 'short' })
                     .replace('.', ''),
             );
             lastMonth = month;
@@ -120,7 +131,7 @@ export function HeatMap({
         <div className={cn('flex flex-col gap-3', className)}>
             <div
                 role="img"
-                aria-label="Mapa de calor de dias lidos"
+                aria-label={t('Mapa de calor de dias lidos')}
                 className="grid gap-[3px]"
                 style={{
                     gridTemplateColumns: `auto repeat(${weeks}, minmax(0, 1fr))`,
@@ -146,7 +157,7 @@ export function HeatMap({
                                 'flex items-center pr-2 font-mono text-[11px] leading-none text-muted',
                             )}
                         >
-                            {WEEKDAYS[row]}
+                            {t(WEEKDAYS[row])}
                         </span>
                         {Array.from({ length: weeks }, (_, week) => {
                             const day = cells[week * 7 + row];
@@ -170,7 +181,7 @@ export function HeatMap({
                                     onMouseLeave={() => setSelected(null)}
                                     onBlur={() => setSelected(null)}
                                     className={cn(
-                                        'aspect-square rounded-[3px] outline-none transition-transform hover:scale-125 focus-visible:ring-2 focus-visible:ring-accent',
+                                        'aspect-square rounded-[3px] transition-transform outline-none hover:scale-125 focus-visible:ring-2 focus-visible:ring-accent',
                                         heatClass(day.level),
                                         day.level === 0 &&
                                             'border border-border/60',
@@ -188,16 +199,16 @@ export function HeatMap({
                     {active
                         ? active.pages > 0
                             ? dayTitle(active)
-                            : `${formatDate(active.date)} · sem leitura`
-                        : 'passe o mouse sobre um dia'}
+                            : `${formatDate(active.date)} · ${t('sem leitura')}`
+                        : t('passe o mouse sobre um dia')}
                 </span>
                 {showLegend && (
                     <span className="flex items-center gap-1.5 text-muted">
-                        menos
+                        {t('menos')}
                         {[0, 1, 2, 3, 4].map((level) => (
                             <span
                                 key={level}
-                                title={LEVEL_HINTS[level]}
+                                title={t(LEVEL_HINTS[level])}
                                 className={cn(
                                     'size-3 rounded-[3px]',
                                     heatClass(level),
@@ -205,13 +216,13 @@ export function HeatMap({
                                 )}
                             />
                         ))}
-                        mais
+                        {t('mais')}
                     </span>
                 )}
             </div>
             {showLegend && (
                 <p className="font-mono text-[11px] text-faint">
-                    1–20 · 21–40 · 41–70 · 71+ páginas por dia
+                    {t('1–20 · 21–40 · 41–70 · 71+ páginas por dia')}
                 </p>
             )}
         </div>

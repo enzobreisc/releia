@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
+import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 
 function fold(text: string): string {
@@ -10,8 +11,9 @@ function fold(text: string): string {
 }
 
 /**
- * Gênero com lista de sugestões. Aceita texto livre: a lista só ajuda a
- * manter os nomes iguais, para o filtro e as estatísticas agruparem direito.
+ * Genre with a suggestion list. Accepts free text: the list only helps keep
+ * names consistent, so filters and statistics group correctly. Genres are stored
+ * under their Portuguese name and only displayed translated.
  */
 export function GenreSelect({
     value,
@@ -24,21 +26,26 @@ export function GenreSelect({
     genres: string[];
     className?: string;
 }) {
+    const { t, translateText } = useTranslation();
     const id = useId();
     const root = useRef<HTMLDivElement>(null);
     const list = useRef<HTMLUListElement>(null);
     const [open, setOpen] = useState(false);
     const [active, setActive] = useState(0);
-    // Só filtra depois que a pessoa digita: ao abrir, mostra tudo.
+    // Only filters after the person types: when opened, shows everything.
     const [typed, setTyped] = useState(false);
 
+    const shownValue = genres.includes(value) ? translateText(value) : value;
+
     const options = useMemo(() => {
-        const query = fold(value.trim());
+        const query = fold(shownValue.trim());
 
         return typed && query
-            ? genres.filter((genre) => fold(genre).includes(query))
+            ? genres.filter((genre) =>
+                  fold(translateText(genre)).includes(query),
+              )
             : genres;
-    }, [genres, value, typed]);
+    }, [genres, shownValue, typed, translateText]);
 
     useEffect(() => {
         if (!open) {
@@ -82,7 +89,7 @@ export function GenreSelect({
                 ),
             );
         } else if (event.key === 'Enter' && open) {
-            // Dentro de um formulário, Enter salvaria o livro.
+            // Inside a form, Enter would save the book.
             event.preventDefault();
 
             if (options[active]) {
@@ -105,12 +112,18 @@ export function GenreSelect({
                 aria-controls={`${id}-list`}
                 aria-autocomplete="list"
                 autoComplete="off"
-                value={value}
-                placeholder="Escolha ou digite"
+                value={shownValue}
+                placeholder={t('Escolha ou digite')}
                 onFocus={() => setOpen(true)}
                 onClick={() => setOpen(true)}
                 onChange={(event) => {
-                    onChange(event.target.value);
+                    onChange(
+                        genres.find(
+                            (genre) =>
+                                fold(translateText(genre)) ===
+                                fold(event.target.value.trim()),
+                        ) ?? event.target.value,
+                    );
                     setTyped(true);
                     setActive(0);
                     setOpen(true);
@@ -124,7 +137,7 @@ export function GenreSelect({
             <button
                 type="button"
                 tabIndex={-1}
-                aria-label={open ? 'Fechar gêneros' : 'Abrir gêneros'}
+                aria-label={open ? t('Fechar gêneros') : t('Abrir gêneros')}
                 onClick={() => setOpen(!open)}
                 className="absolute inset-y-0 right-0 w-9 text-muted hover:text-text"
             >
@@ -140,9 +153,12 @@ export function GenreSelect({
                 >
                     {options.length === 0 && (
                         <li className="px-3 py-2 text-xs text-muted">
-                            {value.trim()
-                                ? `Nenhum gênero com “${value.trim()}”. Fica como você digitou.`
-                                : 'Nenhum gênero.'}
+                            {shownValue.trim()
+                                ? t(
+                                      'Nenhum gênero com “:genre”. Fica como você digitou.',
+                                      { genre: shownValue.trim() },
+                                  )
+                                : t('Nenhum gênero.')}
                         </li>
                     )}
                     {options.map((genre, index) => (
@@ -150,7 +166,7 @@ export function GenreSelect({
                             key={genre}
                             role="option"
                             aria-selected={index === active}
-                            // mousedown: o clique acontece antes de o campo perder o foco.
+                            // mousedown: the click happens before the field loses focus.
                             onMouseDown={(event) => {
                                 event.preventDefault();
                                 choose(genre);
@@ -161,7 +177,7 @@ export function GenreSelect({
                                 index === active && 'bg-elevated',
                             )}
                         >
-                            {genre}
+                            {translateText(genre)}
                             {genre === value && (
                                 <span className="text-accent">✓</span>
                             )}

@@ -14,6 +14,8 @@ import { PlusIcon } from '@/components/icons';
 import { PageHeader } from '@/components/page-header';
 import { QueueButton } from '@/components/queue-button';
 import { StatusBadge } from '@/components/status';
+import { useTranslation } from '@/hooks/use-translation';
+import type { TranslationKey } from '@/lib/i18n';
 import { SHELF_GROUPS } from '@/lib/spines';
 import type { ShelfGroup } from '@/lib/spines';
 import { cn } from '@/lib/utils';
@@ -36,13 +38,13 @@ type LibraryProps = {
     filters: Filters;
 };
 
-const SORTS = [
+const SORTS: { value: string; label: TranslationKey }[] = [
     { value: 'recent', label: 'Adicionados recentemente' },
     { value: 'title', label: 'Título' },
     { value: 'rating', label: 'Nota' },
 ];
 
-/** Preferência guardada no navegador; sem armazenamento, vale o padrão. */
+/** Preference kept in the browser; without storage, the default applies. */
 function useStored<T extends string>(key: string, fallback: T) {
     const [value, setValue] = useState<T>(() => {
         try {
@@ -58,7 +60,7 @@ function useStored<T extends string>(key: string, fallback: T) {
         try {
             localStorage.setItem(key, next);
         } catch {
-            // sem armazenamento: a escolha vale só nesta sessão
+            // without storage: the choice only lasts for this session
         }
     }
 
@@ -72,6 +74,7 @@ export default function Library({
     genres,
     filters,
 }: LibraryProps) {
+    const { t, plural, translateText } = useTranslation();
     const [view, setView] = useStored<'grid' | 'shelf'>('library.view', 'grid');
     const [group, setGroup] = useStored<ShelfGroup>('library.group', 'genre');
     const [search, setSearch] = useState(filters.q);
@@ -94,14 +97,14 @@ export default function Library({
         );
     }
 
-    // Busca enquanto digita, com uma pequena espera.
+    // Searches while typing, with a short delay.
     function onSearch(value: string) {
         setSearch(value);
         clearTimeout(searchTimer.current);
         searchTimer.current = setTimeout(() => apply({ q: value }), 250);
     }
 
-    // ⌘F: buscar na tela atual.
+    // ⌘F: search the current screen.
     useEffect(() => {
         function onKeyDown(event: KeyboardEvent) {
             if (event.metaKey && event.key.toLowerCase() === 'f') {
@@ -119,11 +122,13 @@ export default function Library({
     return (
         <>
             <PageHeader
-                title="Biblioteca"
+                title={t('Biblioteca')}
                 actions={
                     <div className="flex items-center gap-4">
                         <span className="text-sm text-muted">
-                            {total} {total === 1 ? 'livro' : 'livros'} no total
+                            {t(':books no total', {
+                                books: plural(total, 'livro', 'livros'),
+                            })}
                         </span>
                         <Segmented
                             className="w-44"
@@ -132,8 +137,8 @@ export default function Library({
                                 setView(next as 'grid' | 'shelf')
                             }
                             options={[
-                                { value: 'grid', label: 'Capas' },
-                                { value: 'shelf', label: 'Estante' },
+                                { value: 'grid', label: t('Capas') },
+                                { value: 'shelf', label: t('Estante') },
                             ]}
                         />
                     </div>
@@ -145,7 +150,7 @@ export default function Library({
                     className="flex-[2_1_240px]"
                     label={
                         <span className="flex items-center gap-2">
-                            Buscar <Kbd>⌘F</Kbd>
+                            {t('Buscar')} <Kbd>⌘F</Kbd>
                         </span>
                     }
                 >
@@ -154,26 +159,29 @@ export default function Library({
                         type="search"
                         value={search}
                         onChange={(event) => onSearch(event.target.value)}
-                        placeholder="Título, autor ou ISBN"
+                        placeholder={t('Título, autor ou ISBN')}
                     />
                 </Field>
-                <Field label="Gênero" className="flex-[1_1_150px]">
+                <Field label={t('Gênero')} className="flex-[1_1_150px]">
                     <Select
                         value={filters.genre}
                         onChange={(event) =>
                             apply({ genre: event.target.value })
                         }
                     >
-                        <option value="">Todos</option>
+                        <option value="">{t('Todos')}</option>
                         {genres.map((genre) => (
                             <option key={genre} value={genre}>
-                                {genre}
+                                {translateText(genre)}
                             </option>
                         ))}
                     </Select>
                 </Field>
                 {view === 'shelf' ? (
-                    <Field label="Organizar por" className="flex-[1_1_150px]">
+                    <Field
+                        label={t('Organizar por')}
+                        className="flex-[1_1_150px]"
+                    >
                         <Select
                             value={group}
                             onChange={(event) =>
@@ -182,13 +190,16 @@ export default function Library({
                         >
                             {SHELF_GROUPS.map((option) => (
                                 <option key={option.value} value={option.value}>
-                                    {option.label}
+                                    {t(option.label)}
                                 </option>
                             ))}
                         </Select>
                     </Field>
                 ) : (
-                    <Field label="Ordenar por" className="flex-[1_1_150px]">
+                    <Field
+                        label={t('Ordenar por')}
+                        className="flex-[1_1_150px]"
+                    >
                         <Select
                             value={filters.sort}
                             onChange={(event) =>
@@ -197,7 +208,7 @@ export default function Library({
                         >
                             {SORTS.map((sort) => (
                                 <option key={sort.value} value={sort.value}>
-                                    {sort.label}
+                                    {t(sort.label)}
                                 </option>
                             ))}
                         </Select>
@@ -207,7 +218,7 @@ export default function Library({
 
             <div
                 role="tablist"
-                aria-label="Estantes"
+                aria-label={t('Estantes')}
                 className="flex flex-wrap gap-2 border-b pb-3"
             >
                 {shelves.map((shelf) => {
@@ -245,7 +256,7 @@ export default function Library({
             ) : books.length > 0 ? (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(128px,1fr))] gap-x-5 gap-y-6">
                     {books.map((book) => (
-                        // O botão da fila fica fora do Link, que não pode conter botões.
+                        // The queue button sits outside the Link, which cannot contain buttons.
                         <div key={book.id} className="flex flex-col gap-2">
                             <Link
                                 href={show.url(book.id)}
@@ -259,7 +270,11 @@ export default function Library({
                                     />
                                     {(book.readings_count ?? 0) > 1 && (
                                         <span
-                                            title={`${book.readings_count} leituras`}
+                                            title={plural(
+                                                book.readings_count ?? 0,
+                                                'leitura',
+                                                'leituras',
+                                            )}
                                             className="absolute top-1.5 right-1.5 rounded-full bg-bg/90 px-1.5 py-0.5 font-mono text-[10px] text-nav"
                                         >
                                             ↻ {book.readings_count}
@@ -270,7 +285,7 @@ export default function Library({
                                     {book.title}
                                 </div>
                                 <div className="line-clamp-1 text-[13px] text-muted">
-                                    {book.authors || 'Autor desconhecido'}
+                                    {book.authors || t('Autor desconhecido')}
                                 </div>
                                 {book.status && book.status_label && (
                                     <StatusBadge
@@ -297,16 +312,18 @@ export default function Library({
 }
 
 function EmptyLibrary({ filtered }: { filtered: boolean }) {
+    const { t } = useTranslation();
+
     return (
         <div className="flex flex-col items-start gap-4 rounded-md border bg-surface p-6">
             <p className="font-mono text-sm text-muted">
                 {filtered
-                    ? '## nenhum livro com esses filtros'
-                    : '## sua biblioteca está vazia'}
+                    ? `## ${t('nenhum livro com esses filtros')}`
+                    : `## ${t('sua biblioteca está vazia')}`}
             </p>
             {!filtered && (
                 <Link href={addBook.url()} className={buttonClass()}>
-                    <PlusIcon /> Adicionar o primeiro livro
+                    <PlusIcon /> {t('Adicionar o primeiro livro')}
                 </Link>
             )}
         </div>

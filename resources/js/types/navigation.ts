@@ -1,10 +1,11 @@
 import type { ComponentType } from 'react';
 import type { IconProps } from '@/components/icons';
+import type { TranslationKey } from '@/lib/i18n';
 
 export type NavItem = {
-    title: string;
+    title: TranslationKey;
     href: string;
     icon: ComponentType<IconProps>;
-    /** Chave do contador em `counts` (dado compartilhado). */
+    /** Key of the counter in `counts` (shared data). */
     count?: 'books' | 'notes' | 'queue' | 'shopping';
 };

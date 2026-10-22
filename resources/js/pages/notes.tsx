@@ -5,6 +5,8 @@ import { Button, Field, Input, Select } from '@/components/form';
 import { NoteEditor } from '@/components/note-editor';
 import { PageHeader, SectionTitle } from '@/components/page-header';
 import { PlusIcon } from '@/components/icons';
+import { useTranslation } from '@/hooks/use-translation';
+import type { TranslationKey } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { index, review } from '@/routes/notes';
 import type { Option } from '@/types';
@@ -31,7 +33,7 @@ type NotesProps = {
     filters: NoteFilters;
 };
 
-const KIND_TABS: { value: string | null; label: string }[] = [
+const KIND_TABS: { value: string | null; label: TranslationKey }[] = [
     { value: null, label: 'Todas' },
     { value: 'excerpt', label: 'Trechos' },
     { value: 'reflection', label: 'Reflexões' },
@@ -49,10 +51,11 @@ export default function Notes({
     review: due,
     filters,
 }: NotesProps) {
+    const { t, plural } = useTranslation();
     const searchRef = useRef<HTMLInputElement>(null);
     const searchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-    // Filtros, nota selecionada e modo "nova" viajam juntos na URL.
+    // Filters, selected note and "new" mode travel together in the URL.
     function visit(changes: Record<string, string | number | null>) {
         const next: Record<string, string | number | null> = {
             q: filters.q,
@@ -74,7 +77,7 @@ export default function Notes({
         );
     }
 
-    // ⌘F: buscar nas notas.
+    // ⌘F: search the notes.
     useEffect(() => {
         function onKeyDown(event: KeyboardEvent) {
             if (event.metaKey && event.key.toLowerCase() === 'f') {
@@ -99,25 +102,32 @@ export default function Notes({
     return (
         <>
             <PageHeader
-                title="Notas"
-                description="Guarde trechos e ideias por livro"
+                title={t('Notas')}
+                description={t('Guarde trechos e ideias por livro')}
                 actions={
                     <Button
                         variant="ghost"
                         onClick={() => visit({ note: null, new: 1 })}
                     >
-                        <PlusIcon /> Nova nota
+                        <PlusIcon /> {t('Nova nota')}
                     </Button>
                 }
             />
 
             <section className="flex flex-col gap-3.5 rounded-md border bg-surface p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <SectionTitle>revisão do dia</SectionTitle>
+                    <SectionTitle>{t('revisão do dia')}</SectionTitle>
                     <span className="font-mono text-xs text-muted">
                         {due.count === 0
-                            ? 'nada para rever hoje'
-                            : `${due.count} ${due.count === 1 ? 'trecho' : 'trechos'} para rever, de ${due.books} ${due.books === 1 ? 'livro' : 'livros'}`}
+                            ? t('nada para rever hoje')
+                            : t(':excerpts para rever, de :books', {
+                                  excerpts: plural(
+                                      due.count,
+                                      'trecho',
+                                      'trechos',
+                                  ),
+                                  books: plural(due.books, 'livro', 'livros'),
+                              })}
                     </span>
                 </div>
                 {due.notes.length > 0 && (
@@ -130,7 +140,9 @@ export default function Notes({
                                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                                     <span className="font-mono text-[11px] text-muted">
                                         {note.book_title}
-                                        {note.page ? ` · p. ${note.page}` : ''}
+                                        {note.page
+                                            ? ` · ${t('p. :page', { page: note.page })}`
+                                            : ''}
                                     </span>
                                     <span className="line-clamp-3 text-sm">
                                         {note.body_md}
@@ -147,7 +159,7 @@ export default function Notes({
                                         )
                                     }
                                 >
-                                    Revisei
+                                    {t('Revisei')}
                                 </Button>
                             </li>
                         ))}
@@ -160,7 +172,7 @@ export default function Notes({
                     className="flex-[2_1_240px]"
                     label={
                         <span className="flex items-center gap-2">
-                            Buscar <Kbd>⌘F</Kbd>
+                            {t('Buscar')} <Kbd>⌘F</Kbd>
                         </span>
                     }
                 >
@@ -169,17 +181,17 @@ export default function Notes({
                         type="search"
                         defaultValue={filters.q}
                         onChange={(event) => onSearch(event.target.value)}
-                        placeholder="Texto ou tag, sem acento"
+                        placeholder={t('Texto ou tag, sem acento')}
                     />
                 </Field>
-                <Field label="Livro" className="flex-[1_1_180px]">
+                <Field label={t('Livro')} className="flex-[1_1_180px]">
                     <Select
                         value={filters.book ?? ''}
                         onChange={(event) =>
                             visit({ book: event.target.value || null })
                         }
                     >
-                        <option value="">Todos os livros</option>
+                        <option value="">{t('Todos os livros')}</option>
                         {books.map((book) => (
                             <option key={book.id} value={book.id}>
                                 {book.title}
@@ -187,14 +199,14 @@ export default function Notes({
                         ))}
                     </Select>
                 </Field>
-                <Field label="Tag" className="flex-[1_1_150px]">
+                <Field label={t('Tag')} className="flex-[1_1_150px]">
                     <Select
                         value={filters.tag ?? ''}
                         onChange={(event) =>
                             visit({ tag: event.target.value || null })
                         }
                     >
-                        <option value="">Todas as tags</option>
+                        <option value="">{t('Todas as tags')}</option>
                         {tags.map((tag) => (
                             <option key={tag.name} value={tag.name}>
                                 #{tag.name} ({tag.count})
@@ -206,7 +218,7 @@ export default function Notes({
 
             <div
                 role="tablist"
-                aria-label="Tipo de nota"
+                aria-label={t('Tipo de nota')}
                 className="flex flex-wrap gap-2 border-b pb-3"
             >
                 {KIND_TABS.map((tab) => {
@@ -230,7 +242,7 @@ export default function Notes({
                                     : 'border bg-surface text-text hover:bg-active',
                             )}
                         >
-                            {tab.label}{' '}
+                            {t(tab.label)}{' '}
                             <span className="font-mono text-xs opacity-75">
                                 {count}
                             </span>
@@ -243,7 +255,7 @@ export default function Notes({
                 <section className="flex flex-col gap-2">
                     {notes.length === 0 ? (
                         <p className="rounded-md border bg-surface p-5 font-mono text-sm text-muted">
-                            ## nenhuma nota com esses filtros
+                            ## {t('nenhuma nota com esses filtros')}
                         </p>
                     ) : (
                         notes.map((note) => (
@@ -264,9 +276,9 @@ export default function Notes({
                                 <span className="font-mono text-[11px] text-muted">
                                     {note.book_title}
                                     {note.page
-                                        ? ` · p. ${note.page}`
-                                        : ''} ·{' '}
-                                    {note.kind_label}
+                                        ? ` · ${t('p. :page', { page: note.page })}`
+                                        : ''}{' '}
+                                    · {note.kind_label}
                                 </span>
                                 <span className="line-clamp-3 text-sm text-text">
                                     {note.body_md}
@@ -293,10 +305,11 @@ export default function Notes({
                     />
                 ) : (
                     <section className="flex flex-col gap-3 rounded-md border bg-surface p-5">
-                        <SectionTitle>escolha uma nota</SectionTitle>
+                        <SectionTitle>{t('escolha uma nota')}</SectionTitle>
                         <p className="text-sm text-muted">
-                            Selecione uma nota da lista para ler e editar, ou
-                            crie uma nova.
+                            {t(
+                                'Selecione uma nota da lista para ler e editar, ou crie uma nova.',
+                            )}
                         </p>
                     </section>
                 )}

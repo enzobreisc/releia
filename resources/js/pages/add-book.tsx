@@ -8,9 +8,11 @@ import { BookCover } from '@/components/book-cover';
 import { Field, Input, Segmented, Textarea } from '@/components/form';
 import { LibraryIcon, PencilIcon, SearchIcon } from '@/components/icons';
 import { PageHeader, SectionTitle } from '@/components/page-header';
+import { useTranslation } from '@/hooks/use-translation';
 import { today } from '@/lib/dates';
 import { cn } from '@/lib/utils';
-import { visibleEditions } from '@/lib/editions';
+import { isBrazilianIsbn, visibleEditions } from '@/lib/editions';
+import type { TranslationKey } from '@/lib/i18n';
 import { create as addBook, show, store } from '@/routes/books';
 import type { Candidate, Editions, Option } from '@/types';
 
@@ -37,7 +39,7 @@ type BookForm = {
     cover_url: string;
     source: string;
     status: string;
-    /** Só para "lido": quando terminou. */
+    /** Only for "read": when it was finished. */
     finished_on: string;
     undated: boolean;
 };
@@ -77,14 +79,13 @@ function toForm(
     };
 }
 
-const SOURCE_LABELS: Record<string, string> = {
+const SOURCE_NAMES: Record<string, string> = {
     open_library: 'Open Library',
     google_books: 'Google Books',
     brasil_api: 'BrasilAPI',
-    manual: 'cadastro manual',
 };
 
-/** Identifica um resultado ou edição na lista, para marcar o selecionado. */
+/** Identifies a result or edition in the list, to mark the selected one. */
 function keyOf(candidate: Candidate): string {
     return candidate.isbn_13 ?? `${candidate.work_key}-${candidate.title}`;
 }
@@ -98,6 +99,7 @@ export default function AddBook({
     statuses,
     genres,
 }: AddBookProps) {
+    const { t } = useTranslation();
     const [search, setSearch] = useState(query);
     const [publisherFilter, setPublisherFilter] = useState(publisher);
     const [searching, setSearching] = useState(false);
@@ -106,11 +108,11 @@ export default function AddBook({
         editions?.work_key ?? null,
     );
     const [showMore, setShowMore] = useState(false);
-    // Cadastro à mão: o painel de revisão abre sem um resultado escolhido.
+    // Manual entry: the review panel opens without a chosen result.
     const [manualMode, setManualMode] = useState(false);
     const form = useForm<BookForm>(emptyForm);
 
-    // Os detalhes completos (por ISBN) chegam depois: completam só o que está vazio.
+    // The full details (by ISBN) arrive later: they only fill in what is empty.
     useEffect(() => {
         if (!preview || preview.isbn_13 !== form.data.isbn_13) {
             return;
@@ -148,7 +150,7 @@ export default function AddBook({
                 replace: true,
                 onStart: () => setSearching(true),
                 onFinish: () => setSearching(false),
-                // Com editora, o que interessa é a edição: abre as do primeiro resultado.
+                // With a publisher, the edition is what matters: open the first result's editions.
                 onSuccess: (page) => {
                     const first = (page.props.results as Candidate[])[0];
 
@@ -216,7 +218,7 @@ export default function AddBook({
         form.submit(store());
     }
 
-    // ⌘↵ salva de qualquer campo, como no botão.
+    // ⌘↵ saves from any field, like the button.
     useEffect(() => {
         function onKey(event: KeyboardEvent) {
             if (
@@ -240,8 +242,8 @@ export default function AddBook({
     return (
         <>
             <PageHeader
-                title="Adicionar livro"
-                crumb={['biblioteca', 'adicionar']}
+                title={t('Adicionar livro')}
+                crumb={[t('biblioteca'), t('adicionar')]}
                 actions={<Steps current={editing ? 3 : 1} />}
             />
 
@@ -252,19 +254,19 @@ export default function AddBook({
             >
                 <label className="flex min-w-0 flex-[3_1_260px] items-center gap-3 px-4">
                     <SearchIcon className="shrink-0 text-muted" />
-                    <span className="sr-only">ISBN ou título</span>
+                    <span className="sr-only">{t('ISBN ou título')}</span>
                     <input
                         autoFocus
                         type="search"
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
-                        placeholder="ISBN ou título"
+                        placeholder={t('ISBN ou título')}
                         className="h-14 min-w-0 flex-1 bg-transparent text-[17px] outline-none placeholder:text-muted"
                     />
                 </label>
                 <label className="flex min-w-0 flex-[1_1_160px] items-center gap-2 border-l px-3.5">
                     <span className="font-mono text-[11px] text-faint">
-                        editora:
+                        {t('editora:')}
                     </span>
                     <input
                         type="search"
@@ -272,7 +274,7 @@ export default function AddBook({
                         onChange={(event) =>
                             setPublisherFilter(event.target.value)
                         }
-                        placeholder="qualquer"
+                        placeholder={t('qualquer')}
                         className="h-14 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted"
                     />
                 </label>
@@ -281,14 +283,14 @@ export default function AddBook({
                     disabled={searching || search.trim() === ''}
                     className="m-1.5 flex items-center gap-2 rounded-sm bg-primary px-4.5 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
                 >
-                    {searching ? 'Buscando…' : 'Buscar'}
+                    {searching ? t('Buscando…') : t('Buscar')}
                     <span className="font-mono text-[11px] opacity-85">↵</span>
                 </button>
             </form>
 
             <div className="flex flex-wrap items-start gap-7">
                 <section
-                    aria-label="Resultados"
+                    aria-label={t('Resultados')}
                     className="flex min-w-0 flex-[1_1_360px] flex-col gap-2.5"
                 >
                     {query !== '' && (
@@ -296,12 +298,14 @@ export default function AddBook({
                             <div className="flex items-baseline justify-between gap-3">
                                 <SectionTitle>
                                     {searching
-                                        ? 'buscando…'
-                                        : `resultados · ${results.length}`}
+                                        ? t('buscando…')
+                                        : t('resultados · :count', {
+                                              count: results.length,
+                                          })}
                                 </SectionTitle>
                                 {publisher && (
                                     <span className="font-mono text-[11px] text-faint">
-                                        editora: {publisher}
+                                        {t('editora:')} {publisher}
                                     </span>
                                 )}
                             </div>
@@ -343,7 +347,7 @@ export default function AddBook({
                                                         onSelect={(edition) =>
                                                             select({
                                                                 ...edition,
-                                                                // As edições não trazem autores; vêm da obra.
+                                                                // Editions carry no authors; they come from the work.
                                                                 authors:
                                                                     result.authors,
                                                             })
@@ -356,8 +360,9 @@ export default function AddBook({
                             )}
                             {!searching && results.length === 0 && (
                                 <p className="text-sm text-muted">
-                                    Nada encontrado na Open Library nem no
-                                    Google Books.
+                                    {t(
+                                        'Nada encontrado na Open Library nem no Google Books.',
+                                    )}
                                 </p>
                             )}
                         </>
@@ -369,22 +374,26 @@ export default function AddBook({
                         className="flex items-center gap-2 self-start py-2.5 text-sm font-semibold text-accent hover:underline"
                     >
                         <PencilIcon />
-                        Não achou? Cadastrar à mão
+                        {t('Não achou? Cadastrar à mão')}
                     </button>
                 </section>
 
                 <form
-                    aria-label="Revisar livro"
+                    aria-label={t('Revisar livro')}
                     onSubmit={save}
                     className="flex min-w-0 flex-[1_1_380px] flex-col rounded-md border bg-surface"
                 >
                     <div className="flex items-center justify-between gap-3 border-b px-5 py-3.5">
-                        <SectionTitle>revisar</SectionTitle>
+                        <SectionTitle>{t('revisar')}</SectionTitle>
                         {editing && (
                             <span className="rounded-[4px] bg-elevated px-2 py-0.5 font-mono text-[11px] text-muted">
                                 {form.data.source === 'manual'
-                                    ? 'manual'
-                                    : `fonte: ${SOURCE_LABELS[form.data.source] ?? form.data.source}`}
+                                    ? t('manual')
+                                    : t('fonte: :source', {
+                                          source:
+                                              SOURCE_NAMES[form.data.source] ??
+                                              form.data.source,
+                                      })}
                             </span>
                         )}
                     </div>
@@ -394,12 +403,12 @@ export default function AddBook({
                             <div className="flex gap-4.5">
                                 <BookCover
                                     src={form.data.cover_url || null}
-                                    title={form.data.title || 'sem capa'}
+                                    title={form.data.title || t('sem capa')}
                                     className="w-26"
                                 />
                                 <div className="flex min-w-0 flex-1 flex-col gap-2.5">
                                     <Field
-                                        label="Título"
+                                        label={t('Título')}
                                         error={form.errors.title}
                                     >
                                         <Input
@@ -415,7 +424,7 @@ export default function AddBook({
                                         />
                                     </Field>
                                     <Field
-                                        label="Autor (separe por vírgula)"
+                                        label={t('Autor (separe por vírgula)')}
                                         error={form.errors.authors}
                                     >
                                         <Input
@@ -440,7 +449,7 @@ export default function AddBook({
 
                             <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
                                 <Field
-                                    label="Páginas"
+                                    label={t('Páginas')}
                                     error={form.errors.pages}
                                 >
                                     <Input
@@ -457,7 +466,7 @@ export default function AddBook({
                                     />
                                 </Field>
                                 <div className="flex flex-col gap-1.5 text-[13px] text-muted">
-                                    <span>Gênero</span>
+                                    <span>{t('Gênero')}</span>
                                     <GenreSelect
                                         value={form.data.genre}
                                         onChange={(value) =>
@@ -480,15 +489,15 @@ export default function AddBook({
                                     aria-expanded={showMore}
                                     className="self-start font-mono text-xs text-accent hover:underline"
                                 >
-                                    {showMore ? '−' : '+'} editora, ano, ISBN e
-                                    descrição
+                                    {showMore ? '−' : '+'}{' '}
+                                    {t('editora, ano, ISBN e descrição')}
                                 </button>
                                 {showMore && <MoreFields form={form} />}
                             </div>
 
                             <fieldset className="flex flex-col gap-1.5">
                                 <legend className="pb-1.5 text-xs text-muted">
-                                    Estante
+                                    {t('Estante')}
                                 </legend>
                                 <Segmented
                                     options={statuses}
@@ -513,11 +522,13 @@ export default function AddBook({
                                 {form.data.status === 'read' && (
                                     <div className="mt-1.5 flex flex-col gap-1.5">
                                         <span className="text-[13px] text-muted">
-                                            Terminou em
+                                            {t('Terminou em')}
                                         </span>
                                         <div className="max-w-52">
                                             <DatePicker
-                                                aria-label="Data de término"
+                                                aria-label={t(
+                                                    'Data de término',
+                                                )}
                                                 max={today()}
                                                 disabled={form.data.undated}
                                                 value={
@@ -546,7 +557,9 @@ export default function AddBook({
                                                 }
                                                 className="accent-primary"
                                             />
-                                            Não lembro / sem data de término
+                                            {t(
+                                                'Não lembro / sem data de término',
+                                            )}
                                         </label>
                                         {form.errors.finished_on && (
                                             <span className="text-xs text-danger">
@@ -565,17 +578,19 @@ export default function AddBook({
                                 className="text-faint"
                             />
                             <p className="text-sm font-semibold">
-                                Nenhum livro escolhido
+                                {t('Nenhum livro escolhido')}
                             </p>
                             <p className="text-[13px] text-muted">
-                                Escolha um resultado ao lado ou cadastre à mão.
+                                {t(
+                                    'Escolha um resultado ao lado ou cadastre à mão.',
+                                )}
                             </p>
                         </div>
                     )}
 
                     <div className="mt-auto flex flex-wrap items-center justify-between gap-3 rounded-b-md border-t bg-[#0d131c] px-5 py-3.5">
                         <span className="text-xs text-muted">
-                            Tudo pode ser editado antes de salvar.
+                            {t('Tudo pode ser editado antes de salvar.')}
                         </span>
                         <button
                             type="submit"
@@ -583,8 +598,8 @@ export default function AddBook({
                             className="flex items-center gap-2.5 rounded-sm bg-primary px-4.5 py-3 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
                         >
                             {form.processing
-                                ? 'Salvando…'
-                                : 'Salvar na biblioteca'}
+                                ? t('Salvando…')
+                                : t('Salvar na biblioteca')}
                             <span className="font-mono text-[11px] opacity-85">
                                 ⌘↵
                             </span>
@@ -596,13 +611,18 @@ export default function AddBook({
     );
 }
 
-/** Etapas do cadastro: buscar → escolher edição → revisar e salvar. */
+/** Steps of the flow: search → pick an edition → review and save. */
 function Steps({ current }: { current: number }) {
-    const steps = ['buscar', 'escolher edição', 'revisar e salvar'];
+    const { t } = useTranslation();
+    const steps: TranslationKey[] = [
+        'buscar',
+        'escolher edição',
+        'revisar e salvar',
+    ];
 
     return (
         <ol
-            aria-label="Etapas"
+            aria-label={t('Etapas')}
             className="flex flex-wrap items-center gap-2.5 font-mono text-xs"
         >
             {steps.map((label, index) => {
@@ -637,17 +657,12 @@ function Steps({ current }: { current: number }) {
                         >
                             {index + 1}
                         </span>
-                        {label}
+                        {t(label)}
                     </li>
                 );
             })}
         </ol>
     );
-}
-
-/** Edição brasileira: prefixos 978-85 e 978-65 (igual a Isbn::isBrazilian). */
-function isBrazilian(isbn: string | null) {
-    return !!isbn && (isbn.startsWith('97885') || isbn.startsWith('97865'));
 }
 
 function ResultRow({
@@ -665,8 +680,9 @@ function ResultRow({
     onToggleEditions?: () => void;
     children?: ReactNode;
 }) {
+    const { t } = useTranslation();
     const meta = [
-        result.authors.join(', ') || 'Autor desconhecido',
+        result.authors.join(', ') || t('Autor desconhecido'),
         result.published_year,
         result.publisher,
     ].filter(Boolean);
@@ -701,7 +717,9 @@ function ResultRow({
                                 className="rounded-[4px] border bg-bg px-2 py-0.5 font-mono text-[11px] text-accent hover:bg-active"
                             >
                                 {editionsOpen ? '−' : '+'}{' '}
-                                {result.edition_count} edições
+                                {t(':count edições', {
+                                    count: result.edition_count ?? 0,
+                                })}
                             </button>
                         )}
                         {result.isbn_13 && (
@@ -711,7 +729,7 @@ function ResultRow({
                         )}
                         {result.library_id !== null && (
                             <span className="rounded-[4px] bg-elevated px-2 py-0.5 font-mono text-[11px] text-muted">
-                                já na biblioteca
+                                {t('já na biblioteca')}
                             </span>
                         )}
                     </div>
@@ -721,7 +739,7 @@ function ResultRow({
                         href={show.url(result.library_id)}
                         className="shrink-0 rounded-sm border px-3.5 py-2.5 text-[13px] text-accent hover:bg-active"
                     >
-                        Abrir
+                        {t('Abrir')}
                     </Link>
                 ) : (
                     <button
@@ -735,7 +753,7 @@ function ResultRow({
                                 : 'hover:bg-active',
                         )}
                     >
-                        {selected ? '✓ Escolhido' : 'Escolher'}
+                        {selected ? t('✓ Escolhido') : t('Escolher')}
                     </button>
                 )}
             </div>
@@ -755,13 +773,14 @@ function EditionList({
     selected: string | null;
     onSelect: (edition: Candidate) => void;
 }) {
+    const { t, plural } = useTranslation();
     const [showAll, setShowAll] = useState(false);
     const [expanded, setExpanded] = useState(false);
 
     if (editions === null) {
         return (
             <p className="mb-3 ml-18 font-mono text-xs text-muted">
-                carregando edições…
+                {t('carregando edições…')}
             </p>
         );
     }
@@ -770,13 +789,15 @@ function EditionList({
         return (
             <p className="mb-3 ml-18 text-sm text-muted">
                 {publisher
-                    ? `Nenhuma edição com ISBN da editora "${publisher}".`
-                    : 'Nenhuma edição com ISBN.'}
+                    ? t('Nenhuma edição com ISBN da editora ":publisher".', {
+                          publisher,
+                      })
+                    : t('Nenhuma edição com ISBN.')}
             </p>
         );
     }
 
-    // Brasileiras primeiro e sozinhas, sem repetidas; sem nenhuma brasileira, as demais.
+    // Brazilian ones first and alone, without duplicates; with none, the others.
     const {
         items: visible,
         foreign,
@@ -785,14 +806,15 @@ function EditionList({
 
     return (
         <ul
-            aria-label="Edições"
+            aria-label={t('Edições')}
             className="mr-3.5 mb-3 ml-18 flex max-h-96 flex-col gap-1 overflow-y-auto border-l pl-3"
         >
             {visible.map((edition) => {
                 const isSelected = selected === keyOf(edition);
                 const meta = [
                     edition.published_year,
-                    edition.pages && `${edition.pages} págs.`,
+                    edition.pages &&
+                        t(':pages págs.', { pages: edition.pages }),
                 ].filter(Boolean);
 
                 return (
@@ -804,7 +826,7 @@ function EditionList({
                             >
                                 <EditionLabel edition={edition} meta={meta} />
                                 <span className="font-mono text-[11px] text-accent">
-                                    na biblioteca
+                                    {t('na biblioteca')}
                                 </span>
                             </Link>
                         ) : (
@@ -830,7 +852,9 @@ function EditionList({
                         onClick={() => setShowAll(true)}
                         className="text-xs text-accent hover:underline"
                     >
-                        {`+ Mostrar ${foreign} ${foreign === 1 ? 'edição' : 'edições'} de outros países`}
+                        {t('+ Mostrar :editions de outros países', {
+                            editions: plural(foreign, 'edição', 'edições'),
+                        })}
                     </button>
                 </li>
             )}
@@ -841,7 +865,7 @@ function EditionList({
                         onClick={() => setExpanded(true)}
                         className="text-xs text-accent hover:underline"
                     >
-                        {`+ Mostrar mais ${more}`}
+                        {t('+ Mostrar mais :count', { count: more })}
                     </button>
                 </li>
             )}
@@ -864,7 +888,7 @@ function EditionLabel({
                     <span className="text-muted"> · {meta.join(' · ')}</span>
                 )}
             </span>
-            {isBrazilian(edition.isbn_13) && (
+            {isBrazilianIsbn(edition.isbn_13) && (
                 <span className="rounded-[4px] bg-active px-1.5 py-px font-mono text-[10px] text-accent">
                     pt-BR
                 </span>
@@ -877,9 +901,11 @@ function EditionLabel({
 }
 
 function MoreFields({ form }: { form: ReturnType<typeof useForm<BookForm>> }) {
+    const { t } = useTranslation();
+
     return (
         <>
-            <Field label="Subtítulo" error={form.errors.subtitle}>
+            <Field label={t('Subtítulo')} error={form.errors.subtitle}>
                 <Input
                     value={form.data.subtitle}
                     onChange={(event) =>
@@ -890,7 +916,7 @@ function MoreFields({ form }: { form: ReturnType<typeof useForm<BookForm>> }) {
             </Field>
             <div className="flex flex-wrap gap-3">
                 <Field
-                    label="Editora"
+                    label={t('Editora')}
                     error={form.errors.publisher}
                     className="flex-[2_1_160px]"
                 >
@@ -903,7 +929,7 @@ function MoreFields({ form }: { form: ReturnType<typeof useForm<BookForm>> }) {
                     />
                 </Field>
                 <Field
-                    label="Ano"
+                    label={t('Ano')}
                     error={form.errors.published_year}
                     className="flex-[1_1_80px]"
                 >
@@ -926,7 +952,7 @@ function MoreFields({ form }: { form: ReturnType<typeof useForm<BookForm>> }) {
                     className="h-10 font-mono"
                 />
             </Field>
-            <Field label="Descrição" error={form.errors.description}>
+            <Field label={t('Descrição')} error={form.errors.description}>
                 <Textarea
                     value={form.data.description}
                     onChange={(event) =>

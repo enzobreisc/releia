@@ -1,9 +1,10 @@
 import { Link } from '@inertiajs/react';
 import { PlusIcon } from '@/components/icons';
+import { useTranslation } from '@/hooks/use-translation';
 import { index } from '@/routes/notes';
 import type { NoteCard } from '@/types/notes';
 
-/** Notas do livro (aba do Detalhe) e um atalho para criar outra. */
+/** The book's notes (detail page tab) and a shortcut to create another. */
 export function BookNotes({
     bookId,
     notes,
@@ -11,12 +12,15 @@ export function BookNotes({
     bookId: number;
     notes: NoteCard[];
 }) {
+    const { t } = useTranslation();
+
     return (
         <div className="flex flex-col gap-2 pt-2.5">
             {notes.length === 0 && (
                 <p className="py-2 text-sm text-muted">
-                    Nenhuma nota ainda. Trechos e reflexões sobre este livro
-                    aparecem aqui.
+                    {t(
+                        'Nenhuma nota ainda. Trechos e reflexões sobre este livro aparecem aqui.',
+                    )}
                 </p>
             )}
             {notes.map((note) => (
@@ -27,7 +31,9 @@ export function BookNotes({
                 >
                     <span className="flex gap-2 font-mono text-[11px] text-muted">
                         {note.page && (
-                            <span className="text-accent">p. {note.page}</span>
+                            <span className="text-accent">
+                                {t('p. :page', { page: note.page })}
+                            </span>
                         )}
                         <span>{note.kind_label.toLowerCase()}</span>
                     </span>
@@ -40,7 +46,7 @@ export function BookNotes({
                 href={index.url({ query: { book: bookId, new: 1 } })}
                 className="flex items-center gap-1.5 self-start py-2 text-[13px] font-semibold text-accent hover:underline"
             >
-                <PlusIcon /> Nova nota neste livro
+                <PlusIcon /> {t('Nova nota neste livro')}
             </Link>
         </div>
     );

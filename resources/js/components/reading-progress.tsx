@@ -1,6 +1,7 @@
+import type { useTranslation } from '@/hooks/use-translation';
 import type { ReadingProgress } from '@/types';
 
-/** Barra fina de progresso (identidade: trilha elevada, preenchimento azul). */
+/** Thin progress bar (elevated track, blue fill). */
 export function ProgressBar({
     percent,
     className,
@@ -20,12 +21,18 @@ export function ProgressBar({
     );
 }
 
-/** "pág. 40 de 300 · 13% · faltam 8 dias no seu ritmo". */
-export function progressText(progress: ReadingProgress): string {
+/** "p. 40 of 300 · 13% · 8 days left at your pace". */
+export function progressText(
+    progress: ReadingProgress,
+    { t, plural }: Pick<ReturnType<typeof useTranslation>, 't' | 'plural'>,
+): string {
     const parts: string[] = [
         progress.pages === null
-            ? `pág. ${progress.current_page}`
-            : `pág. ${progress.current_page} de ${progress.pages}`,
+            ? t('pág. :page', { page: progress.current_page })
+            : t('pág. :page de :pages', {
+                  page: progress.current_page,
+                  pages: progress.pages,
+              }),
     ];
 
     if (progress.percent !== null) {
@@ -34,10 +41,12 @@ export function progressText(progress: ReadingProgress): string {
 
     if (progress.days_left !== null) {
         parts.push(
-            `faltam ${progress.days_left} ${progress.days_left === 1 ? 'dia' : 'dias'} no seu ritmo`,
+            t('faltam :duration no seu ritmo', {
+                duration: plural(progress.days_left, 'dia', 'dias'),
+            }),
         );
     } else if (progress.pace === null && progress.pages !== null) {
-        parts.push('sem sessões para estimar o ritmo');
+        parts.push(t('sem sessões para estimar o ritmo'));
     }
 
     return parts.join(' · ');

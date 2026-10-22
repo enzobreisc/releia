@@ -3,14 +3,16 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { BookCover } from '@/components/book-cover';
 import { Bookshelf } from '@/components/bookshelf';
-import { Button, Field, Input } from '@/components/form';
+import { Button, Field, Input, Select } from '@/components/form';
 import { HeatMap, heatClass } from '@/components/heat-map';
 import { PageHeader, SectionTitle } from '@/components/page-header';
+import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { show as bookShow } from '@/routes/books';
+import { update as updateLocale } from '@/routes/locale';
 import { show as profileShow, update as updateProfile } from '@/routes/profile';
 import { destroy as unpinBook, store as pinBook } from '@/routes/profile/pins';
-import type { CalendarDay, SpineBook } from '@/types';
+import type { CalendarDay, Option, SpineBook } from '@/types';
 
 type PinnedBook = {
     id: number;
@@ -29,6 +31,7 @@ type ActivityItem =
 
 type ProfileProps = {
     reader: { name: string | null; bio: string | null };
+    locales: Option[];
     since: string;
     totals: {
         books_read: number;
@@ -50,95 +53,54 @@ type ProfileProps = {
     activity: ActivityItem[];
 };
 
-const MONTHS = [
-    'jan',
-    'fev',
-    'mar',
-    'abr',
-    'mai',
-    'jun',
-    'jul',
-    'ago',
-    'set',
-    'out',
-    'nov',
-    'dez',
-];
+type Translator = ReturnType<typeof useTranslation>;
 
-const MONTH_NAMES = [
-    'janeiro',
-    'fevereiro',
-    'março',
-    'abril',
-    'maio',
-    'junho',
-    'julho',
-    'agosto',
-    'setembro',
-    'outubro',
-    'novembro',
-    'dezembro',
-];
-
-/** "2026-03" vira "mar/2026". */
-function formatSince(since: string) {
-    const [year, month] = since.split('-');
-
-    return `${MONTHS[Number(month) - 1]}/${year}`;
-}
-
-/** "2026-10-14" vira "14 out". */
-function shortDate(date: string) {
-    const [, month, day] = date.split('-');
-
-    return `${Number(day)} ${MONTHS[Number(month) - 1]}`;
-}
-
-function plural(count: number, one: string, many: string) {
-    return `${count} ${count === 1 ? one : many}`;
-}
-
-/** Ícone, verbo e complemento de um evento da atividade. */
-function describe(item: ActivityItem) {
+/** Icon, verb and extra text of an activity event. */
+function describe(item: ActivityItem, { t, plural }: Translator) {
     switch (item.type) {
         case 'finished':
             return {
                 icon: '✓',
                 done: true,
-                verb: 'Terminou',
-                extra: item.rating ? ` · nota ${item.rating}` : '',
+                verb: t('Terminou'),
+                extra: item.rating
+                    ? ` · ${t('nota :rating', { rating: item.rating })}`
+                    : '',
             };
         case 'session':
             return {
                 icon: '+',
                 done: false,
-                verb: 'Leu',
+                verb: t('Leu'),
                 extra: ` · +${plural(item.pages, 'pág', 'págs')}`,
             };
         case 'added':
             return {
                 icon: '◇',
                 done: false,
-                verb: 'Adicionou',
-                extra: ' à biblioteca',
+                verb: t('Adicionou'),
+                extra: ` ${t('à biblioteca')}`,
             };
         case 'reread':
             return {
                 icon: '↻',
                 done: false,
-                verb: 'Começou a reler',
+                verb: t('Começou a reler'),
                 extra: '',
             };
     }
 }
 
-/** Atividade agrupada por mês, mais recente primeiro: "outubro de 2026". */
-function byMonth(activity: ActivityItem[]) {
+/** Activity grouped by month, most recent first: "outubro de 2026". */
+function byMonth(activity: ActivityItem[], languageTag: string) {
     const groups: { month: string; items: ActivityItem[] }[] = [];
 
     for (const item of activity) {
         const [year, month] = item.date.split('-');
-        const label = `${MONTH_NAMES[Number(month) - 1]} de ${year}`;
+        const label = new Date(
+            Number(year),
+            Number(month) - 1,
+        ).toLocaleDateString(languageTag, { month: 'long', year: 'numeric' });
         const last = groups[groups.length - 1];
 
         if (last?.month === label) {
@@ -153,6 +115,7 @@ function byMonth(activity: ActivityItem[]) {
 
 export default function Profile({
     reader,
+    locales,
     since,
     totals,
     genres,
@@ -167,13 +130,16 @@ export default function Profile({
     year_summary,
     activity,
 }: ProfileProps) {
+    const { t, plural } = useTranslation();
+
     return (
         <>
-            <PageHeader title="Perfil" crumb="perfil" />
+            <PageHeader title={t('Perfil')} crumb={t('perfil')} />
 
             <div className="flex flex-wrap items-start gap-8">
                 <ReaderCard
                     reader={reader}
+                    locales={locales}
                     since={since}
                     totals={totals}
                     genres={genres}
@@ -188,11 +154,18 @@ export default function Profile({
                     />
 
                     <section
-                        aria-label="Estante do ano"
+                        aria-label={t('Estante do ano')}
                         className="flex flex-col gap-3 rounded-md border bg-surface px-5 py-4.5"
                     >
                         <SectionTitle>
-                            {`Estante de ${year} · ${plural(year_books.length, 'livro', 'livros')}`}
+                            {t('Estante de :year · :books', {
+                                year,
+                                books: plural(
+                                    year_books.length,
+                                    'livro',
+                                    'livros',
+                                ),
+                            })}
                         </SectionTitle>
                         {year_books.length > 0 ? (
                             <Bookshelf
@@ -202,23 +175,30 @@ export default function Profile({
                             />
                         ) : (
                             <p className="font-mono text-xs text-faint">
-                                nenhum livro terminado em {year}
+                                {t('nenhum livro terminado em :year', { year })}
                             </p>
                         )}
                     </section>
 
                     <section
-                        aria-label="Calendário de leitura"
+                        aria-label={t('Calendário de leitura')}
                         className="flex flex-col gap-3 rounded-md border bg-surface px-5 py-4.5"
                     >
                         <div className="flex flex-wrap items-center justify-between gap-2.5">
                             <SectionTitle>
-                                {`${plural(year_summary.reading_days, 'dia', 'dias')} de leitura em ${year}`}
+                                {t(':days de leitura em :year', {
+                                    days: plural(
+                                        year_summary.reading_days,
+                                        'dia',
+                                        'dias',
+                                    ),
+                                    year,
+                                })}
                             </SectionTitle>
                             {years.length > 1 && (
                                 <div
                                     role="tablist"
-                                    aria-label="Ano"
+                                    aria-label={t('Ano')}
                                     className="flex gap-1"
                                 >
                                     {years.map((option) => (
@@ -259,7 +239,7 @@ export default function Profile({
                         <HeatMap days={calendar} />
                         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 text-xs text-muted">
                             <span className="font-mono">
-                                maior sequência:{' '}
+                                {t('maior sequência:')}{' '}
                                 {plural(
                                     year_summary.longest_streak,
                                     'dia',
@@ -267,7 +247,7 @@ export default function Profile({
                                 )}
                             </span>
                             <span className="flex items-center gap-1 font-mono">
-                                menos
+                                {t('menos')}
                                 {[0, 1, 2, 3, 4].map((level) => (
                                     <span
                                         key={level}
@@ -277,7 +257,7 @@ export default function Profile({
                                         )}
                                     />
                                 ))}
-                                mais
+                                {t('mais')}
                             </span>
                         </div>
                     </section>
@@ -291,11 +271,17 @@ export default function Profile({
 
 function ReaderCard({
     reader,
+    locales,
     since,
     totals,
     genres,
     avatar,
-}: Pick<ProfileProps, 'reader' | 'since' | 'totals' | 'genres' | 'avatar'>) {
+}: Pick<
+    ProfileProps,
+    'reader' | 'locales' | 'since' | 'totals' | 'genres' | 'avatar'
+>) {
+    const { t, plural, locale, monthYear, translateText, languageTag } =
+        useTranslation();
     const [editing, setEditing] = useState(false);
     const form = useForm({ name: reader.name ?? '', bio: reader.bio ?? '' });
 
@@ -308,15 +294,20 @@ function ReaderCard({
     }
 
     const stats = [
-        { label: 'livros lidos', value: String(totals.books_read) },
-        { label: 'páginas', value: totals.pages_read.toLocaleString('pt-BR') },
+        { label: t('livros lidos'), value: String(totals.books_read) },
         {
-            label: 'sequência',
-            value: plural(totals.streak, 'dia', 'dias'),
-            title: `Maior sequência: ${plural(totals.longest_streak, 'dia', 'dias')}`,
+            label: t('páginas'),
+            value: totals.pages_read.toLocaleString(languageTag),
         },
         {
-            label: 'págs/dia',
+            label: t('sequência'),
+            value: plural(totals.streak, 'dia', 'dias'),
+            title: t('Maior sequência: :days', {
+                days: plural(totals.longest_streak, 'dia', 'dias'),
+            }),
+        },
+        {
+            label: t('págs/dia'),
             value:
                 totals.pages_per_day === null
                     ? '—'
@@ -326,13 +317,13 @@ function ReaderCard({
 
     return (
         <aside
-            aria-label="Leitor"
+            aria-label={t('Leitor')}
             className="flex min-w-[200px] flex-[0_1_240px] flex-col gap-4"
         >
             <div
                 role="img"
-                aria-label="Avatar: seus últimos 25 dias de leitura"
-                title="Seus últimos 25 dias de leitura"
+                aria-label={t('Avatar: seus últimos 25 dias de leitura')}
+                title={t('Seus últimos 25 dias de leitura')}
                 className="grid size-40 grid-cols-5 grid-rows-5 gap-1.5 rounded-2xl border bg-surface p-4.5"
             >
                 {avatar.map((level, index) => (
@@ -345,7 +336,7 @@ function ReaderCard({
 
             {editing ? (
                 <form onSubmit={save} className="flex flex-col gap-2.5">
-                    <Field label="Nome" error={form.errors.name}>
+                    <Field label={t('Nome')} error={form.errors.name}>
                         <Input
                             autoFocus
                             value={form.data.name}
@@ -356,14 +347,14 @@ function ReaderCard({
                             className="h-10"
                         />
                     </Field>
-                    <Field label="Sobre você" error={form.errors.bio}>
+                    <Field label={t('Sobre você')} error={form.errors.bio}>
                         <Input
                             value={form.data.bio}
                             onChange={(event) =>
                                 form.setData('bio', event.target.value)
                             }
                             maxLength={160}
-                            placeholder="O que você gosta de ler"
+                            placeholder={t('O que você gosta de ler')}
                             className="h-10"
                         />
                     </Field>
@@ -373,7 +364,7 @@ function ReaderCard({
                             disabled={form.processing}
                             className="h-10 flex-1"
                         >
-                            Salvar
+                            {t('Salvar')}
                         </Button>
                         <Button
                             variant="ghost"
@@ -383,7 +374,7 @@ function ReaderCard({
                             }}
                             className="h-10"
                         >
-                            Cancelar
+                            {t('Cancelar')}
                         </Button>
                     </div>
                 </form>
@@ -391,10 +382,12 @@ function ReaderCard({
                 <>
                     <div className="flex flex-col gap-0.5">
                         <div className="font-mono text-2xl font-bold">
-                            {reader.name ?? 'Seu perfil'}
+                            {reader.name ?? t('Seu perfil')}
                         </div>
                         <div className="font-mono text-sm text-muted">
-                            leitor desde {formatSince(since)}
+                            {t('leitor desde :date', {
+                                date: monthYear(`${since}-01`),
+                            })}
                         </div>
                     </div>
                     {reader.bio && (
@@ -407,10 +400,30 @@ function ReaderCard({
                         onClick={() => setEditing(true)}
                         className="h-10 text-[13px] font-semibold"
                     >
-                        Editar perfil
+                        {t('Editar perfil')}
                     </Button>
                 </>
             )}
+
+            <Field label={t('Idioma')}>
+                <Select
+                    value={locale}
+                    onChange={(event) =>
+                        router.put(
+                            updateLocale.url(),
+                            { locale: event.target.value },
+                            { preserveScroll: true },
+                        )
+                    }
+                    className="h-10"
+                >
+                    {locales.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </Select>
+            </Field>
 
             <div className="h-px bg-border" />
 
@@ -436,16 +449,16 @@ function ReaderCard({
                     <div className="h-px bg-border" />
                     <div className="flex flex-col gap-2">
                         <span className="font-mono text-[11px] text-muted">
-                            gêneros mais lidos
+                            {t('gêneros mais lidos')}
                         </span>
                         <div className="flex flex-wrap gap-1.5">
                             {genres.map((genre) => (
                                 <span
                                     key={genre.label}
-                                    title={genre.label}
+                                    title={translateText(genre.label)}
                                     className="max-w-full truncate rounded-full border px-2 py-0.5 text-xs"
                                 >
-                                    #{genre.label.toLowerCase()}{' '}
+                                    #{translateText(genre.label).toLowerCase()}{' '}
                                     <span className="font-mono text-muted">
                                         {genre.count}
                                     </span>
@@ -468,20 +481,29 @@ function PinnedSection({
     options: { id: number; title: string }[];
     limit: number;
 }) {
+    const { t } = useTranslation();
     const errors = usePage<{ errors: Record<string, string> }>().props.errors;
     const [editing, setEditing] = useState(pinned.length === 0);
     const canPin = pinned.length < limit && options.length > 0;
 
     return (
-        <section aria-label="Livros fixados" className="flex flex-col gap-3">
+        <section
+            aria-label={t('Livros fixados')}
+            className="flex flex-col gap-3"
+        >
             <div className="flex items-baseline justify-between gap-3">
-                <SectionTitle>{`fixados · ${pinned.length}/${limit}`}</SectionTitle>
+                <SectionTitle>
+                    {t('fixados · :count/:limit', {
+                        count: pinned.length,
+                        limit,
+                    })}
+                </SectionTitle>
                 <button
                     type="button"
                     onClick={() => setEditing(!editing)}
                     className="text-[13px] font-semibold text-accent hover:underline"
                 >
-                    {editing ? 'Concluir' : 'Organizar fixados'}
+                    {editing ? t('Concluir') : t('Organizar fixados')}
                 </button>
             </div>
 
@@ -492,7 +514,7 @@ function PinnedSection({
 
                 {editing && canPin && (
                     <label className="flex min-h-26.5 flex-col justify-center gap-2 rounded-md border border-dashed p-3.5 text-xs text-muted">
-                        Fixar outro livro
+                        {t('Fixar outro livro')}
                         <select
                             defaultValue=""
                             onChange={(event) =>
@@ -506,7 +528,7 @@ function PinnedSection({
                             className="h-10 w-full rounded-sm border bg-bg px-2.5 text-sm text-text"
                         >
                             <option value="" disabled>
-                                Escolha um livro…
+                                {t('Escolha um livro…')}
                             </option>
                             {options.map((option) => (
                                 <option key={option.id} value={option.id}>
@@ -520,8 +542,9 @@ function PinnedSection({
 
             {pinned.length === 0 && !canPin && (
                 <p className="text-sm text-muted">
-                    Adicione livros à biblioteca para fixar os seus favoritos
-                    aqui.
+                    {t(
+                        'Adicione livros à biblioteca para fixar os seus favoritos aqui.',
+                    )}
                 </p>
             )}
             {errors?.book_id && (
@@ -532,6 +555,8 @@ function PinnedSection({
 }
 
 function PinnedCard({ book, editing }: { book: PinnedBook; editing: boolean }) {
+    const { t, translateText } = useTranslation();
+
     return (
         <article className="relative flex gap-3.5 rounded-md border bg-surface p-3.5">
             <Link href={bookShow.url(book.id)} className="shrink-0">
@@ -549,18 +574,22 @@ function PinnedCard({ book, editing }: { book: PinnedBook; editing: boolean }) {
                     {book.title}
                 </Link>
                 <span className="truncate text-[13px] text-muted">
-                    {book.authors || 'Autor desconhecido'}
+                    {book.authors || t('Autor desconhecido')}
                 </span>
                 <div className="mt-auto flex items-center gap-3 text-xs text-muted">
                     {book.genre && (
                         <span className="flex min-w-0 items-center gap-1.5">
                             <span className="size-2.5 shrink-0 rounded-full bg-heat-3" />
-                            <span className="truncate">{book.genre}</span>
+                            <span className="truncate">
+                                {translateText(book.genre)}
+                            </span>
                         </span>
                     )}
                     {book.rating !== null && (
                         <span
-                            aria-label={`Nota ${book.rating} de 5`}
+                            aria-label={t('Nota :rating de 5', {
+                                rating: book.rating,
+                            })}
                             className="font-mono tracking-[1px] text-accent"
                         >
                             {'★'.repeat(book.rating)}
@@ -572,7 +601,7 @@ function PinnedCard({ book, editing }: { book: PinnedBook; editing: boolean }) {
             {editing && (
                 <button
                     type="button"
-                    aria-label={`Desafixar ${book.title}`}
+                    aria-label={t('Desafixar :title', { title: book.title })}
                     onClick={() =>
                         router.delete(unpinBook.url(book.id), {
                             preserveScroll: true,
@@ -588,16 +617,21 @@ function PinnedCard({ book, editing }: { book: PinnedBook; editing: boolean }) {
 }
 
 function ActivitySection({ activity }: { activity: ActivityItem[] }) {
+    const translator = useTranslation();
+    const { t, shortDate, languageTag } = translator;
+
     return (
         <section
-            aria-label="Atividade recente"
+            aria-label={t('Atividade recente')}
             className="flex flex-col gap-2.5"
         >
-            <SectionTitle>atividade</SectionTitle>
+            <SectionTitle>{t('atividade')}</SectionTitle>
             {activity.length === 0 && (
-                <p className="text-sm text-muted">Nenhuma atividade ainda.</p>
+                <p className="text-sm text-muted">
+                    {t('Nenhuma atividade ainda.')}
+                </p>
             )}
-            {byMonth(activity).map((group) => (
+            {byMonth(activity, languageTag).map((group) => (
                 <div key={group.month} className="flex flex-col">
                     <div className="flex items-center gap-2.5 pt-1 pb-2 text-[13px] font-semibold">
                         {group.month}
@@ -605,7 +639,10 @@ function ActivitySection({ activity }: { activity: ActivityItem[] }) {
                     </div>
                     <ol className="ml-2.5 flex flex-col border-l">
                         {group.items.map((item, index) => {
-                            const { icon, done, verb, extra } = describe(item);
+                            const { icon, done, verb, extra } = describe(
+                                item,
+                                translator,
+                            );
 
                             return (
                                 <li

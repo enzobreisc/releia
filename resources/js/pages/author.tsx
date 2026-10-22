@@ -5,6 +5,7 @@ import { Bookshelf } from '@/components/bookshelf';
 import { buttonClass } from '@/components/form';
 import { PageHeader, SectionTitle } from '@/components/page-header';
 import { StatusBadge } from '@/components/status';
+import { useTranslation } from '@/hooks/use-translation';
 import { index as authorsIndex, works as worksRoute } from '@/routes/authors';
 import { create as addBook, show as bookShow } from '@/routes/books';
 import type { SpineBook } from '@/types';
@@ -27,24 +28,26 @@ export default function Author({
     author: { id: number; name: string };
     books: SpineBook[];
 }) {
+    const { t } = useTranslation();
+
     return (
         <>
             <PageHeader
                 title={author.name}
-                crumb={['autores', author.name.toLowerCase()]}
+                crumb={[t('autores'), author.name.toLowerCase()]}
                 actions={
                     <Link
                         href={authorsIndex.url()}
                         className={buttonClass('ghost')}
                     >
-                        Todos os autores
+                        {t('Todos os autores')}
                     </Link>
                 }
             />
 
             <section className="flex flex-col gap-3">
                 <SectionTitle>
-                    {`Na sua biblioteca · ${books.length}`}
+                    {t('Na sua biblioteca · :count', { count: books.length })}
                 </SectionTitle>
                 <Bookshelf books={books} group="given" bookshelves={[]} />
                 <ul className="flex flex-col gap-1.5">
@@ -79,8 +82,9 @@ export default function Author({
     );
 }
 
-/** Obras que faltam na biblioteca, vindas da Open Library pelas chaves do autor. */
+/** Works missing from the library, from Open Library by the author's keys. */
 function OtherWorks({ authorId, name }: { authorId: number; name: string }) {
+    const { t } = useTranslation();
     const [works, setWorks] = useState<Works | null>(null);
     const [failed, setFailed] = useState(false);
 
@@ -103,29 +107,35 @@ function OtherWorks({ authorId, name }: { authorId: number; name: string }) {
         <section className="flex flex-col gap-3">
             <SectionTitle>
                 {works?.verified
-                    ? `Outras obras de ${name} · ${works.items.length}`
-                    : `Outras obras de ${name}`}
+                    ? t('Outras obras de :name · :count', {
+                          name,
+                          count: works.items.length,
+                      })
+                    : t('Outras obras de :name', { name })}
             </SectionTitle>
 
             {failed && (
                 <p className="text-sm text-muted">
-                    Não foi possível buscar as obras agora. Tente de novo mais
-                    tarde.
+                    {t(
+                        'Não foi possível buscar as obras agora. Tente de novo mais tarde.',
+                    )}
                 </p>
             )}
             {!failed && works === null && (
-                <p className="font-mono text-xs text-muted">buscando obras…</p>
+                <p className="font-mono text-xs text-muted">
+                    {t('buscando obras…')}
+                </p>
             )}
             {works && !works.verified && (
                 <p className="rounded-md border bg-surface p-4 text-sm text-muted">
-                    Não foi possível identificar este autor com segurança (há
-                    homônimos), então não mostramos obras que poderiam ser de
-                    outra pessoa.
+                    {t(
+                        'Não foi possível identificar este autor com segurança (há homônimos), então não mostramos obras que poderiam ser de outra pessoa.',
+                    )}
                 </p>
             )}
             {works?.verified && works.items.length === 0 && (
                 <p className="text-sm text-muted">
-                    Você já tem todas as obras que encontramos.
+                    {t('Você já tem todas as obras que encontramos.')}
                 </p>
             )}
 
@@ -149,14 +159,16 @@ function OtherWorks({ authorId, name }: { authorId: number; name: string }) {
                                     {[
                                         work.year,
                                         work.edition_count &&
-                                            `${work.edition_count} edições`,
+                                            t(':count edições', {
+                                                count: work.edition_count,
+                                            }),
                                     ]
                                         .filter(Boolean)
                                         .join(' · ')}
                                 </span>
                                 {work.portuguese && (
                                     <span className="self-start rounded-[4px] bg-active px-1.5 py-px font-mono text-[10px] text-accent">
-                                        em português
+                                        {t('em português')}
                                     </span>
                                 )}
                                 <Link
@@ -170,7 +182,7 @@ function OtherWorks({ authorId, name }: { authorId: number; name: string }) {
                                     })}
                                     className="mt-auto self-start text-xs text-accent hover:underline"
                                 >
-                                    + Adicionar
+                                    {t('+ Adicionar')}
                                 </Link>
                             </div>
                         </li>

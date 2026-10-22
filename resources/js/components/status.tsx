@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from '@/hooks/use-translation';
+import type { TranslationKey } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
-/** As quatro estantes, como o servidor envia (ReadingStatus). */
+/** The four shelves, as the server sends them (ReadingStatus). */
 export type Status = 'want_to_read' | 'reading' | 'read' | 'abandoned';
 
-export const STATUS_LABELS: Record<Status, string> = {
+export const STATUS_LABELS: Record<Status, TranslationKey> = {
     want_to_read: 'Quero ler',
     reading: 'Lendo',
     read: 'Lido',
@@ -19,8 +21,8 @@ const CHIP_BORDER: Record<Status, string> = {
 };
 
 /**
- * Ícone da estante: forma, cor e texto juntos, nunca só a cor.
- * Quero ler: anel cinza. Lendo: meio cheio. Lido: ✓. Abandonado: traço âmbar.
+ * Shelf icon: shape, color and text together, never color alone.
+ * Want to read: gray ring. Reading: half full. Read: ✓. Abandoned: amber dash.
  */
 export function StatusIcon({
     status,
@@ -92,7 +94,7 @@ export function StatusIcon({
     );
 }
 
-/** Selo pequeno de estante (cartões da Biblioteca). */
+/** Small shelf badge (Library cards). */
 export function StatusBadge({
     status,
     label,
@@ -108,8 +110,8 @@ export function StatusBadge({
     );
 }
 
-/** O que acontece ao ir de uma estante para outra (texto do menu). */
-const HINTS: Record<Status, Partial<Record<Status, string>>> = {
+/** What happens when moving from one shelf to another (menu text). */
+const HINTS: Record<Status, Partial<Record<Status, TranslationKey>>> = {
     want_to_read: {
         reading: 'Começa a ler hoje e sai da fila.',
         read: 'Pede data de término e nota.',
@@ -135,8 +137,8 @@ const HINTS: Record<Status, Partial<Record<Status, string>>> = {
 const ORDER: Status[] = ['want_to_read', 'reading', 'read', 'abandoned'];
 
 /**
- * Chip da estante com menu (D8). Cada opção diz o que vai acontecer;
- * as que pedem dados abrem um painel em vez de mudar na hora.
+ * Shelf chip with a menu. Each option says what will happen;
+ * the ones that need data open a panel instead of changing right away.
  */
 export function StatusMenu({
     status,
@@ -148,6 +150,7 @@ export function StatusMenu({
     onPick: (next: Status) => void;
 }) {
     const [open, setOpen] = useState(false);
+    const { t } = useTranslation();
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -176,7 +179,7 @@ export function StatusMenu({
         };
     }, [open]);
 
-    // Livro lido não é abandonado: quem parou uma releitura abandona a releitura.
+    // A read book is not abandoned: whoever stops a reread abandons the reread.
     const options = ORDER.filter(
         (value) => !(status === 'read' && value === 'abandoned'),
     );
@@ -212,11 +215,11 @@ export function StatusMenu({
             {open && (
                 <div
                     role="menu"
-                    aria-label="Mudar estante"
+                    aria-label={t('Mudar estante')}
                     className="absolute top-12 left-0 z-30 flex w-82 flex-col gap-0.5 rounded-[10px] border border-strong bg-surface p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.55)]"
                 >
                     <span className="px-2.5 pt-1.5 pb-1 font-mono text-[11px] text-faint">
-                        ## mover para
+                        ## {t('mover para')}
                     </span>
                     {options.map((value) => {
                         const current = value === status;
@@ -244,7 +247,7 @@ export function StatusMenu({
                                 </span>
                                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                                     <span className="text-sm font-semibold">
-                                        {STATUS_LABELS[value]}
+                                        {t(STATUS_LABELS[value])}
                                     </span>
                                     <span
                                         className={cn(
@@ -255,8 +258,9 @@ export function StatusMenu({
                                         )}
                                     >
                                         {current
-                                            ? 'Está aqui.'
-                                            : HINTS[status][value]}
+                                            ? t('Está aqui.')
+                                            : HINTS[status][value] &&
+                                              t(HINTS[status][value])}
                                     </span>
                                 </span>
                                 {current && (

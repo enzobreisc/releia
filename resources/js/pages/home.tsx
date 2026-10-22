@@ -7,6 +7,8 @@ import { SuggestionEditions } from '@/components/suggestion-editions';
 import type { Choosing } from '@/components/suggestion-editions';
 import { PageHeader, SectionTitle } from '@/components/page-header';
 import { ProgressBar, progressText } from '@/components/reading-progress';
+import { useTranslation } from '@/hooks/use-translation';
+import type { TranslationKey } from '@/lib/i18n';
 import { index as libraryIndex } from '@/routes/library';
 import { update as updateGoal } from '@/routes/goal';
 import { show as showBook } from '@/routes/books';
@@ -25,7 +27,7 @@ type HomeProps = {
     suggestion: Suggestion | null;
 };
 
-function greeting(hour: number): string {
+function greeting(hour: number): TranslationKey {
     if (hour >= 5 && hour < 12) {
         return 'Bom dia';
     }
@@ -40,28 +42,29 @@ export default function Home({
     recent,
     suggestion,
 }: HomeProps) {
-    const hello = greeting(new Date().getHours());
+    const { t } = useTranslation();
+    const hello = t(greeting(new Date().getHours()));
 
     return (
         <>
             <PageHeader
                 title={reader_name ? `${hello}, ${reader_name}` : hello}
-                headTitle="Início"
-                crumb="início"
-                description="Um resumo rápido da sua leitura"
+                headTitle={t('Início')}
+                crumb={t('início')}
+                description={t('Um resumo rápido da sua leitura')}
             />
 
             <div className="flex flex-wrap gap-6">
                 <section className="flex min-w-0 flex-[2_1_360px] flex-col gap-4 rounded-md border bg-surface p-5">
-                    <SectionTitle>lendo agora</SectionTitle>
+                    <SectionTitle>{t('lendo agora')}</SectionTitle>
                     {reading.length === 0 ? (
                         <p className="text-sm text-muted">
-                            Nenhum livro em andamento.{' '}
+                            {t('Nenhum livro em andamento.')}{' '}
                             <Link
                                 href={libraryIndex.url()}
                                 className="text-accent"
                             >
-                                Abrir a biblioteca
+                                {t('Abrir a biblioteca')}
                             </Link>
                         </p>
                     ) : (
@@ -72,7 +75,9 @@ export default function Home({
                 </section>
 
                 <section className="flex min-w-0 flex-[1_1_240px] flex-col gap-3 rounded-md border bg-surface p-5">
-                    <SectionTitle>{`meta de ${goal.year}`}</SectionTitle>
+                    <SectionTitle>
+                        {t('meta de :year', { year: goal.year })}
+                    </SectionTitle>
                     <p className="font-mono text-[40px] font-bold">
                         {goal.finished}
                         <span className="text-muted">
@@ -80,7 +85,7 @@ export default function Home({
                             / {goal.goal ?? '—'}
                         </span>
                     </p>
-                    <p className="text-sm text-muted">livros lidos</p>
+                    <p className="text-sm text-muted">{t('livros lidos')}</p>
                     <ProgressBar
                         percent={
                             goal.goal
@@ -94,7 +99,9 @@ export default function Home({
                         }
                     />
                     <p className="text-sm text-muted">
-                        No ritmo atual: {goal.projected} livros até dezembro
+                        {t('No ritmo atual: :count livros até dezembro', {
+                            count: goal.projected,
+                        })}
                     </p>
                     <GoalForm current={goal.goal} />
                 </section>
@@ -103,10 +110,10 @@ export default function Home({
             {suggestion && <TodaySuggestion suggestion={suggestion} />}
 
             <section className="flex flex-col gap-3">
-                <SectionTitle>últimos terminados</SectionTitle>
+                <SectionTitle>{t('últimos terminados')}</SectionTitle>
                 {recent.length === 0 ? (
                     <p className="text-sm text-muted">
-                        Os livros que você terminar aparecem aqui.
+                        {t('Os livros que você terminar aparecem aqui.')}
                     </p>
                 ) : (
                     <div className="flex flex-wrap gap-4">
@@ -134,6 +141,8 @@ export default function Home({
 }
 
 function ReadingNow({ item }: { item: ReadingSummary }) {
+    const translator = useTranslation();
+
     return (
         <div className="flex flex-wrap gap-5">
             <BookCover
@@ -145,20 +154,23 @@ function ReadingNow({ item }: { item: ReadingSummary }) {
                 <p className="text-xl font-bold">{item.title}</p>
                 <p className="text-sm text-muted">{item.authors}</p>
                 <ProgressBar percent={item.percent} />
-                <p className="text-[13px] text-muted">{progressText(item)}</p>
+                <p className="text-[13px] text-muted">
+                    {progressText(item, translator)}
+                </p>
                 <Link
                     href={showBook(item.book_id).url}
                     className="self-start rounded-sm bg-primary px-4 py-3 text-sm font-semibold text-white"
                 >
-                    Registrar leitura
+                    {translator.t('Registrar leitura')}
                 </Link>
             </div>
         </div>
     );
 }
 
-/** Meta de livros do ano, editável aqui mesmo. */
+/** The year's book goal, editable right here. */
 function GoalForm({ current }: { current: number | null }) {
+    const { t } = useTranslation();
     const form = useForm({ yearly_goal: String(current ?? 12) });
 
     function save(event: FormEvent) {
@@ -168,7 +180,7 @@ function GoalForm({ current }: { current: number | null }) {
 
     return (
         <form onSubmit={save} className="flex items-end gap-3">
-            <Field label="Meta de livros" error={form.errors.yearly_goal}>
+            <Field label={t('Meta de livros')} error={form.errors.yearly_goal}>
                 <Input
                     type="number"
                     min={1}
@@ -184,14 +196,15 @@ function GoalForm({ current }: { current: number | null }) {
                 variant="ghost"
                 disabled={form.processing || !form.isDirty}
             >
-                Salvar meta
+                {t('Salvar meta')}
             </Button>
         </form>
     );
 }
 
-/** Sugestão do dia (fase 5): sempre com o motivo, ligado a um livro lido. */
+/** Today's suggestion: always with the reason, tied to a book already read. */
 function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
+    const { t } = useTranslation();
     const options = { preserveScroll: true };
     const [open, setOpen] = useState(false);
     const [choosing, setChoosing] = useState<Choosing | null>(null);
@@ -204,7 +217,7 @@ function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
                 className="w-18"
             />
             <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-2">
-                <SectionTitle>sugestão de hoje</SectionTitle>
+                <SectionTitle>{t('sugestão de hoje')}</SectionTitle>
                 <div className="text-lg font-bold">{suggestion.title}</div>
                 {suggestion.authors && (
                     <div className="text-sm text-muted">
@@ -212,15 +225,17 @@ function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
                     </div>
                 )}
                 <div className="text-sm text-muted">
-                    Por quê: {suggestion.reason} · parecido com{' '}
-                    {suggestion.based_on}
+                    {t('Por quê: :reason · parecido com :book', {
+                        reason: suggestion.reason,
+                        book: suggestion.based_on,
+                    })}
                 </div>
                 <div className="flex flex-wrap gap-4">
                     <Link
                         href={suggestionsIndex.url()}
                         className="text-sm font-semibold text-accent hover:underline"
                     >
-                        Ver mais sugestões
+                        {t('Ver mais sugestões')}
                     </Link>
                     {suggestion.has_editions && (
                         <button
@@ -229,7 +244,9 @@ function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
                             onClick={() => setOpen(!open)}
                             className="text-sm text-accent hover:underline"
                         >
-                            {open ? '− Esconder edições' : '+ Escolher edição'}
+                            {open
+                                ? t('− Esconder edições')
+                                : t('+ Escolher edição')}
                         </button>
                     )}
                 </div>
@@ -244,7 +261,7 @@ function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
                     }
                     className={buttonClass('outline')}
                 >
-                    Quero ler
+                    {t('Quero ler')}
                 </button>
                 <button
                     type="button"
@@ -253,7 +270,7 @@ function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
                     }
                     className={buttonClass('ghost')}
                 >
-                    Dispensar
+                    {t('Dispensar')}
                 </button>
             </div>
             {(open || choosing) && (

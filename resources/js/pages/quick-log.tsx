@@ -6,6 +6,7 @@ import { heatClass } from '@/components/heat-map';
 import { LogoMark } from '@/components/icons';
 import { StarRating } from '@/components/star-rating';
 import { Toaster } from '@/components/toaster';
+import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { reading as readingRoute } from '@/routes/books';
 import { books as startBook } from '@/routes/quick-log';
@@ -34,10 +35,10 @@ type Saved = {
     pages: number;
     minutes: number | null;
     streak: number;
-    /** A sessão chegou à última página: o livro foi marcado como lido. */
+    /** The session reached the last page: the book was marked as read. */
     finished: boolean;
     days: number | null;
-    /** Próximo da fila, para começar daqui. */
+    /** Next in the queue, to start from here. */
     next: { id: number; title: string } | null;
 };
 
@@ -51,10 +52,10 @@ type QuickLogProps = {
     saved: Saved | null;
 };
 
-/** Cada quadrado da grade acende a cada minuto lido; 25 = uma grade cheia. */
+/** Each grid square lights up per minute read; 25 = a full grid. */
 const GRID = 25;
 
-/** "CmdOrCtrl+Shift+L" vira "⇧⌘L", como o macOS mostra nos menus. */
+/** "CmdOrCtrl+Shift+L" becomes "⇧⌘L", as macOS shows it in menus. */
 function formatShortcut(shortcut: string) {
     const symbols: Record<string, string> = {
         CmdOrCtrl: '⌘',
@@ -82,10 +83,10 @@ function clock(seconds: number) {
     return `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor(seconds / 60) % 60)}:${pad(seconds % 60)}`;
 }
 
-/** Segundos do timer, contando no navegador a partir do que o servidor mandou. */
+/** Timer seconds, counted in the browser from what the server sent. */
 function useElapsed(timer: Timer | null) {
     const [now, setNow] = useState(() => Date.now());
-    // Momento em que este estado do timer chegou: pausar ou continuar manda um novo.
+    // Moment this timer state arrived: pausing or resuming sends a new one.
     const [received, setReceived] = useState({ timer, at: Date.now() });
 
     if (received.timer !== timer) {
@@ -114,8 +115,8 @@ function useElapsed(timer: Timer | null) {
 }
 
 /**
- * Janela da barra de menu (360×560): a leitura do dia. Não usa o layout com
- * barra lateral: o app.tsx pula o layout para esta página.
+ * Menu bar window (360×560): the day's reading. It does not use the layout with
+ * a sidebar: app.tsx skips the layout for this page.
  */
 export default function QuickLog({
     readings,
@@ -126,12 +127,13 @@ export default function QuickLog({
     shortcut,
     saved,
 }: QuickLogProps) {
+    const { t } = useTranslation();
     const [bookId, setBookId] = useState<number | null>(
         timer?.book_id ?? readings[0]?.book_id ?? null,
     );
-    // "Terminar" pausa o timer e abre a página final; só some ao salvar ou descartar.
+    // "Finish" pauses the timer and opens the final page; it only goes away on save or discard.
     const [finishing, setFinishing] = useState(false);
-    // Cópia local do resumo: dar a nota recarrega a página, e o flash não volta.
+    // Local copy of the summary: rating reloads the page, and the flash does not come back.
     const [done, setDone] = useState<Saved | null>(saved);
 
     if (saved && saved.hash !== done?.hash) {
@@ -185,16 +187,19 @@ export default function QuickLog({
 
     return (
         <div className="flex h-screen flex-col overflow-hidden bg-bg text-text select-none">
-            <Head title="Leitura do dia" />
+            <Head title={t('Leitura do dia')} />
 
             <header className="flex items-center justify-between gap-2.5 border-b border-elevated px-4 pt-3.5 pb-3">
                 <div className="flex items-center gap-2">
                     <LogoMark size={16} />
                     <span className="font-mono text-xs font-bold">
-                        leitura de hoje
+                        {t('leitura de hoje')}
                     </span>
                 </div>
-                <div className="flex items-center gap-2" title="Últimos 7 dias">
+                <div
+                    className="flex items-center gap-2"
+                    title={t('Últimos 7 dias')}
+                >
                     <WeekStrip week={week} size="sm" />
                     <span className="font-mono text-[11px] text-muted">
                         {streak}d
@@ -217,7 +222,11 @@ export default function QuickLog({
             <Toaster variant="bar" />
 
             <footer className="flex justify-between border-t border-elevated px-4 py-2 font-mono text-[10px] text-faint">
-                <span>{formatShortcut(shortcut)} abre isto</span>
+                <span>
+                    {t(':shortcut abre isto', {
+                        shortcut: formatShortcut(shortcut),
+                    })}
+                </span>
                 <span>releia</span>
             </footer>
         </div>
@@ -262,13 +271,14 @@ function BookPicker({
     locked: boolean;
     onSelect: (bookId: number) => void;
 }) {
+    const { t } = useTranslation();
     const [adding, setAdding] = useState(false);
 
     return (
         <div className="flex flex-col gap-2.5 px-4 pt-3.5">
             <div
                 role="radiogroup"
-                aria-label="Livro"
+                aria-label={t('Livro')}
                 className="flex items-end gap-2"
             >
                 {readings.map((item) => {
@@ -307,8 +317,8 @@ function BookPicker({
                         type="button"
                         onClick={() => setAdding(!adding)}
                         aria-expanded={adding}
-                        aria-label="Começar outro livro"
-                        title="Começar outro livro"
+                        aria-label={t('Começar outro livro')}
+                        title={t('Começar outro livro')}
                         className="flex h-12.5 w-8.5 shrink-0 items-center justify-center rounded-[4px] border border-dashed text-muted hover:border-primary hover:text-accent"
                     >
                         +
@@ -318,7 +328,7 @@ function BookPicker({
 
             {adding ? (
                 <label className="flex flex-col gap-1 text-xs text-muted">
-                    Começar a ler
+                    {t('Começar a ler')}
                     <select
                         defaultValue=""
                         onChange={(event) => {
@@ -333,7 +343,7 @@ function BookPicker({
                         className="h-9 rounded-sm border bg-surface px-2 text-sm text-text"
                     >
                         <option value="" disabled>
-                            Um livro de "quero ler"…
+                            {t('Um livro de "quero ler"…')}
                         </option>
                         {available.map((book) => (
                             <option key={book.id} value={book.id}>
@@ -349,7 +359,7 @@ function BookPicker({
                             {selected.title}
                         </span>
                         <span className="shrink-0 font-mono text-[11px] text-muted">
-                            p. {selected.current_page}
+                            {t('p. :page', { page: selected.current_page })}
                             {selected.pages !== null && `/${selected.pages}`}
                         </span>
                     </div>
@@ -365,7 +375,7 @@ function BookPicker({
     );
 }
 
-/** Grade 5×5 que acende um quadrado por minuto, em tons cada vez mais claros. */
+/** 5×5 grid that lights one square per minute, in ever lighter tones. */
 function MinuteGrid({ seconds, live }: { seconds: number; live: boolean }) {
     const lit = Math.min(GRID, Math.floor(seconds / 60));
 
@@ -400,14 +410,18 @@ function EmptyPhase({
 }: {
     available: { id: number; title: string }[];
 }) {
+    const { t } = useTranslation();
+
     return (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
             <MinuteGrid seconds={0} live={false} />
-            <p className="text-sm text-muted">Nenhum livro em andamento.</p>
+            <p className="text-sm text-muted">
+                {t('Nenhum livro em andamento.')}
+            </p>
             {available.length > 0 && (
                 <select
                     defaultValue=""
-                    aria-label="Começar a ler"
+                    aria-label={t('Começar a ler')}
                     onChange={(event) =>
                         event.target.value &&
                         router.post(startBook.url(), {
@@ -417,7 +431,7 @@ function EmptyPhase({
                     className="h-10 w-full rounded-sm border bg-surface px-2.5 text-sm"
                 >
                     <option value="" disabled>
-                        Começar um livro de "quero ler"…
+                        {t('Começar um livro de "quero ler"…')}
                     </option>
                     {available.map((book) => (
                         <option key={book.id} value={book.id}>
@@ -431,6 +445,7 @@ function EmptyPhase({
 }
 
 function IdlePhase({ book }: { book: ReadingSummary }) {
+    const { t } = useTranslation();
     const form = useForm({
         book_id: book.book_id,
         start_page: String(book.current_page),
@@ -455,19 +470,19 @@ function IdlePhase({ book }: { book: ReadingSummary }) {
             <div className="flex flex-col items-center gap-3.5">
                 <MinuteGrid seconds={0} live={false} />
                 <p className="text-center text-xs text-muted">
-                    cada quadrado acende a cada minuto lido
+                    {t('cada quadrado acende a cada minuto lido')}
                 </p>
             </div>
 
             <div className="flex flex-col gap-2">
                 <label className="flex h-12.5 items-center justify-between gap-2.5 rounded-md border bg-surface pr-1.5 pl-3.5">
                     <span className="text-[13px] text-muted">
-                        começo na página
+                        {t('começo na página')}
                     </span>
                     <span className="flex items-center gap-1">
                         <button
                             type="button"
-                            aria-label="Página anterior"
+                            aria-label={t('Página anterior')}
                             onClick={() => step(-1)}
                             disabled={page <= book.current_page}
                             className="size-7.5 rounded-sm bg-elevated text-nav hover:text-text disabled:opacity-40"
@@ -486,7 +501,7 @@ function IdlePhase({ book }: { book: ReadingSummary }) {
                         />
                         <button
                             type="button"
-                            aria-label="Próxima página"
+                            aria-label={t('Próxima página')}
                             onClick={() => step(1)}
                             className="size-7.5 rounded-sm bg-elevated text-nav hover:text-text"
                         >
@@ -506,7 +521,7 @@ function IdlePhase({ book }: { book: ReadingSummary }) {
                     className="flex h-12 items-center justify-center gap-2.5 rounded-md bg-primary text-[15px] font-bold text-white hover:bg-primary/90 disabled:opacity-60"
                 >
                     <PlayIcon />
-                    Começar a ler
+                    {t('Começar a ler')}
                     <span className="font-mono text-[11px] font-medium opacity-80">
                         ↵
                     </span>
@@ -517,8 +532,9 @@ function IdlePhase({ book }: { book: ReadingSummary }) {
 }
 
 function RunningPhase({ timer, onStop }: { timer: Timer; onStop: () => void }) {
+    const { t } = useTranslation();
     const seconds = useElapsed(timer);
-    // Dois toques para descartar: confirm() some com a janela da barra de menu.
+    // Two taps to discard: confirm() disappears with the menu bar window.
     const [confirming, setConfirming] = useState(false);
 
     return (
@@ -540,8 +556,8 @@ function RunningPhase({ timer, onStop }: { timer: Timer; onStop: () => void }) {
                                 : 'animate-pulse bg-heat-3',
                         )}
                     />
-                    {timer.paused ? 'pausado' : 'lendo'} · desde a p.{' '}
-                    {timer.start_page}
+                    {timer.paused ? t('pausado') : t('lendo')} ·{' '}
+                    {t('desde a p. :page', { page: timer.start_page })}
                 </div>
             </div>
 
@@ -556,7 +572,7 @@ function RunningPhase({ timer, onStop }: { timer: Timer; onStop: () => void }) {
                         }
                         className="h-12 flex-1 rounded-md border bg-surface text-sm font-semibold hover:bg-active"
                     >
-                        {timer.paused ? '▶ Continuar' : '❚❚ Pausar'}
+                        {timer.paused ? t('▶ Continuar') : t('❚❚ Pausar')}
                     </button>
                     <button
                         type="button"
@@ -565,7 +581,7 @@ function RunningPhase({ timer, onStop }: { timer: Timer; onStop: () => void }) {
                         className="flex h-12 flex-[1.4] items-center justify-center gap-2 rounded-md bg-primary text-sm font-bold text-white hover:bg-primary/90"
                     >
                         <span className="size-2.5 rounded-[2px] bg-white" />
-                        Terminar
+                        {t('Terminar')}
                     </button>
                 </div>
                 <button
@@ -584,8 +600,8 @@ function RunningPhase({ timer, onStop }: { timer: Timer; onStop: () => void }) {
                     )}
                 >
                     {confirming
-                        ? 'confirmar: descartar sem salvar'
-                        : 'descartar'}
+                        ? t('confirmar: descartar sem salvar')
+                        : t('descartar')}
                 </button>
             </div>
         </div>
@@ -601,6 +617,7 @@ function FinishPhase({
     book: ReadingSummary;
     onCancel: () => void;
 }) {
+    const { t } = useTranslation();
     const seconds = useElapsed(timer);
     const minutes = Math.max(1, Math.round(seconds / 60));
     const form = useForm({ page_to: String(timer.start_page + 1) });
@@ -629,11 +646,11 @@ function FinishPhase({
         >
             <div className="flex flex-col gap-2.5">
                 <span className="font-mono text-[11px] text-muted">
-                    ## sessão de {minutes} min
+                    ## {t('sessão de :minutes min', { minutes })}
                 </span>
                 <label className="flex flex-col items-center gap-1 rounded-[10px] border border-primary bg-surface p-3.5">
                     <span className="text-[13px] text-muted">
-                        parei na página
+                        {t('parei na página')}
                     </span>
                     <input
                         type="number"
@@ -650,7 +667,7 @@ function FinishPhase({
                     />
                     {book.pages !== null && (
                         <span className="font-mono text-[11px] text-faint">
-                            de {book.pages}
+                            {t('de :pages', { pages: book.pages })}
                         </span>
                     )}
                 </label>
@@ -667,10 +684,17 @@ function FinishPhase({
                     ))}
                 </div>
                 <div className="flex justify-between rounded-md bg-surface px-3 py-2.5 font-mono text-xs">
-                    <span className="text-heat-3">+{gained} págs</span>
-                    <span className="text-muted">{minutes} min</span>
+                    <span className="text-heat-3">
+                        +{t(':pages págs', { pages: gained })}
+                    </span>
                     <span className="text-muted">
-                        ~{Math.round(gained / (minutes / 60))} págs/h
+                        {t(':minutes min', { minutes })}
+                    </span>
+                    <span className="text-muted">
+                        ~
+                        {t(':pages págs/h', {
+                            pages: Math.round(gained / (minutes / 60)),
+                        })}
                     </span>
                 </div>
                 {form.errors.page_to && (
@@ -686,7 +710,7 @@ function FinishPhase({
                     disabled={form.processing || gained === 0}
                     className="h-12 rounded-md bg-primary text-[15px] font-bold text-white hover:bg-primary/90 disabled:opacity-60"
                 >
-                    {form.processing ? 'Salvando…' : 'Salvar sessão'}{' '}
+                    {form.processing ? t('Salvando…') : t('Salvar sessão')}{' '}
                     <span className="font-mono text-[11px] font-medium opacity-80">
                         ↵
                     </span>
@@ -699,7 +723,7 @@ function FinishPhase({
                     }}
                     className="h-8 text-xs text-muted hover:text-text"
                 >
-                    voltar a ler
+                    {t('voltar a ler')}
                 </button>
             </div>
         </form>
@@ -715,16 +739,21 @@ function DonePhase({
     week: number[];
     onClose: () => void;
 }) {
+    const { t, plural } = useTranslation();
+
     return (
         <div className="flex flex-1 flex-col items-center justify-center gap-3.5 px-4 pt-4.5 pb-4 text-center">
             <WeekStrip week={week} size="lg" />
             <div className="font-mono text-[22px] font-bold">
-                {saved.streak} {saved.streak === 1 ? 'dia' : 'dias'} seguidos
+                {t(':days seguidos', {
+                    days: plural(saved.streak, 'dia', 'dias'),
+                })}
             </div>
             <div className="text-[13px] text-muted">
-                +{saved.pages} págs
-                {saved.minutes !== null && ` em ${saved.minutes} min`} · agora
-                na p. {saved.page_to}
+                +{t(':pages págs', { pages: saved.pages })}
+                {saved.minutes !== null &&
+                    ` ${t('em :minutes min', { minutes: saved.minutes })}`}{' '}
+                · {t('agora na p. :page', { page: saved.page_to })}
             </div>
             <div className="font-mono text-[11px] text-accent">
                 {saved.hash} · {saved.title}
@@ -735,13 +764,13 @@ function DonePhase({
                 onClick={onClose}
                 className="mt-2 h-10 rounded-md border bg-surface px-4.5 text-[13px] hover:bg-active"
             >
-                Fechar
+                {t('Fechar')}
             </button>
         </div>
     );
 }
 
-/** Sessão que chegou à última página: o livro termina aqui, com a nota e o próximo da fila. */
+/** Session that reached the last page: the book ends here, with a rating and the next in the queue. */
 function FinishedPhase({
     saved,
     onClose,
@@ -749,6 +778,7 @@ function FinishedPhase({
     saved: Saved;
     onClose: () => void;
 }) {
+    const { t, plural } = useTranslation();
     const [rating, setRating] = useState<number | null>(null);
 
     return (
@@ -756,12 +786,14 @@ function FinishedPhase({
             <span className="flex size-10 items-center justify-center rounded-full bg-accent text-lg font-bold text-bg">
                 ✓
             </span>
-            <div className="font-mono text-[17px] font-bold">Terminou!</div>
+            <div className="font-mono text-[17px] font-bold">
+                {t('Terminou!')}
+            </div>
             <div className="text-xs text-muted">
                 {saved.title}
                 {saved.days !== null &&
-                    ` · ${saved.days} ${saved.days === 1 ? 'dia' : 'dias'}`}{' '}
-                · +{saved.pages} págs hoje
+                    ` · ${plural(saved.days, 'dia', 'dias')}`}{' '}
+                · +{t(':pages págs hoje', { pages: saved.pages })}
             </div>
             <StarRating
                 value={rating}
@@ -776,7 +808,7 @@ function FinishedPhase({
                 }}
             />
             <span className="text-[11px] text-faint">
-                a data é hoje; ajuste no app se precisar
+                {t('a data é hoje; ajuste no app se precisar')}
             </span>
             {saved.next && (
                 <button
@@ -790,7 +822,9 @@ function FinishedPhase({
                     }}
                     className="mt-1 h-11 w-full rounded-md bg-primary text-[13px] font-semibold text-white hover:bg-primary/90"
                 >
-                    Começar {saved.next.title}, o próximo
+                    {t('Começar :title, o próximo', {
+                        title: saved.next.title,
+                    })}
                 </button>
             )}
             <button
@@ -799,7 +833,7 @@ function FinishedPhase({
                 onClick={onClose}
                 className="h-9 rounded-md px-4 text-xs text-muted hover:text-text"
             >
-                Fechar
+                {t('Fechar')}
             </button>
         </div>
     );

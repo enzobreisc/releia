@@ -2,11 +2,13 @@ import { Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { Input } from '@/components/form';
 import { PageHeader } from '@/components/page-header';
+import { useTranslation } from '@/hooks/use-translation';
 import { show } from '@/routes/authors';
 
 type Author = { id: number; name: string; books: number };
 
 export default function Authors({ authors }: { authors: Author[] }) {
+    const { t, plural } = useTranslation();
     const [search, setSearch] = useState('');
     const term = search
         .normalize('NFD')
@@ -23,21 +25,25 @@ export default function Authors({ authors }: { authors: Author[] }) {
     return (
         <>
             <PageHeader
-                title="Autores"
-                description="Quem você lê, e o que ainda falta ler de cada um"
+                title={t('Autores')}
+                description={t(
+                    'Quem você lê, e o que ainda falta ler de cada um',
+                )}
             />
 
             <Input
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar autor"
+                placeholder={t('Buscar autor')}
                 className="max-w-sm"
             />
 
             {authors.length === 0 ? (
                 <p className="rounded-md border bg-surface p-5 text-sm text-muted">
-                    Os autores aparecem aqui conforme você adiciona livros.
+                    {t(
+                        'Os autores aparecem aqui conforme você adiciona livros.',
+                    )}
                 </p>
             ) : (
                 <ul className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3">
@@ -51,8 +57,7 @@ export default function Authors({ authors }: { authors: Author[] }) {
                                     {author.name}
                                 </span>
                                 <span className="font-mono text-xs text-muted">
-                                    {author.books}{' '}
-                                    {author.books === 1 ? 'livro' : 'livros'}
+                                    {plural(author.books, 'livro', 'livros')}
                                 </span>
                             </Link>
                         </li>

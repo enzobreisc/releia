@@ -1,6 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { useTranslation } from '@/hooks/use-translation';
 import {
     buildSections,
     chunkRows,
@@ -19,7 +20,7 @@ import {
 } from '@/routes/bookshelves';
 import type { Bookshelf as BookshelfModel, SpineBook } from '@/types';
 
-/** Largura útil da estante, para dividir as lombadas em fileiras. */
+/** Usable width of the bookcase, to split the spines into rows. */
 function useWidth() {
     const ref = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState(900);
@@ -43,8 +44,8 @@ function useWidth() {
 }
 
 /**
- * Estante de lombadas: a espessura vem das páginas, a cor do título (não há cor extraída
- * da capa). Na prateleira personalizada dá para arrastar os livros entre as prateleiras.
+ * Bookcase of spines: thickness comes from the pages, color from the cover (or the title
+ * until it loads). On the custom shelf books can be dragged between shelves.
  */
 export function Bookshelf({
     books,
@@ -56,7 +57,8 @@ export function Bookshelf({
     bookshelves: BookshelfModel[];
 }) {
     const [ref, width] = useWidth();
-    const sections = buildSections(books, group, bookshelves);
+    const translator = useTranslation();
+    const sections = buildSections(books, group, bookshelves, translator);
     const editable = group === 'custom';
     const [dragging, setDragging] = useState<number | null>(null);
 
@@ -109,12 +111,13 @@ function Section({
     onDragStart: (id: number | null) => void;
     onDrop: (before: number | null) => void;
 }) {
+    const { t } = useTranslation();
     const rows = chunkRows(section.books, width - 16);
     const [over, setOver] = useState(false);
 
     return (
         <section
-            aria-label={section.label ?? 'Estante'}
+            aria-label={section.label ?? t('Estante')}
             onDragOver={(event) => {
                 if (editable && dragging !== null) {
                     event.preventDefault();
@@ -139,7 +142,7 @@ function Section({
             {rows.length === 0 ? (
                 <Row>
                     <p className="pb-3 font-mono text-xs text-faint">
-                        {editable ? 'arraste livros para cá' : 'vazia'}
+                        {editable ? t('arraste livros para cá') : t('vazia')}
                     </p>
                 </Row>
             ) : (
@@ -162,14 +165,14 @@ function Section({
     );
 }
 
-/** Uma fileira de lombadas apoiada numa tábua. */
+/** A row of spines resting on a board. */
 function Row({ children }: { children: React.ReactNode }) {
     return (
         <div className="flex flex-col">
             <div className="flex min-h-[188px] items-end gap-[3px] px-2">
                 {children}
             </div>
-            <div className="h-3 rounded-b-[3px] border-x border-b border-t-2 border-t-strong bg-elevated shadow-[0_6px_10px_-4px_rgba(0,0,0,0.6)]" />
+            <div className="h-3 rounded-b-[3px] border-x border-t-2 border-b border-t-strong bg-elevated shadow-[0_6px_10px_-4px_rgba(0,0,0,0.6)]" />
         </div>
     );
 }
@@ -192,12 +195,12 @@ function Spine({
     const { width, height } = spineSize(book);
     const tip = [book.title, book.author].filter(Boolean).join(' — ');
 
-    // A cor vem da capa; até ler a imagem (ou sem capa) vale a cor provisória do título.
+    // The color comes from the cover; until the image is read (or without a cover) the provisional title color applies.
     useEffect(() => {
         let active = true;
 
         if (book.cover_url) {
-            extractColors(book.cover_url).then(
+            void extractColors(book.cover_url).then(
                 (found) => active && found && setColors(found),
             );
         }
@@ -247,7 +250,7 @@ function Spine({
                     />
                 )}
                 {book.cover_url && width >= 30 ? (
-                    // Miniatura da capa no pé da lombada: é o que faz reconhecer o livro.
+                    // Cover thumbnail at the foot of the spine: it is what makes the book recognizable.
                     <img
                         src={book.cover_url}
                         alt=""
@@ -273,6 +276,7 @@ function ShelfTitle({
     section: ShelfSection;
     editable: boolean;
 }) {
+    const { t } = useTranslation();
     const [editing, setEditing] = useState(false);
     const [name, setName] = useState(section.label ?? '');
 
@@ -320,7 +324,7 @@ function ShelfTitle({
                             onClick={() => setEditing(true)}
                             className="text-xs text-muted hover:text-text"
                         >
-                            renomear
+                            {t('renomear')}
                         </button>
                         <button
                             type="button"
@@ -333,7 +337,7 @@ function ShelfTitle({
                             }
                             className="text-xs text-muted hover:text-red-300"
                         >
-                            apagar
+                            {t('apagar')}
                         </button>
                     </>
                 )}
@@ -342,6 +346,7 @@ function ShelfTitle({
 }
 
 function NewShelf() {
+    const { t } = useTranslation();
     const [name, setName] = useState('');
 
     function submit(event: FormEvent) {
@@ -362,14 +367,14 @@ function NewShelf() {
                 value={name}
                 maxLength={60}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Nome da nova prateleira"
+                placeholder={t('Nome da nova prateleira')}
                 className="h-10 w-72 rounded-sm border bg-surface px-3 text-sm placeholder:text-muted"
             />
             <button
                 type="submit"
                 className="h-10 rounded-sm border border-primary bg-surface px-4 text-sm font-semibold text-accent hover:bg-active"
             >
-                + Prateleira
+                {t('+ Prateleira')}
             </button>
         </form>
     );

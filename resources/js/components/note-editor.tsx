@@ -3,23 +3,24 @@ import { useState } from 'react';
 import { Markdown } from '@/components/markdown';
 import { Button, Field, Input, Select, Textarea } from '@/components/form';
 import { SectionTitle } from '@/components/page-header';
+import { useTranslation } from '@/hooks/use-translation';
 import { destroy, store, update } from '@/routes/notes';
 import { show } from '@/routes/books';
 import type { NoteBook, NoteCard } from '@/types/notes';
 import type { Option } from '@/types';
 
 type NoteEditorProps = {
-    /** Nota existente; null quando é uma nota nova. */
+    /** Existing note; null when it is a new note. */
     note: NoteCard | null;
     books: NoteBook[];
     kinds: Option[];
-    /** Livro já escolhido ao criar a partir de um livro. */
+    /** Book already chosen when creating from a book. */
     initialBookId: number | null;
 };
 
 /**
- * Editor da nota: texto em Markdown com prévia, tipo, página e livro.
- * Remontado pela tela (key) quando muda a nota, então o estado local não vaza.
+ * Note editor: Markdown text with preview, kind, page and book.
+ * Remounted by the screen (key) when the note changes, so local state does not leak.
  */
 export function NoteEditor({
     note,
@@ -27,6 +28,7 @@ export function NoteEditor({
     kinds,
     initialBookId,
 }: NoteEditorProps) {
+    const { t } = useTranslation();
     const [bookId, setBookId] = useState(
         String(note?.book_id ?? initialBookId ?? books[0]?.id ?? ''),
     );
@@ -58,7 +60,7 @@ export function NoteEditor({
         }
     }
 
-    // Exclui na hora: o aviso oferece desfazer (texto, tags e página voltam).
+    // Deletes right away: the notice offers undo (text, tags and page come back).
     function remove() {
         if (note) {
             router.delete(destroy.url(note.id));
@@ -68,7 +70,7 @@ export function NoteEditor({
     if (books.length === 0) {
         return (
             <section className="rounded-md border bg-surface p-5 text-sm text-muted">
-                Cadastre um livro antes de criar notas.
+                {t('Cadastre um livro antes de criar notas.')}
             </section>
         );
     }
@@ -77,11 +79,11 @@ export function NoteEditor({
         <section className="flex min-w-0 flex-col gap-4 rounded-md border bg-surface p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <SectionTitle>
-                    {note ? 'editar nota' : 'nova nota'}
+                    {note ? t('editar nota') : t('nova nota')}
                 </SectionTitle>
                 <div
                     role="tablist"
-                    aria-label="Modo do editor"
+                    aria-label={t('Modo do editor')}
                     className="flex gap-1.5"
                 >
                     {(['edit', 'preview'] as const).map((mode) => (
@@ -97,14 +99,14 @@ export function NoteEditor({
                                     : 'rounded-sm border bg-surface px-3 py-1.5 text-xs text-text hover:bg-active'
                             }
                         >
-                            {mode === 'edit' ? 'Editar' : 'Prévia'}
+                            {mode === 'edit' ? t('Editar') : t('Prévia')}
                         </button>
                     ))}
                 </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
-                <Field label="Livro">
+                <Field label={t('Livro')}>
                     <Select
                         value={bookId}
                         onChange={(event) => setBookId(event.target.value)}
@@ -116,7 +118,7 @@ export function NoteEditor({
                         ))}
                     </Select>
                 </Field>
-                <Field label="Tipo">
+                <Field label={t('Tipo')}>
                     <Select
                         value={kind}
                         onChange={(event) => setKind(event.target.value)}
@@ -128,7 +130,7 @@ export function NoteEditor({
                         ))}
                     </Select>
                 </Field>
-                <Field label="Página">
+                <Field label={t('Página')}>
                     <Input
                         type="number"
                         min={1}
@@ -140,19 +142,21 @@ export function NoteEditor({
             </div>
 
             {tab === 'edit' ? (
-                <Field label="Texto (Markdown). Tags: #tema">
+                <Field label={t('Texto (Markdown). Tags: #tema')}>
                     <Textarea
                         value={body}
                         onChange={(event) => setBody(event.target.value)}
                         className="min-h-64 font-mono text-[14px]"
-                        placeholder="Escreva o trecho, a reflexão ou a citação…"
+                        placeholder={t(
+                            'Escreva o trecho, a reflexão ou a citação…',
+                        )}
                     />
                 </Field>
             ) : (
                 <div className="min-h-64 rounded-sm border bg-bg p-4">
                     {body.trim() === '' ? (
                         <p className="text-sm text-muted">
-                            Nada para mostrar ainda.
+                            {t('Nada para mostrar ainda.')}
                         </p>
                     ) : (
                         <Markdown source={body} />
@@ -175,7 +179,11 @@ export function NoteEditor({
 
             <div className="flex flex-wrap items-center gap-3 border-t pt-4">
                 <Button onClick={save} disabled={saving || body.trim() === ''}>
-                    {saving ? 'Salvando…' : note ? 'Salvar' : 'Criar nota'}
+                    {saving
+                        ? t('Salvando…')
+                        : note
+                          ? t('Salvar')
+                          : t('Criar nota')}
                 </Button>
                 {note && (
                     <>
@@ -183,11 +191,11 @@ export function NoteEditor({
                             href={show.url(note.book_id)}
                             className="text-sm text-muted hover:text-text"
                         >
-                            Ver no livro
+                            {t('Ver no livro')}
                         </Link>
                         <span className="ml-auto" />
                         <Button variant="danger" onClick={remove}>
-                            Excluir
+                            {t('Excluir')}
                         </Button>
                     </>
                 )}

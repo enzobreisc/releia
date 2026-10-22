@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { Fragment } from 'react';
 import { LogoMark, SearchIcon, SidebarIcon } from '@/components/icons';
 import { SidebarReadingCard } from '@/components/sidebar-reading';
+import { useTranslation } from '@/hooks/use-translation';
 import { addBookItem, isActive, navGroups } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { home } from '@/routes';
@@ -19,23 +20,23 @@ export function AppSidebar({
     onOpenCommand,
 }: AppSidebarProps) {
     const { url, props } = usePage();
+    const { t } = useTranslation();
 
     return (
         <nav
-            aria-label="Principal"
+            aria-label={t('Principal')}
             className={cn(
                 'flex h-screen shrink-0 flex-col gap-0.5 overflow-y-auto border-r bg-sidebar pb-4',
                 collapsed ? 'w-14 px-2' : 'w-61 px-3.5',
             )}
         >
-            {/* Faixa arrastável sob os botões de janela do macOS. */}
+            {/* Draggable strip under the macOS window buttons. */}
             <div className="h-9 shrink-0 app-drag" />
 
-            {/* O logo leva ao Início, como em qualquer app. */}
             <Link
                 href={home.url()}
-                aria-label="releia: ir para o Início"
-                title="Início"
+                aria-label={t('releia: ir para o Início')}
+                title={t('Início')}
                 className={cn(
                     'mb-4.5 flex items-center gap-2.5 self-start rounded-sm',
                     collapsed ? 'self-center' : 'px-3',
@@ -50,8 +51,8 @@ export function AppSidebar({
             <button
                 type="button"
                 onClick={onOpenCommand}
-                aria-label="Ir para (⌘P)"
-                title="Ir para… (⌘P)"
+                aria-label={t('Ir para (⌘P)')}
+                title={t('Ir para… (⌘P)')}
                 className={cn(
                     'mb-3.5 flex h-10 items-center gap-2 rounded-sm border bg-bg text-left text-[13px] text-muted hover:text-text',
                     collapsed ? 'justify-center' : 'px-3',
@@ -60,7 +61,7 @@ export function AppSidebar({
                 <SearchIcon />
                 {!collapsed && (
                     <>
-                        <span className="flex-1">Ir para…</span>
+                        <span className="flex-1">{t('Ir para…')}</span>
                         <Kbd>⌘P</Kbd>
                     </>
                 )}
@@ -95,15 +96,15 @@ export function AppSidebar({
 
             <Link
                 href={addBookItem.href}
-                aria-label={addBookItem.title}
-                title={addBookItem.title}
+                aria-label={t(addBookItem.title)}
+                title={t(addBookItem.title)}
                 className={cn(
                     'mt-2 flex items-center gap-2 rounded-sm bg-primary py-3.25 text-sm font-semibold text-white hover:bg-primary/90',
                     collapsed ? 'justify-center' : 'px-3',
                 )}
             >
                 <addBookItem.icon />
-                {!collapsed && <span>{addBookItem.title}</span>}
+                {!collapsed && <span>{t(addBookItem.title)}</span>}
             </Link>
 
             <button
@@ -111,17 +112,21 @@ export function AppSidebar({
                 onClick={onToggle}
                 aria-label={
                     collapsed
-                        ? 'Expandir barra lateral'
-                        : 'Recolher barra lateral'
+                        ? t('Expandir barra lateral')
+                        : t('Recolher barra lateral')
                 }
-                title={`${collapsed ? 'Expandir' : 'Recolher'} barra lateral (⌘B)`}
+                title={
+                    collapsed
+                        ? t('Expandir barra lateral (⌘B)')
+                        : t('Recolher barra lateral (⌘B)')
+                }
                 className={cn(
                     'mt-1.5 flex h-10 items-center gap-2.5 rounded-sm text-left text-[13px] text-muted hover:text-text',
                     collapsed ? 'justify-center' : 'px-3',
                 )}
             >
                 <SidebarIcon />
-                {!collapsed && <span>Recolher</span>}
+                {!collapsed && <span>{t('Recolher')}</span>}
             </button>
         </nav>
     );
@@ -138,12 +143,14 @@ function SidebarLink({
     collapsed: boolean;
     count?: number;
 }) {
+    const { t } = useTranslation();
+
     return (
         <Link
             href={item.href}
-            aria-label={item.title}
+            aria-label={t(item.title)}
             aria-current={active ? 'page' : undefined}
-            title={item.title}
+            title={t(item.title)}
             className={cn(
                 'flex items-center gap-2.5 rounded-sm border-l-2 py-3 text-sm',
                 collapsed ? 'justify-center' : 'px-3',
@@ -153,7 +160,7 @@ function SidebarLink({
             )}
         >
             <item.icon />
-            {!collapsed && <span>{item.title}</span>}
+            {!collapsed && <span>{t(item.title)}</span>}
             {!collapsed && count !== undefined && (
                 <span className="ml-auto font-mono text-[11px] font-normal text-faint">
                     {count}

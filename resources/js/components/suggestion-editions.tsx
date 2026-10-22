@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { BookCover } from '@/components/book-cover';
 import { Button } from '@/components/form';
+import { useTranslation } from '@/hooks/use-translation';
 import { visibleEditions } from '@/lib/editions';
 import {
     accept,
@@ -19,12 +20,12 @@ type Edition = {
     library_id: number | null;
 };
 
-/** Edições da obra: escolher uma cria exatamente essa edição na biblioteca. */
+/** Editions of the work: picking one creates exactly that edition in the library. */
 export type Choosing = 'want' | 'read';
 
 /**
- * Edições da obra. Com `mode` (veio de "Quero ler" ou "Já li"), cada edição tem um só botão,
- * "Adicionar", que faz essa ação; sem `mode`, é só navegar e escolher uma das duas.
+ * Editions of the work. With `mode` (came from "Want to read" or "Already read"), each edition has a single
+ * "Add" button that does that action; without `mode`, you just browse and pick one of the two.
  */
 export function SuggestionEditions({
     id,
@@ -39,12 +40,13 @@ export function SuggestionEditions({
     mode?: Choosing | null;
     onCancel?: () => void;
 }) {
+    const { t, plural } = useTranslation();
     const [items, setItems] = useState<Edition[] | null>(null);
     const [failed, setFailed] = useState(false);
     const [showAll, setShowAll] = useState(false);
     const [expanded, setExpanded] = useState(false);
 
-    // Sem lista para escolher, ainda dá para adicionar a edição que foi sugerida.
+    // Without a list to choose from, the suggested edition can still be added.
     const fallback = mode && (
         <Button
             variant="outline"
@@ -57,7 +59,7 @@ export function SuggestionEditions({
                 )
             }
         >
-            Adicionar a edição sugerida
+            {t('Adicionar a edição sugerida')}
         </Button>
     );
 
@@ -81,7 +83,7 @@ export function SuggestionEditions({
     if (failed) {
         return (
             <p className="flex basis-full flex-wrap items-center gap-3 text-sm text-muted">
-                Não foi possível carregar as edições.
+                {t('Não foi possível carregar as edições.')}
                 {fallback}
             </p>
         );
@@ -90,12 +92,12 @@ export function SuggestionEditions({
     if (items === null) {
         return (
             <p className="basis-full font-mono text-xs text-muted">
-                carregando edições…
+                {t('carregando edições…')}
             </p>
         );
     }
 
-    // Brasileiras primeiro e sozinhas, sem repetidas; sem nenhuma brasileira, as demais.
+    // Brazilian ones first and alone, without duplicates; with none, the others.
     const {
         items: choosable,
         foreign,
@@ -105,7 +107,7 @@ export function SuggestionEditions({
     if (choosable.length === 0) {
         return (
             <p className="flex basis-full flex-wrap items-center gap-3 text-sm text-muted">
-                Nenhuma edição com ISBN.
+                {t('Nenhuma edição com ISBN.')}
                 {fallback}
             </p>
         );
@@ -113,15 +115,15 @@ export function SuggestionEditions({
 
     return (
         <ul
-            aria-label="Edições"
+            aria-label={t('Edições')}
             className="flex max-h-96 basis-full flex-col gap-1.5 overflow-y-auto border-t pt-4"
         >
             {mode && (
                 <li className="flex items-center gap-3 pb-1 text-sm">
                     <span>
                         {mode === 'want'
-                            ? 'Escolha a edição para adicionar a Quero ler'
-                            : 'Escolha a edição que você leu'}
+                            ? t('Escolha a edição para adicionar a Quero ler')
+                            : t('Escolha a edição que você leu')}
                     </span>
                     {onCancel && (
                         <button
@@ -129,7 +131,7 @@ export function SuggestionEditions({
                             onClick={onCancel}
                             className="text-xs text-muted hover:text-text"
                         >
-                            cancelar
+                            {t('cancelar')}
                         </button>
                     )}
                 </li>
@@ -137,7 +139,8 @@ export function SuggestionEditions({
             {choosable.map((edition) => {
                 const meta = [
                     edition.published_year,
-                    edition.pages && `${edition.pages} págs.`,
+                    edition.pages &&
+                        t(':pages págs.', { pages: edition.pages }),
                 ].filter(Boolean);
                 const data = { isbn_13: edition.isbn_13 };
 
@@ -167,7 +170,7 @@ export function SuggestionEditions({
                         </span>
                         {edition.library_id ? (
                             <span className="font-mono text-[11px] text-accent">
-                                na biblioteca
+                                {t('na biblioteca')}
                             </span>
                         ) : mode ? (
                             <Button
@@ -183,7 +186,7 @@ export function SuggestionEditions({
                                     )
                                 }
                             >
-                                Adicionar
+                                {t('Adicionar')}
                             </Button>
                         ) : (
                             <>
@@ -198,7 +201,7 @@ export function SuggestionEditions({
                                         })
                                     }
                                 >
-                                    Quero ler esta
+                                    {t('Quero ler esta')}
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -211,7 +214,7 @@ export function SuggestionEditions({
                                         })
                                     }
                                 >
-                                    Já li esta
+                                    {t('Já li esta')}
                                 </Button>
                             </>
                         )}
@@ -225,7 +228,9 @@ export function SuggestionEditions({
                         onClick={() => setShowAll(true)}
                         className="text-xs text-accent hover:underline"
                     >
-                        {`+ Mostrar ${foreign} ${foreign === 1 ? 'edição' : 'edições'} de outros países`}
+                        {t('+ Mostrar :editions de outros países', {
+                            editions: plural(foreign, 'edição', 'edições'),
+                        })}
                     </button>
                 </li>
             )}
@@ -236,7 +241,7 @@ export function SuggestionEditions({
                         onClick={() => setExpanded(true)}
                         className="text-xs text-accent hover:underline"
                     >
-                        {`+ Mostrar mais ${more}`}
+                        {t('+ Mostrar mais :count', { count: more })}
                     </button>
                 </li>
             )}
