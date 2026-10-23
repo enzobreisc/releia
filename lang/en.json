@@ -821,6 +821,7 @@
     "Resenha da :ordinal leitura · cada leitura tem a sua": "Review of the :ordinal reading · each reading has its own",
     "Quando a :ordinal leitura terminar, dias, ritmo e nota aparecem lado a lado.": "When the :ordinal reading ends, days, pace and rating appear side by side.",
     "sem nota ainda": "no rating yet",
+    "Livros fixados · :count/:limit": "Pinned books · :count/:limit",
     "Abrir :title": "Open :title",
     "Também lendo": "Also reading",
     "Meta de :year": ":year goal",

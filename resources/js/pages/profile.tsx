@@ -1,11 +1,20 @@
-import { Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { BookCover } from '@/components/book-cover';
 import { Bookshelf } from '@/components/bookshelf';
-import { Button, Field, Input, Select } from '@/components/form';
+import { cardClass } from '@/components/card';
+import {
+    Button,
+    Field,
+    IconButton,
+    Input,
+    Segmented,
+    Select,
+    Textarea,
+} from '@/components/form';
 import { HeatMap, heatClass } from '@/components/heat-map';
-import { PageHeader, SectionTitle } from '@/components/page-header';
+import { SectionTitle } from '@/components/page-header';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { show as bookShow } from '@/routes/books';
@@ -24,10 +33,22 @@ type PinnedBook = {
 };
 
 type ActivityItem =
-    | { type: 'finished'; title: string; date: string; rating: number | null }
-    | { type: 'session'; title: string; date: string; pages: number }
-    | { type: 'added'; title: string; date: string }
-    | { type: 'reread'; title: string; date: string };
+    | {
+          type: 'finished';
+          book_id: number;
+          title: string;
+          date: string;
+          rating: number | null;
+      }
+    | {
+          type: 'session';
+          book_id: number;
+          title: string;
+          date: string;
+          pages: number;
+      }
+    | { type: 'added'; book_id: number; title: string; date: string }
+    | { type: 'reread'; book_id: number; title: string; date: string };
 
 type ProfileProps = {
     reader: { name: string | null; bio: string | null };
@@ -55,13 +76,17 @@ type ProfileProps = {
 
 type Translator = ReturnType<typeof useTranslation>;
 
-/** Icon, verb and extra text of an activity event. */
+const ACTIVITY_DOT_CLASSES: Record<ActivityItem['type'], string> = {
+    finished: 'bg-text',
+    session: 'bg-accent',
+    added: 'bg-muted',
+    reread: 'bg-accent',
+};
+
 function describe(item: ActivityItem, { t, plural }: Translator) {
     switch (item.type) {
         case 'finished':
             return {
-                icon: '✓',
-                done: true,
                 verb: t('Terminou'),
                 extra: item.rating
                     ? ` · ${t('nota :rating', { rating: item.rating })}`
@@ -69,48 +94,14 @@ function describe(item: ActivityItem, { t, plural }: Translator) {
             };
         case 'session':
             return {
-                icon: '+',
-                done: false,
                 verb: t('Leu'),
                 extra: ` · +${plural(item.pages, 'pág', 'págs')}`,
             };
         case 'added':
-            return {
-                icon: '◇',
-                done: false,
-                verb: t('Adicionou'),
-                extra: ` ${t('à biblioteca')}`,
-            };
+            return { verb: t('Adicionou'), extra: ` ${t('à biblioteca')}` };
         case 'reread':
-            return {
-                icon: '↻',
-                done: false,
-                verb: t('Começou a reler'),
-                extra: '',
-            };
+            return { verb: t('Começou a reler'), extra: '' };
     }
-}
-
-/** Activity grouped by month, most recent first: "outubro de 2026". */
-function byMonth(activity: ActivityItem[], languageTag: string) {
-    const groups: { month: string; items: ActivityItem[] }[] = [];
-
-    for (const item of activity) {
-        const [year, month] = item.date.split('-');
-        const label = new Date(
-            Number(year),
-            Number(month) - 1,
-        ).toLocaleDateString(languageTag, { month: 'long', year: 'numeric' });
-        const last = groups[groups.length - 1];
-
-        if (last?.month === label) {
-            last.items.push(item);
-        } else {
-            groups.push({ month: label, items: [item] });
-        }
-    }
-
-    return groups;
 }
 
 export default function Profile({
@@ -132,9 +123,22 @@ export default function Profile({
 }: ProfileProps) {
     const { t, plural } = useTranslation();
 
+    function selectYear(option: string) {
+        router.get(
+            profileShow.url(),
+            { year: option },
+            {
+                only: ['year', 'calendar', 'year_summary'],
+                preserveScroll: true,
+                preserveState: true,
+                replace: true,
+            },
+        );
+    }
+
     return (
         <>
-            <PageHeader title={t('Perfil')} />
+            <Head title={t('Perfil')} />
 
             <div className="flex flex-wrap items-start gap-8">
                 <ReaderCard
@@ -146,7 +150,7 @@ export default function Profile({
                     avatar={avatar}
                 />
 
-                <div className="flex min-w-0 flex-[999_1_460px] flex-col gap-7">
+                <div className="flex min-w-0 flex-[3_1_520px] flex-col gap-8">
                     <PinnedSection
                         pinned={pinned}
                         options={pin_options}
@@ -155,7 +159,7 @@ export default function Profile({
 
                     <section
                         aria-label={t('Estante do ano')}
-                        className="flex flex-col gap-3 rounded-md border bg-surface px-5 py-4.5"
+                        className="flex flex-col gap-3.5"
                     >
                         <SectionTitle>
                             {t('Estante de :year · :books', {
@@ -182,84 +186,44 @@ export default function Profile({
 
                     <section
                         aria-label={t('Calendário de leitura')}
-                        className="flex flex-col gap-3 rounded-md border bg-surface px-5 py-4.5"
+                        className={cardClass(
+                            'flex flex-col gap-3.5 rounded-lg p-5.5',
+                        )}
                     >
                         <div className="flex flex-wrap items-center justify-between gap-2.5">
                             <SectionTitle>
-                                {t(':days de leitura em :year', {
-                                    days: plural(
-                                        year_summary.reading_days,
-                                        'dia',
-                                        'dias',
-                                    ),
-                                    year,
-                                })}
+                                {t('Calendário de leitura')}
                             </SectionTitle>
                             {years.length > 1 && (
-                                <div
-                                    role="tablist"
-                                    aria-label={t('Ano')}
-                                    className="flex gap-1"
-                                >
-                                    {years.map((option) => (
-                                        <button
-                                            key={option}
-                                            type="button"
-                                            role="tab"
-                                            aria-selected={option === year}
-                                            onClick={() =>
-                                                router.get(
-                                                    profileShow.url(),
-                                                    { year: option },
-                                                    {
-                                                        only: [
-                                                            'year',
-                                                            'calendar',
-                                                            'year_summary',
-                                                        ],
-                                                        preserveScroll: true,
-                                                        preserveState: true,
-                                                        replace: true,
-                                                    },
-                                                )
-                                            }
-                                            className={cn(
-                                                'rounded-[5px] px-2.5 py-1.5 font-mono text-xs',
-                                                option === year
-                                                    ? 'bg-primary text-white'
-                                                    : 'text-muted hover:bg-active hover:text-text',
-                                            )}
-                                        >
-                                            {option}
-                                        </button>
-                                    ))}
-                                </div>
+                                <Segmented
+                                    options={years.map((option) => ({
+                                        value: String(option),
+                                        label: String(option),
+                                    }))}
+                                    value={String(year)}
+                                    onChange={selectYear}
+                                />
                             )}
                         </div>
-                        <HeatMap days={calendar} />
-                        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 text-xs text-muted">
-                            <span className="font-mono">
-                                {t('maior sequência:')}{' '}
+                        <span className="text-[13px] font-semibold text-muted">
+                            {t(':days de leitura em :year', {
+                                days: plural(
+                                    year_summary.reading_days,
+                                    'dia',
+                                    'dias',
+                                ),
+                                year,
+                            })}{' '}
+                            · {t('maior sequência:')}{' '}
+                            <span className="text-text">
                                 {plural(
                                     year_summary.longest_streak,
                                     'dia',
                                     'dias',
                                 )}
                             </span>
-                            <span className="flex items-center gap-1 font-mono">
-                                {t('menos')}
-                                {[0, 1, 2, 3, 4].map((level) => (
-                                    <span
-                                        key={level}
-                                        className={cn(
-                                            'size-[11px] rounded-[2px]',
-                                            heatClass(level),
-                                        )}
-                                    />
-                                ))}
-                                {t('mais')}
-                            </span>
-                        </div>
+                        </span>
+                        <HeatMap days={calendar} showLegend />
                     </section>
 
                     <ActivitySection activity={activity} />
@@ -318,24 +282,24 @@ function ReaderCard({
     return (
         <aside
             aria-label={t('Leitor')}
-            className="flex min-w-[200px] flex-[0_1_240px] flex-col gap-4"
+            className="flex max-w-80 min-w-[200px] flex-[1_1_260px] flex-col gap-5"
         >
             <div
                 role="img"
                 aria-label={t('Avatar: seus últimos 25 dias de leitura')}
                 title={t('Seus últimos 25 dias de leitura')}
-                className="grid size-40 grid-cols-5 grid-rows-5 gap-1.5 rounded-2xl border bg-surface p-4.5"
+                className="grid size-50 grid-cols-5 grid-rows-5 gap-1.5 rounded-[32px] bg-surface p-3.5 shadow-float inset-ring inset-ring-strong"
             >
                 {avatar.map((level, index) => (
                     <span
                         key={index}
-                        className={cn('rounded-[3px]', heatClass(level))}
+                        className={cn('rounded-cover', heatClass(level))}
                     />
                 ))}
             </div>
 
             {editing ? (
-                <form onSubmit={save} className="flex flex-col gap-2.5">
+                <form onSubmit={save} className="flex flex-col gap-3">
                     <Field label={t('Nome')} error={form.errors.name}>
                         <Input
                             autoFocus
@@ -344,26 +308,22 @@ function ReaderCard({
                                 form.setData('name', event.target.value)
                             }
                             maxLength={60}
-                            className="h-10"
                         />
                     </Field>
                     <Field label={t('Sobre você')} error={form.errors.bio}>
-                        <Input
+                        <Textarea
+                            rows={3}
                             value={form.data.bio}
                             onChange={(event) =>
                                 form.setData('bio', event.target.value)
                             }
                             maxLength={160}
                             placeholder={t('O que você gosta de ler')}
-                            className="h-10"
+                            className="min-h-0"
                         />
                     </Field>
                     <div className="flex gap-2">
-                        <Button
-                            type="submit"
-                            disabled={form.processing}
-                            className="h-10 flex-1"
-                        >
+                        <Button type="submit" disabled={form.processing}>
                             {t('Salvar')}
                         </Button>
                         <Button
@@ -372,7 +332,7 @@ function ReaderCard({
                                 form.reset();
                                 setEditing(false);
                             }}
-                            className="h-10"
+                            className="bg-transparent"
                         >
                             {t('Cancelar')}
                         </Button>
@@ -380,26 +340,22 @@ function ReaderCard({
                 </form>
             ) : (
                 <>
-                    <div className="flex flex-col gap-0.5">
-                        <div className="font-mono text-2xl font-bold">
+                    <div className="flex flex-col gap-1.5">
+                        <h1 className="text-4xl leading-none font-extrabold tracking-tighter">
                             {reader.name ?? t('Seu perfil')}
-                        </div>
-                        <div className="font-mono text-sm text-muted">
+                        </h1>
+                        <span className="font-mono text-xs text-muted">
                             {t('leitor desde :date', {
                                 date: monthYear(`${since}-01`),
                             })}
-                        </div>
+                        </span>
                     </div>
                     {reader.bio && (
-                        <p className="text-sm leading-relaxed text-[#c9d3e3]">
+                        <p className="text-[15px] leading-relaxed font-medium text-secondary">
                             {reader.bio}
                         </p>
                     )}
-                    <Button
-                        variant="ghost"
-                        onClick={() => setEditing(true)}
-                        className="h-10 text-[13px] font-semibold"
-                    >
+                    <Button variant="ghost" onClick={() => setEditing(true)}>
                         {t('Editar perfil')}
                     </Button>
                 </>
@@ -415,7 +371,6 @@ function ReaderCard({
                             { preserveScroll: true },
                         )
                     }
-                    className="h-10"
                 >
                     {locales.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -425,19 +380,17 @@ function ReaderCard({
                 </Select>
             </Field>
 
-            <div className="h-px bg-border" />
-
-            <dl className="grid grid-cols-2 gap-x-3 gap-y-3.5">
+            <dl className="grid grid-cols-2 gap-2.5">
                 {stats.map((stat) => (
                     <div
                         key={stat.label}
                         title={stat.title}
-                        className="flex flex-col gap-0.5"
+                        className={cardClass('rounded-sm p-3.5')}
                     >
-                        <dt className="font-mono text-[11px] text-muted">
+                        <dt className="text-[11px] font-bold text-muted">
                             {stat.label}
                         </dt>
-                        <dd className="font-mono text-xl font-bold">
+                        <dd className="mt-1 text-2xl font-extrabold">
                             {stat.value}
                         </dd>
                     </div>
@@ -445,28 +398,24 @@ function ReaderCard({
             </dl>
 
             {genres.length > 0 && (
-                <>
-                    <div className="h-px bg-border" />
-                    <div className="flex flex-col gap-2">
-                        <span className="font-mono text-[11px] text-muted">
-                            {t('gêneros mais lidos')}
-                        </span>
-                        <div className="flex flex-wrap gap-1.5">
-                            {genres.map((genre) => (
-                                <span
-                                    key={genre.label}
-                                    title={translateText(genre.label)}
-                                    className="max-w-full truncate rounded-full border px-2 py-0.5 text-xs"
-                                >
-                                    #{translateText(genre.label).toLowerCase()}{' '}
-                                    <span className="font-mono text-muted">
-                                        {genre.count}
-                                    </span>
+                <div className="flex flex-col gap-2.5">
+                    <span className="text-xs font-bold text-muted">
+                        {t('gêneros mais lidos')}
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                        {genres.map((genre) => (
+                            <span
+                                key={genre.label}
+                                title={`${translateText(genre.label)}: ${genre.count}`}
+                                className="inline-flex h-7 max-w-full items-center rounded-full bg-active px-3 text-xs font-bold text-link"
+                            >
+                                <span className="truncate">
+                                    {translateText(genre.label)}
                                 </span>
-                            ))}
-                        </div>
+                            </span>
+                        ))}
                     </div>
-                </>
+                </div>
             )}
         </aside>
     );
@@ -489,11 +438,11 @@ function PinnedSection({
     return (
         <section
             aria-label={t('Livros fixados')}
-            className="flex flex-col gap-3"
+            className="flex flex-col gap-3.5"
         >
             <div className="flex items-baseline justify-between gap-3">
                 <SectionTitle>
-                    {t('fixados · :count/:limit', {
+                    {t('Livros fixados · :count/:limit', {
                         count: pinned.length,
                         limit,
                     })}
@@ -501,21 +450,21 @@ function PinnedSection({
                 <button
                     type="button"
                     onClick={() => setEditing(!editing)}
-                    className="text-[13px] font-semibold text-accent hover:underline"
+                    className="text-[13px] font-bold text-link hover:underline"
                 >
                     {editing ? t('Concluir') : t('Organizar fixados')}
                 </button>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(min(240px,100%),1fr))] gap-3">
                 {pinned.map((book) => (
                     <PinnedCard key={book.id} book={book} editing={editing} />
                 ))}
 
                 {editing && canPin && (
-                    <label className="flex min-h-26.5 flex-col justify-center gap-2 rounded-md border border-dashed p-3.5 text-xs text-muted">
+                    <label className="flex min-h-26.5 flex-col justify-center gap-2 rounded-md border border-dashed border-strong p-3.5 text-xs font-bold text-muted">
                         {t('Fixar outro livro')}
-                        <select
+                        <Select
                             defaultValue=""
                             onChange={(event) =>
                                 event.target.value &&
@@ -525,7 +474,7 @@ function PinnedSection({
                                     { preserveScroll: true },
                                 )
                             }
-                            className="h-10 w-full rounded-sm border bg-bg px-2.5 text-sm text-text"
+                            className="h-10"
                         >
                             <option value="" disabled>
                                 {t('Escolha um livro…')}
@@ -535,7 +484,7 @@ function PinnedSection({
                                     {option.title}
                                 </option>
                             ))}
-                        </select>
+                        </Select>
                     </label>
                 )}
             </div>
@@ -548,69 +497,64 @@ function PinnedSection({
                 </p>
             )}
             {errors?.book_id && (
-                <p className="text-sm text-red-300">{errors.book_id}</p>
+                <p className="text-sm text-danger">{errors.book_id}</p>
             )}
         </section>
     );
 }
 
 function PinnedCard({ book, editing }: { book: PinnedBook; editing: boolean }) {
-    const { t, translateText } = useTranslation();
+    const { t } = useTranslation();
 
     return (
-        <article className="relative flex gap-3.5 rounded-md border bg-surface p-3.5">
+        <article
+            className={cardClass('relative flex items-center gap-3.5 p-3.5')}
+        >
             <Link href={bookShow.url(book.id)} className="shrink-0">
                 <BookCover
                     src={book.cover_url}
                     title={book.title}
-                    className="w-13"
+                    className="w-11"
                 />
             </Link>
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <Link
                     href={bookShow.url(book.id)}
-                    className="truncate pr-6 text-[15px] font-bold text-accent hover:underline"
+                    className={cn(
+                        'truncate text-[15px] font-extrabold hover:underline',
+                        editing && 'pr-8',
+                    )}
                 >
                     {book.title}
                 </Link>
-                <span className="truncate text-[13px] text-muted">
+                <span className="truncate text-xs font-medium text-muted">
                     {book.authors || t('Autor desconhecido')}
                 </span>
-                <div className="mt-auto flex items-center gap-3 text-xs text-muted">
-                    {book.genre && (
-                        <span className="flex min-w-0 items-center gap-1.5">
-                            <span className="size-2.5 shrink-0 rounded-full bg-heat-3" />
-                            <span className="truncate">
-                                {translateText(book.genre)}
-                            </span>
-                        </span>
-                    )}
-                    {book.rating !== null && (
-                        <span
-                            aria-label={t('Nota :rating de 5', {
-                                rating: book.rating,
-                            })}
-                            className="font-mono tracking-[1px] text-accent"
-                        >
-                            {'★'.repeat(book.rating)}
-                            {'☆'.repeat(5 - book.rating)}
-                        </span>
-                    )}
-                </div>
+                {book.rating !== null && (
+                    <span
+                        aria-label={t('Nota :rating de 5', {
+                            rating: book.rating,
+                        })}
+                        className="text-xs tracking-widest text-text"
+                    >
+                        {'★'.repeat(book.rating)}
+                        {'☆'.repeat(5 - book.rating)}
+                    </span>
+                )}
             </div>
             {editing && (
-                <button
-                    type="button"
-                    aria-label={t('Desafixar :title', { title: book.title })}
+                <IconButton
+                    label={t('Desafixar :title', { title: book.title })}
+                    variant="plain"
                     onClick={() =>
                         router.delete(unpinBook.url(book.id), {
                             preserveScroll: true,
                         })
                     }
-                    className="absolute top-2 right-2 size-7 rounded-sm border bg-bg text-sm text-muted hover:text-text"
+                    className="absolute top-2 right-2 size-8"
                 >
                     ×
-                </button>
+                </IconButton>
             )}
         </article>
     );
@@ -618,64 +562,53 @@ function PinnedCard({ book, editing }: { book: PinnedBook; editing: boolean }) {
 
 function ActivitySection({ activity }: { activity: ActivityItem[] }) {
     const translator = useTranslation();
-    const { t, shortDate, languageTag } = translator;
+    const { t, shortDate } = translator;
 
     return (
         <section
             aria-label={t('Atividade recente')}
-            className="flex flex-col gap-2.5"
+            className="flex flex-col gap-3.5"
         >
-            <SectionTitle>{t('atividade')}</SectionTitle>
-            {activity.length === 0 && (
+            <SectionTitle>{t('Atividade recente')}</SectionTitle>
+            {activity.length === 0 ? (
                 <p className="text-sm text-muted">
                     {t('Nenhuma atividade ainda.')}
                 </p>
-            )}
-            {byMonth(activity, languageTag).map((group) => (
-                <div key={group.month} className="flex flex-col">
-                    <div className="flex items-center gap-2.5 pt-1 pb-2 text-[13px] font-semibold">
-                        {group.month}
-                        <span className="h-px flex-1 bg-border" />
-                    </div>
-                    <ol className="ml-2.5 flex flex-col border-l">
-                        {group.items.map((item, index) => {
-                            const { icon, done, verb, extra } = describe(
-                                item,
-                                translator,
-                            );
+            ) : (
+                <ol className={cardClass('flex flex-col overflow-hidden')}>
+                    {activity.map((item, index) => {
+                        const { verb, extra } = describe(item, translator);
 
-                            return (
-                                <li
-                                    key={`${item.type}-${item.date}-${index}`}
-                                    className="relative flex items-center gap-3 py-2 pl-5"
-                                >
-                                    <span
-                                        aria-hidden="true"
-                                        className={cn(
-                                            'absolute -left-2.5 flex size-5 items-center justify-center rounded-full border bg-bg font-mono text-[10px]',
-                                            done ? 'text-heat-3' : 'text-muted',
-                                        )}
+                        return (
+                            <li
+                                key={`${item.type}-${item.date}-${index}`}
+                                className="flex items-center gap-3.5 border-b border-border px-4.5 py-3.5 last:border-b-0"
+                            >
+                                <span
+                                    aria-hidden="true"
+                                    className={cn(
+                                        'size-2 shrink-0 rounded-full',
+                                        ACTIVITY_DOT_CLASSES[item.type],
+                                    )}
+                                />
+                                <span className="min-w-0 flex-1 text-sm font-medium text-secondary">
+                                    {verb}{' '}
+                                    <Link
+                                        href={bookShow.url(item.book_id)}
+                                        className="font-extrabold text-text hover:underline"
                                     >
-                                        {icon}
-                                    </span>
-                                    <span className="min-w-0 flex-1 text-sm">
-                                        {verb}{' '}
-                                        <span className="font-semibold text-accent">
-                                            {item.title}
-                                        </span>
-                                        <span className="text-muted">
-                                            {extra}
-                                        </span>
-                                    </span>
-                                    <span className="shrink-0 font-mono text-xs text-muted">
-                                        {shortDate(item.date)}
-                                    </span>
-                                </li>
-                            );
-                        })}
-                    </ol>
-                </div>
-            ))}
+                                        {item.title}
+                                    </Link>
+                                    {extra}
+                                </span>
+                                <span className="shrink-0 font-mono text-[11px] text-muted">
+                                    {shortDate(item.date)}
+                                </span>
+                            </li>
+                        );
+                    })}
+                </ol>
+            )}
         </section>
     );
 }
