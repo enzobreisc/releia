@@ -1,11 +1,14 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/blank-react-starter-kit",
+    "name": "enzobreisc/releia",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Personal macOS app to catalog the physical books you read and turn your reading into stats, notes and suggestions.",
     "keywords": [
         "laravel",
-        "framework"
+        "nativephp",
+        "inertia",
+        "react",
+        "books"
     ],
     "license": "MIT",
     "require": {
