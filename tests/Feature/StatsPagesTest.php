@@ -116,6 +116,16 @@ test('livro abandonado não aparece como terminado na atividade', function () {
         ->and(collect($events)->where('type', 'session')->pluck('title')->all())->toContain('Livro E');
 });
 
+test('cada evento da atividade aponta para o livro', function () {
+    pagesSample2026();
+
+    $events = collect(app(ProfileService::class)->recentActivity(50));
+    $bookIdsByTitle = Book::query()->pluck('id', 'title');
+
+    expect($events)->not->toBeEmpty()
+        ->and($events->every(fn (array $event) => $event['book_id'] === $bookIdsByTitle[$event['title']]))->toBeTrue();
+});
+
 /** Amostra mínima de 2026 para as telas (os números completos ficam em StatsServiceTest). */
 function pagesSample2026(): void
 {

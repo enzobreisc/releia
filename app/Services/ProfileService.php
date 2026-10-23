@@ -120,7 +120,7 @@ class ProfileService
     /**
      * Eventos recentes: leituras terminadas, sessões registradas e livros adicionados.
      *
-     * Cada evento tem type (finished, session, added ou reread), title e date, mais o que o tipo precisa.
+     * Cada evento tem type (finished, session, added ou reread), book_id, title e date, mais o que o tipo precisa.
      *
      * @return list<array<string, mixed>>
      */
@@ -136,6 +136,7 @@ class ProfileService
             ->get()
             ->map(fn (Reading $reading) => [
                 'type' => 'finished',
+                'book_id' => $reading->book_id,
                 'title' => $reading->book->title,
                 'date' => $reading->finished_at->toDateString(),
                 'rating' => $reading->rating,
@@ -149,6 +150,7 @@ class ProfileService
             ->get()
             ->map(fn (ReadingSession $session) => [
                 'type' => 'session',
+                'book_id' => $session->reading->book_id,
                 'title' => $session->reading->book->title,
                 'date' => $session->read_on->toDateString(),
                 'pages' => $session->pages(),
@@ -165,6 +167,7 @@ class ProfileService
             ->get()
             ->map(fn (Reading $reading) => [
                 'type' => in_array($reading->id, $firstReadings, true) ? 'added' : 'reread',
+                'book_id' => $reading->book_id,
                 'title' => $reading->book->title,
                 'date' => $reading->created_at->toDateString(),
             ]);
