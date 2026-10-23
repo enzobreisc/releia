@@ -99,10 +99,8 @@ export function HeatMap({
         ...days,
     ];
 
-    // The columns share the available width: the map never scrolls sideways.
     const weeks = Math.ceil(cells.length / 7);
 
-    // Month label on the first week it appears.
     const monthLabels = new Map<number, string>();
     let lastMonth = -1;
     for (let week = 0; week < weeks; week++) {
@@ -183,8 +181,6 @@ export function HeatMap({
                                     className={cn(
                                         'aspect-square rounded-[3px] transition-transform outline-none hover:scale-125 focus-visible:ring-2 focus-visible:ring-accent',
                                         heatClass(day.level),
-                                        day.level === 0 &&
-                                            'border border-border/60',
                                         day.date === today &&
                                             'ring-1 ring-text ring-offset-1 ring-offset-surface',
                                     )}
@@ -212,7 +208,6 @@ export function HeatMap({
                                 className={cn(
                                     'size-3 rounded-[3px]',
                                     heatClass(level),
-                                    level === 0 && 'border border-border/60',
                                 )}
                             />
                         ))}
