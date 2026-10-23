@@ -74,11 +74,11 @@ class AuthorService
         $books = $author->books()->limit(5)->get(['books.id', 'title', 'isbn_13']);
 
         foreach ($books as $book) {
-            $keys = $book->isbn_13 !== null ? $this->openLibrary->authorKeysForIsbn($book->isbn_13, $author->name) : [];
+            $isbnKeys = $book->isbn_13 !== null ? $this->openLibrary->authorKeysForIsbn($book->isbn_13, $author->name) : [];
 
-            if ($keys === []) {
-                $keys = $this->openLibrary->authorKeysForTitle($book->title, $author->name);
-            }
+            // The ISBN may be listed under a misspelled duplicate of the author ("Machado de Assís"),
+            // so the title search adds the main record.
+            $keys = array_values(array_unique([...$isbnKeys, ...$this->openLibrary->authorKeysForTitle($book->title, $author->name)]));
 
             if ($keys !== []) {
                 return $keys;
@@ -147,17 +147,7 @@ class AuthorService
             return ['verified' => false, 'items' => []];
         }
 
-        $cacheKey = 'author-works:v2:'.implode(',', $keys);
-        $works = Cache::get($cacheKey);
-
-        if ($works === null) {
-            $works = $this->openLibrary->worksByAuthorKeys($keys);
-
-            // Vazio pode ser falha de rede: não guarda.
-            if ($works !== []) {
-                Cache::put($cacheKey, $works, now()->addDays(self::CACHE_DAYS));
-            }
-        }
+        $works = $this->cachedWorks($keys);
 
         $owned = $this->ownedKeys($this->sameAuthors($author));
         $seen = [];
@@ -207,6 +197,32 @@ class AuthorService
         }
 
         return ['verified' => true, 'items' => $items];
+    }
+
+    /**
+     * Cached as plain arrays: the cache does not unserialize objects (`cache.serializable_classes`),
+     * so a cached BookCandidate would come back as an incomplete class and break the request.
+     *
+     * @param  list<string>  $keys
+     * @return list<array{candidate: BookCandidate, isbns: list<string>, portuguese: bool}>
+     */
+    private function cachedWorks(array $keys): array
+    {
+        $cacheKey = 'author-works:v3:'.implode(',', $keys);
+        $cached = Cache::get($cacheKey);
+
+        if (is_array($cached)) {
+            return array_values(array_map(fn (array $work) => ['candidate' => BookCandidate::fromArray($work['candidate']), 'isbns' => $work['isbns'], 'portuguese' => $work['portuguese']], $cached));
+        }
+
+        $works = $this->openLibrary->worksByAuthorKeys($keys);
+
+        // Empty may be a network failure: do not cache it.
+        if ($works !== []) {
+            Cache::put($cacheKey, array_map(fn (array $work) => [...$work, 'candidate' => $work['candidate']->toArray()], $works), now()->addDays(self::CACHE_DAYS));
+        }
+
+        return $works;
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Reading;
 use App\Services\BookLookup\BrasilApiProvider;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 /** Autor com um livro de ISBN, como o Torto Arado. */
@@ -197,4 +198,40 @@ test('a Open Library listando só o tradutor como autor não vale como identidad
     ]);
 
     $this->getJson(route('authors.works', $author))->assertJson(['verified' => false]);
+});
+
+test('a segunda visita usa as obras do cache sem quebrar', function () {
+    config(['cache.stores.array.serialize' => true]);
+    Cache::forgetDriver('array');
+    $author = authorWithBook();
+    fakeAuthorApi([
+        ['key' => '/works/OL2W', 'title' => 'Doramar ou a Odisseia', 'author_name' => ['Itamar Vieira Junior'], 'isbn' => ['9786580309320'], 'first_publish_year' => 2021, 'language' => ['por']],
+    ]);
+
+    $first = $this->getJson(route('authors.works', $author))->assertOk()->json();
+    $second = $this->getJson(route('authors.works', $author))->assertOk()->json();
+
+    expect($second)->toBe($first)
+        ->and(array_column($second['items'], 'title'))->toBe(['Doramar ou a Odisseia']);
+});
+
+test('o ISBN listado só num cadastro com grafia errada também traz o cadastro principal pelo título', function () {
+    $author = authorWithBook('Machado de Assís', 'Dom Casmurro', '9788508145607');
+
+    Http::fake(function (Request $request) {
+        $url = urldecode($request->url());
+
+        return match (true) {
+            str_contains($url, 'isbn=') => Http::response(['docs' => [['author_name' => ['Machado de Assís'], 'author_key' => ['OL14308067A']]]]),
+            str_contains($url, 'title=') => Http::response(['docs' => [
+                ['title' => 'Dom Casmurro', 'author_name' => ['Machado de Assis', 'Machado de Assís'], 'author_key' => ['OL93286A', 'OL14308067A']],
+                ['title' => 'Dom Casmurro', 'author_name' => ['Outro Autor'], 'author_key' => ['OL1A']],
+            ]]),
+            default => Http::response(['docs' => []]),
+        };
+    });
+
+    $this->getJson(route('authors.works', $author))->assertOk()->assertJson(['verified' => true]);
+
+    expect($author->refresh()->open_library_key)->toBe('OL14308067A,OL93286A');
 });
