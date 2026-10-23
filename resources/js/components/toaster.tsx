@@ -1,5 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import { useAutoDismiss } from '@/hooks/use-auto-dismiss';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { undo } from '@/routes';
@@ -10,6 +11,8 @@ const MAX_VISIBLE = 3;
 
 /** ⌘Z undoes the last undoable action for up to a minute (UndoService::TTL_SECONDS). */
 const UNDO_WINDOW_MS = 60_000;
+
+const TOAST_DURATION_MS = 6000;
 
 let lastUndo: { token: string; at: number } | null = null;
 
@@ -130,9 +133,10 @@ function ToastItem({
     compact: boolean;
     onClose: () => void;
 }) {
-    const [hovered, setHovered] = useState(false);
     const { t } = useTranslation();
     const error = toast.kind === 'error';
+
+    useAutoDismiss(onClose, TOAST_DURATION_MS, !error);
 
     function act() {
         const action = toast.action;
@@ -155,8 +159,6 @@ function ToastItem({
     return (
         <div
             role={error ? 'alert' : 'status'}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
             className={cn(
                 'relative flex animate-[toast-in_180ms_ease-out] flex-col gap-2 overflow-hidden rounded-md bg-elevated py-3 pr-2.5 pl-3.5 shadow-float',
                 error && 'inset-ring inset-ring-danger-line',
@@ -218,14 +220,11 @@ function ToastItem({
                     )}
                 </div>
             )}
-            {/* The timer is the animation itself: it pauses on hover; errors do not disappear on their own. */}
+            {/* Visual countdown only; useAutoDismiss closes the notice. Errors stay until closed. */}
             {!error && (
                 <span
                     aria-hidden="true"
-                    onAnimationEnd={onClose}
-                    style={{
-                        animationPlayState: hovered ? 'paused' : 'running',
-                    }}
+                    style={{ animationDuration: `${TOAST_DURATION_MS}ms` }}
                     className="absolute bottom-0 left-0 h-0.5 animate-[toast-timer_6s_linear_forwards] bg-accent"
                 />
             )}
