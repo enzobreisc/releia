@@ -57,7 +57,7 @@ class BookshelfController extends Controller
 
             $ids = $shelfId === null
                 ? []
-                : Book::query()->where('bookshelf_id', $shelfId)->where('id', '!=', $book->id)->orderBy('shelf_position')->orderBy('id')->pluck('id')->all();
+                : Book::query()->where('bookshelf_id', $shelfId)->where('id', '!=', $book->id)->orderBy('shelf_position')->orderBy('id')->pluck('id')->values()->all();
 
             $at = $before === null ? false : array_search($before, $ids, true);
             array_splice($ids, $at === false ? count($ids) : $at, 0, [$book->id]);
