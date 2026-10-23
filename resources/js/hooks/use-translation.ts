@@ -3,6 +3,7 @@ import {
     formatBRL,
     fullDate,
     longDate,
+    monthNames,
     monthYear,
     ordinal,
     plural,
@@ -26,6 +27,7 @@ export function useTranslation() {
         plural: (count: number, one: TranslationKey, many: TranslationKey) =>
             plural(locale, count, one, many),
         shortDate: (date: string) => shortDate(locale, date),
+        monthNames: monthNames(locale),
         monthYear: (date: string) => monthYear(locale, date),
         fullDate: (date: string) => fullDate(locale, date),
         longDate: (date: string) => longDate(locale, date),

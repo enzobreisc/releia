@@ -97,7 +97,7 @@ export function ordinal(
     return `${number}${suffix}`;
 }
 
-function monthNames(locale: Locale): string[] {
+export function monthNames(locale: Locale): string[] {
     return locale === 'en' ? ENGLISH_MONTHS : PORTUGUESE_MONTHS;
 }
 
