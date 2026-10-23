@@ -1,10 +1,11 @@
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { BookCover } from '@/components/book-cover';
-import { Bookshelf } from '@/components/bookshelf';
+import { cardClass } from '@/components/card';
 import { buttonClass } from '@/components/form';
-import { PageHeader, SectionTitle } from '@/components/page-header';
-import { StatusBadge } from '@/components/status';
+import { DisplayTitle, SectionTitle } from '@/components/page-header';
+import { StatusBadge, STATUS_LABELS } from '@/components/status';
+import type { Status } from '@/components/status';
 import { useTranslation } from '@/hooks/use-translation';
 import { index as authorsIndex, works as worksRoute } from '@/routes/authors';
 import { create as addBook, show as bookShow } from '@/routes/books';
@@ -21,6 +22,18 @@ type Work = {
 
 type Works = { verified: boolean; items: Work[] };
 
+const INITIALS_LENGTH = 2;
+
+function initialsOf(name: string): string {
+    return name
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((word) => word[0])
+        .slice(0, INITIALS_LENGTH)
+        .join('')
+        .toUpperCase();
+}
+
 export default function Author({
     author,
     books,
@@ -28,49 +41,55 @@ export default function Author({
     author: { id: number; name: string };
     books: SpineBook[];
 }) {
-    const { t } = useTranslation();
+    const { t, plural } = useTranslation();
+    const statusSummary = (Object.keys(STATUS_LABELS) as Status[])
+        .map((status) => ({
+            status,
+            count: books.filter((book) => book.status === status).length,
+        }))
+        .filter(({ count }) => count > 0)
+        .map(
+            ({ status, count }) =>
+                `${count} ${t(STATUS_LABELS[status]).toLowerCase()}`,
+        )
+        .join(', ');
 
     return (
         <>
-            <PageHeader
-                title={author.name}
-                actions={
-                    <Link
-                        href={authorsIndex.url()}
-                        className={buttonClass('ghost')}
-                    >
-                        {t('Todos os autores')}
-                    </Link>
-                }
-            />
+            <Head title={author.name} />
+            <Link
+                href={authorsIndex.url()}
+                className="self-start text-[13px] font-semibold text-secondary hover:text-text"
+            >
+                ← {t('Todos os autores')}
+            </Link>
 
-            <section className="flex flex-col gap-3">
+            <header className="flex flex-wrap items-end gap-8">
+                <span
+                    aria-hidden="true"
+                    className="flex size-30 shrink-0 items-center justify-center rounded-full bg-active text-[40px] font-extrabold tracking-tight text-link inset-ring inset-ring-strong"
+                >
+                    {initialsOf(author.name)}
+                </span>
+                <div className="flex min-w-0 flex-col gap-2">
+                    <DisplayTitle>{author.name}</DisplayTitle>
+                    <p className="text-[15px] font-medium text-muted">
+                        {t(':books na sua biblioteca', {
+                            books: plural(books.length, 'livro', 'livros'),
+                        })}
+                        {statusSummary && ` · ${statusSummary}`}
+                    </p>
+                </div>
+            </header>
+
+            <section className="flex flex-col gap-4">
                 <SectionTitle>
                     {t('Na sua biblioteca · :count', { count: books.length })}
                 </SectionTitle>
-                <Bookshelf books={books} group="given" bookshelves={[]} />
-                <ul className="flex flex-col gap-1.5">
+                <ul className="flex flex-wrap gap-7">
                     {books.map((book) => (
                         <li key={book.id}>
-                            <Link
-                                href={bookShow.url(book.id)}
-                                className="flex items-center gap-3 rounded-sm border bg-surface px-3 py-2 hover:bg-active"
-                            >
-                                <span className="min-w-0 flex-1 truncate text-sm font-semibold">
-                                    {book.title}
-                                </span>
-                                {book.published_year && (
-                                    <span className="font-mono text-xs text-muted">
-                                        {book.published_year}
-                                    </span>
-                                )}
-                                {book.status && book.status_label && (
-                                    <StatusBadge
-                                        status={book.status}
-                                        label={book.status_label}
-                                    />
-                                )}
-                            </Link>
+                            <OwnedBook book={book} />
                         </li>
                     ))}
                 </ul>
@@ -78,6 +97,39 @@ export default function Author({
 
             <OtherWorks authorId={author.id} name={author.name} />
         </>
+    );
+}
+
+function OwnedBook({ book }: { book: SpineBook }) {
+    const stars = book.status === 'read' ? (book.rating ?? 0) : 0;
+
+    return (
+        <Link href={bookShow.url(book.id)} className="flex items-end gap-4.5">
+            <BookCover
+                src={book.cover_url}
+                title={book.title}
+                className="w-30"
+            />
+            <span className="flex min-w-0 flex-col gap-1 pb-1">
+                <span className="text-lg font-extrabold">{book.title}</span>
+                {book.status && book.status_label && (
+                    <span className="flex items-center gap-2">
+                        <StatusBadge
+                            status={book.status}
+                            label={book.status_label}
+                        />
+                        {stars > 0 && (
+                            <span
+                                aria-label={`${stars}/5`}
+                                className="text-xs font-bold text-secondary"
+                            >
+                                {'★'.repeat(stars)}
+                            </span>
+                        )}
+                    </span>
+                )}
+            </span>
+        </Link>
     );
 }
 
@@ -103,7 +155,7 @@ function OtherWorks({ authorId, name }: { authorId: number; name: string }) {
     }, [authorId]);
 
     return (
-        <section className="flex flex-col gap-3">
+        <section className="flex flex-col gap-4">
             <SectionTitle>
                 {works?.verified
                     ? t('Outras obras de :name · :count', {
@@ -126,7 +178,7 @@ function OtherWorks({ authorId, name }: { authorId: number; name: string }) {
                 </p>
             )}
             {works && !works.verified && (
-                <p className="rounded-md border bg-surface p-4 text-sm text-muted">
+                <p className={cardClass('p-4 text-sm text-muted')}>
                     {t(
                         'Não foi possível identificar este autor com segurança (há homônimos), então não mostramos obras que poderiam ser de outra pessoa.',
                     )}
@@ -139,51 +191,53 @@ function OtherWorks({ authorId, name }: { authorId: number; name: string }) {
             )}
 
             {works?.verified && works.items.length > 0 && (
-                <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3">
+                <ul className={cardClass('flex flex-col overflow-hidden')}>
                     {works.items.map((work) => (
                         <li
                             key={work.work_key ?? work.title}
-                            className="flex gap-3 rounded-md border bg-surface p-3"
+                            className="flex flex-wrap items-center gap-4 border-b px-4.5 py-3.5 last:border-b-0"
                         >
                             <BookCover
                                 src={work.cover_url}
                                 title={work.title}
-                                className="w-14"
+                                className="w-10"
                             />
-                            <div className="flex min-w-0 flex-1 flex-col gap-1">
-                                <span className="line-clamp-2 text-sm font-semibold">
+                            <div className="flex min-w-0 flex-1 flex-col gap-0.75">
+                                <span className="text-base font-extrabold">
                                     {work.title}
                                 </span>
-                                <span className="font-mono text-xs text-muted">
-                                    {[
-                                        work.year,
-                                        work.edition_count &&
-                                            t(':count edições', {
+                                <span className="flex flex-wrap gap-x-3 gap-y-1.5 font-mono text-[11px] text-muted">
+                                    {work.year && <span>{work.year}</span>}
+                                    {work.edition_count && (
+                                        <span>
+                                            {t(':count edições', {
                                                 count: work.edition_count,
-                                            }),
-                                    ]
-                                        .filter(Boolean)
-                                        .join(' · ')}
+                                            })}
+                                        </span>
+                                    )}
+                                    {work.portuguese && (
+                                        <span className="text-link">
+                                            {t('em português')}
+                                        </span>
+                                    )}
                                 </span>
-                                {work.portuguese && (
-                                    <span className="self-start rounded-[4px] bg-active px-1.5 py-px font-mono text-[10px] text-accent">
-                                        {t('em português')}
-                                    </span>
-                                )}
-                                <Link
-                                    href={addBook.url({
-                                        query: {
-                                            q: `${work.title} ${name}`,
-                                            ...(work.work_key && {
-                                                work: work.work_key,
-                                            }),
-                                        },
-                                    })}
-                                    className="mt-auto self-start text-xs text-accent hover:underline"
-                                >
-                                    {t('+ Adicionar')}
-                                </Link>
                             </div>
+                            <Link
+                                href={addBook.url({
+                                    query: {
+                                        q: `${work.title} ${name}`,
+                                        ...(work.work_key && {
+                                            work: work.work_key,
+                                        }),
+                                    },
+                                })}
+                                className={buttonClass(
+                                    'ghost',
+                                    'h-10 px-4 text-[13px]',
+                                )}
+                            >
+                                {t('+ Adicionar')}
+                            </Link>
                         </li>
                     ))}
                 </ul>

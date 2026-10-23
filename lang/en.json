@@ -822,5 +822,6 @@
     "Quando a :ordinal leitura terminar, dias, ritmo e nota aparecem lado a lado.": "When the :ordinal reading ends, days, pace and rating appear side by side.",
     "sem nota ainda": "no rating yet",
     "Nenhum livro com esses filtros.": "No books match these filters.",
-    "Sua biblioteca está vazia.": "Your library is empty."
+    "Sua biblioteca está vazia.": "Your library is empty.",
+    ":books na sua biblioteca": ":books in your library"
 }
