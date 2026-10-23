@@ -15,7 +15,7 @@ export function Markdown({
     return (
         <div
             className={cn(
-                'text-[15px] leading-relaxed text-text [&_a]:text-accent [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-primary [&_blockquote]:pl-3 [&_blockquote]:text-muted [&_code]:font-mono [&_code]:text-[13px] [&_h1]:mb-2 [&_h1]:font-mono [&_h1]:text-xl [&_h2]:mb-2 [&_h2]:font-mono [&_h2]:text-lg [&_h3]:mb-2 [&_h3]:font-mono [&_h3]:font-semibold [&_li]:ml-5 [&_li]:list-disc [&_ol>li]:list-decimal [&_p]:mb-3 [&_p:last-child]:mb-0',
+                'text-[15px] leading-relaxed text-text [&_a]:text-link [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-primary [&_blockquote]:pl-3 [&_blockquote]:text-muted [&_code]:font-mono [&_code]:text-[13px] [&_h1]:mb-2 [&_h1]:text-xl [&_h1]:font-extrabold [&_h2]:mb-2 [&_h2]:text-lg [&_h2]:font-extrabold [&_h3]:mb-2 [&_h3]:font-bold [&_li]:ml-5 [&_li]:list-disc [&_ol>li]:list-decimal [&_p]:mb-3 [&_p:last-child]:mb-0',
                 className,
             )}
         >

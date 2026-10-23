@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { cardClass } from '@/components/card';
+import { Button } from '@/components/form';
 import { PlusIcon } from '@/components/icons';
 import { NoteEditor } from '@/components/note-editor';
 import { useTranslation } from '@/hooks/use-translation';
@@ -19,9 +21,13 @@ export function BookNotes({
     const [editing, setEditing] = useState<NoteCard | 'new' | null>(null);
 
     return (
-        <div className="flex flex-col gap-2.5 pt-2.5">
+        <div className="flex flex-col gap-3.5">
             {notes.length === 0 && (
-                <p className="py-2 text-sm font-medium text-muted">
+                <p
+                    className={cardClass(
+                        'px-5 py-5.5 text-sm font-semibold text-muted',
+                    )}
+                >
                     {t(
                         'Nenhuma nota ainda. Trechos e reflexões sobre este livro aparecem aqui.',
                     )}
@@ -32,9 +38,11 @@ export function BookNotes({
                     key={note.id}
                     type="button"
                     onClick={() => setEditing(note)}
-                    className="flex flex-col gap-2 rounded-md bg-surface px-5 py-4 text-left inset-ring inset-ring-border hover:inset-ring-strong"
+                    className={cardClass(
+                        'flex flex-col gap-3 p-5.5 text-left hover:inset-ring-strong',
+                    )}
                 >
-                    <span className="flex gap-2.5 font-mono text-[11px] text-muted">
+                    <span className="flex gap-2.5 font-mono text-xs text-muted">
                         {note.page && (
                             <span className="text-link">
                                 {t('p. :page', { page: note.page })}
@@ -42,18 +50,18 @@ export function BookNotes({
                         )}
                         <span>{note.kind_label.toLowerCase()}</span>
                     </span>
-                    <span className="line-clamp-3 text-[15px] leading-relaxed font-semibold text-text">
+                    <span className="line-clamp-4 max-w-[60ch] text-xl leading-[1.45] font-semibold tracking-tight text-text">
                         {note.body_md}
                     </span>
                 </button>
             ))}
-            <button
-                type="button"
+            <Button
+                variant="ghost"
                 onClick={() => setEditing('new')}
-                className="flex h-10 items-center gap-1.5 self-start rounded-full bg-elevated px-4 text-[13px] font-bold text-text inset-ring inset-ring-strong hover:bg-active"
+                className="self-start"
             >
                 <PlusIcon /> {t('Nova nota neste livro')}
-            </button>
+            </Button>
             {editing !== null && (
                 <NoteEditor
                     note={editing === 'new' ? null : editing}

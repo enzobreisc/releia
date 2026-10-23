@@ -1,6 +1,7 @@
 import { router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
+import { cardClass } from '@/components/card';
 import { DatePicker } from '@/components/date-picker';
 import { Button, Field, Input } from '@/components/form';
 import { useTranslation } from '@/hooks/use-translation';
@@ -8,7 +9,7 @@ import { today } from '@/lib/dates';
 import { destroy, update } from '@/routes/sessions';
 import type { ReadingSession } from '@/types';
 
-/** Session log styled like a commit history: most recent first. */
+/** Sessions of a reading, most recent first. */
 export function SessionLog({
     sessions,
     emptyText,
@@ -23,7 +24,11 @@ export function SessionLog({
 
     if (sessions.length === 0) {
         return (
-            <p className="py-4 text-sm text-muted">
+            <p
+                className={cardClass(
+                    'px-5 py-5.5 text-sm font-semibold text-muted',
+                )}
+            >
                 {emptyText ??
                     t(
                         'Nenhuma sessão ainda. Registre a página em que você parou.',
@@ -32,16 +37,12 @@ export function SessionLog({
         );
     }
 
-    // Each session's little bar is proportional to the book's largest session.
-    const most = Math.max(...sessions.map((session) => session.pages), 1);
-
     return (
-        <ol className="flex flex-col font-mono text-[13px]">
+        <ol className={cardClass('flex flex-col overflow-hidden')}>
             {sessions.map((session) => (
                 <SessionRow
                     key={session.id}
                     session={session}
-                    share={session.pages / most}
                     readOnly={readOnly}
                 />
             ))}
@@ -51,19 +52,17 @@ export function SessionLog({
 
 function SessionRow({
     session,
-    share,
     readOnly,
 }: {
     session: ReadingSession;
-    share: number;
     readOnly: boolean;
 }) {
     const [editing, setEditing] = useState(false);
-    const { t, fullDate } = useTranslation();
+    const { t, shortDate } = useTranslation();
 
     if (editing) {
         return (
-            <li className="border-b py-3 font-sans">
+            <li className="border-b border-border px-5 py-4 last:border-b-0">
                 <EditSession
                     session={session}
                     onDone={() => setEditing(false)}
@@ -78,39 +77,34 @@ function SessionRow({
     }
 
     return (
-        <li className="group flex flex-wrap items-center gap-x-4 gap-y-1.5 border-b py-2.5">
-            <span className="text-accent">{session.hash}</span>
-            <span className="w-24 text-muted">{fullDate(session.read_on)}</span>
-            <span className="w-24">
+        <li className="grid grid-cols-[minmax(70px,1fr)_minmax(90px,1.2fr)_minmax(50px,0.7fr)_minmax(60px,0.8fr)_auto] items-center gap-3.5 border-b border-border px-5 py-3.5 font-mono text-[13px] last:border-b-0 max-sm:grid-cols-2">
+            <span className="font-sans text-[15px] font-bold">
+                {shortDate(session.read_on)}
+            </span>
+            <span className="text-muted">
                 {t('p. :page', {
                     page: `${session.page_from} → ${session.page_to}`,
                 })}
             </span>
-            <span className="flex min-w-24 flex-1 items-center gap-2">
-                <span
-                    className="h-1.5 rounded-full bg-primary"
-                    style={{ width: `${Math.max(6, share * 120)}px` }}
-                />
-                <span className="text-heat-3">+{session.pages}</span>
-            </span>
-            <span className="w-14 text-right text-muted">
+            <span className="text-link">+{session.pages}</span>
+            <span className="text-muted">
                 {session.minutes === null
                     ? '—'
                     : t(':minutes min', { minutes: session.minutes })}
             </span>
             {!readOnly && (
-                <span className="flex gap-3 text-xs opacity-60 group-hover:opacity-100 focus-within:opacity-100">
+                <span className="flex gap-4 font-sans text-[13px] font-semibold">
                     <button
                         type="button"
                         onClick={() => setEditing(true)}
-                        className="text-muted hover:text-text"
+                        className="text-secondary hover:text-text"
                     >
                         {t('editar')}
                     </button>
                     <button
                         type="button"
                         onClick={remove}
-                        className="text-muted hover:text-red-300"
+                        className="text-secondary hover:text-danger"
                     >
                         {t('apagar')}
                     </button>
@@ -144,7 +138,7 @@ function EditSession({
 
     return (
         <form onSubmit={save} className="flex flex-wrap items-end gap-3">
-            <div className="flex min-w-0 flex-[1_1_140px] flex-col gap-1.5 text-[13px] text-muted">
+            <div className="flex min-w-0 flex-[1_1_140px] flex-col gap-1.5 text-xs font-bold text-muted">
                 <span>{t('Data')}</span>
                 <DatePicker
                     aria-label={t('Data da sessão')}
@@ -153,7 +147,7 @@ function EditSession({
                     onChange={(value) => form.setData('read_on', value)}
                 />
                 {form.errors.read_on && (
-                    <span className="text-xs text-red-300">
+                    <span className="text-xs font-semibold text-danger">
                         {form.errors.read_on}
                     </span>
                 )}

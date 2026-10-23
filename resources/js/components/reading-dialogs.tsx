@@ -40,14 +40,14 @@ function DangerButton({
     disabled?: boolean;
 }) {
     return (
-        <button
-            type="button"
+        <Button
+            variant="danger"
             onClick={onClick}
             disabled={disabled}
-            className="h-10 rounded-sm bg-danger-fill px-4 text-[13px] font-semibold text-white hover:bg-danger-fill/90 disabled:opacity-60"
+            className="h-10 text-[13px]"
         >
             {children}
-        </button>
+        </Button>
     );
 }
 
@@ -89,12 +89,12 @@ function Chip({
             aria-pressed={selected}
             onClick={onClick}
             className={cn(
-                'h-9 rounded-full border px-3 text-[13px]',
+                'h-9 rounded-full px-3.5 text-[13px] font-bold inset-ring',
                 selected
                     ? tone === 'warn'
-                        ? 'border-warn bg-warn-fill'
-                        : 'border-primary bg-active'
-                    : 'hover:bg-active',
+                        ? 'bg-warn-fill text-warn inset-ring-warn'
+                        : 'bg-active text-text inset-ring-primary'
+                    : 'text-secondary inset-ring-strong hover:bg-active',
             )}
         >
             {label}
@@ -261,7 +261,7 @@ export function FinishDialog({
                         onChange={(value) => form.setData('finished_on', value)}
                         className={cn(
                             'h-10 bg-bg',
-                            clientError && 'border-danger-line',
+                            clientError && 'inset-ring-danger-line',
                         )}
                     />
                 )}
@@ -382,7 +382,7 @@ export function AbandonDialog({
             title={`## ${t('abandonar :title?', { title })}`}
             onClose={onClose}
         >
-            <p className="text-sm leading-relaxed text-[#c9d3e3]">
+            <p className="text-sm leading-relaxed text-secondary">
                 {t('Você parou na p. :page.', {
                     page: `${reading.current_page}${pages ? ` ${t('de')} ${pages}` : ''}${percent !== null ? ` (${percent}%)` : ''}`,
                 })}{' '}
@@ -417,7 +417,7 @@ export function AbandonDialog({
                     />
                 )}
             </div>
-            <label className="flex items-center gap-2 text-[13px] text-[#c9d3e3]">
+            <label className="flex items-center gap-2 text-[13px] text-secondary">
                 <input
                     type="checkbox"
                     checked={rate}
@@ -429,15 +429,15 @@ export function AbandonDialog({
             {rate && <StarRating value={rating} onChange={setRating} />}
             <div className="flex justify-end gap-2">
                 <CancelButton onClick={onClose} />
-                <button
-                    type="button"
+                <Button
+                    variant="ghost"
                     autoFocus
                     onClick={submit}
                     disabled={processing}
-                    className="h-10 rounded-sm border border-warn-line bg-warn-fill px-4 text-[13px] font-semibold text-warn disabled:opacity-60"
+                    className="h-10 bg-warn-fill text-[13px] text-warn inset-ring-warn-line hover:bg-warn-fill/80"
                 >
                     {t('Abandonar')}
-                </button>
+                </Button>
             </div>
         </Dialog>
     );
@@ -463,7 +463,7 @@ export function RereadDialog({
 
     return (
         <Dialog title={`## ${t('ler de novo')}`} onClose={onClose}>
-            <p className="text-sm leading-relaxed text-[#c9d3e3]">
+            <p className="text-sm leading-relaxed text-secondary">
                 {t(
                     'Uma nova leitura, com sessões, nota e resenha próprias. A anterior fica no histórico.',
                 )}
@@ -514,7 +514,7 @@ export function BackToReadingDialog({
             title={`## ${t('voltar a ler :title?', { title })}`}
             onClose={onClose}
         >
-            <p className="text-sm leading-relaxed text-[#c9d3e3]">
+            <p className="text-sm leading-relaxed text-secondary">
                 {reading.finished_at
                     ? t(
                           'Você terminou este livro em :date. O que quer fazer?',
@@ -567,7 +567,7 @@ export function CorrectDialog({
 
     return (
         <Dialog title={`## ${t('desmarcar como lido?')}`} onClose={onClose}>
-            <p className="text-sm leading-relaxed text-[#c9d3e3]">
+            <p className="text-sm leading-relaxed text-secondary">
                 {t('A leitura volta para Lendo, na p. :page. Isto apaga:', {
                     page: reading.current_page,
                 })}
@@ -694,7 +694,7 @@ export function DatesDialog({
                             }
                             className={cn(
                                 'h-10.5 bg-bg text-sm',
-                                earlySessions.length > 0 && 'border-warn',
+                                earlySessions.length > 0 && 'inset-ring-warn',
                             )}
                         />
                     </div>
@@ -710,7 +710,7 @@ export function DatesDialog({
                             }
                             className={cn(
                                 'h-10.5 bg-bg text-sm',
-                                closed && error && 'border-danger-line',
+                                closed && error && 'inset-ring-danger-line',
                             )}
                         />
                     </div>
@@ -731,7 +731,7 @@ export function DatesDialog({
                 )}
 
                 {earlySessions.length > 0 && reading.first_session_on && (
-                    <div className="flex flex-col items-start gap-2 rounded-sm border border-warn-line bg-[#1a1610] px-3 py-2.5 text-xs leading-relaxed text-warn">
+                    <div className="flex flex-col items-start gap-2 rounded-sm bg-warn-fill px-3.5 py-3 text-xs leading-relaxed text-warn inset-ring inset-ring-warn-line">
                         <span>
                             {t(':sessions antes do novo início (:date).', {
                                 sessions: plural(
@@ -742,20 +742,20 @@ export function DatesDialog({
                                 date: shortDate(start),
                             })}
                         </span>
-                        <button
-                            type="button"
+                        <Button
+                            variant="ghost"
                             onClick={() =>
                                 form.setData(
                                     'started_at',
                                     reading.first_session_on!,
                                 )
                             }
-                            className="h-8 rounded-sm border border-warn-line px-2.5 hover:bg-warn-fill"
+                            className="h-8 px-3.5 text-xs text-warn inset-ring-warn-line"
                         >
                             {t('Usar :date como início', {
                                 date: shortDate(reading.first_session_on),
                             })}
-                        </button>
+                        </Button>
                     </div>
                 )}
 
@@ -840,7 +840,7 @@ export function RemoveBookDialog({
 
     return (
         <Dialog title={`## ${t('remover livro?')}`} onClose={onClose}>
-            <p className="text-sm leading-relaxed text-[#c9d3e3]">
+            <p className="text-sm leading-relaxed text-secondary">
                 {t(
                     ':title sai da biblioteca junto com tudo o que foi registrado nele:',
                     { title },
@@ -880,7 +880,7 @@ export function DeleteReadingDialog({
             title={`## ${t('apagar a :ordinal leitura?', { ordinal: readingOrdinal })}`}
             onClose={onClose}
         >
-            <p className="text-sm leading-relaxed text-[#c9d3e3]">
+            <p className="text-sm leading-relaxed text-secondary">
                 {t('A :ordinal leitura de :title sai do histórico com:', {
                     ordinal: readingOrdinal,
                     title,

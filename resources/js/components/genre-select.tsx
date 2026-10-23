@@ -130,7 +130,7 @@ export function GenreSelect({
                 }}
                 onKeyDown={onKeyDown}
                 className={cn(
-                    'h-10 w-full rounded-sm border bg-bg px-3 pr-9 text-[15px] text-text placeholder:text-muted focus:border-primary focus:outline-none',
+                    'h-11 w-full rounded-full border-0 bg-surface px-4.5 pr-10 text-sm font-semibold text-text inset-ring inset-ring-border placeholder:font-medium placeholder:text-faint focus:inset-ring-primary focus:outline-none',
                     className,
                 )}
             />
@@ -139,7 +139,7 @@ export function GenreSelect({
                 tabIndex={-1}
                 aria-label={open ? t('Fechar gêneros') : t('Abrir gêneros')}
                 onClick={() => setOpen(!open)}
-                className="absolute inset-y-0 right-0 w-9 text-muted hover:text-text"
+                className="absolute inset-y-0 right-0 w-10 text-muted hover:text-text"
             >
                 {open ? '▴' : '▾'}
             </button>
@@ -149,7 +149,7 @@ export function GenreSelect({
                     ref={list}
                     id={`${id}-list`}
                     role="listbox"
-                    className="absolute top-full right-0 left-0 z-60 mt-1.5 max-h-60 overflow-y-auto overscroll-contain rounded-lg border border-strong bg-surface p-1 shadow-[0_16px_40px_rgba(0,0,0,0.55)]"
+                    className="absolute top-full right-0 left-0 z-60 mt-1.5 max-h-60 overflow-y-auto overscroll-contain rounded-md bg-elevated p-1.5 shadow-float inset-ring inset-ring-strong"
                 >
                     {options.length === 0 && (
                         <li className="px-3 py-2 text-xs text-muted">
@@ -173,8 +173,8 @@ export function GenreSelect({
                             }}
                             onMouseEnter={() => setActive(index)}
                             className={cn(
-                                'flex cursor-pointer items-center justify-between rounded-sm px-3 py-2 text-[14px] text-text',
-                                index === active && 'bg-elevated',
+                                'flex cursor-pointer items-center justify-between rounded-sm px-3 py-2 text-sm font-semibold text-text',
+                                index === active && 'bg-active',
                             )}
                         >
                             {translateText(genre)}

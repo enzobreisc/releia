@@ -170,9 +170,9 @@ export function DatePicker({
                 }
                 onClick={toggle}
                 className={cn(
-                    'flex h-11 w-full items-center justify-between gap-2 rounded-sm border bg-surface px-3 text-left text-[15px] focus:border-primary focus:outline-none disabled:opacity-60',
-                    open && 'border-primary',
-                    !value && 'text-muted',
+                    'flex h-11 w-full items-center justify-between gap-2 rounded-full bg-surface px-4.5 text-left text-sm font-semibold inset-ring inset-ring-border focus:inset-ring-primary focus:outline-none disabled:opacity-60',
+                    open && 'inset-ring-primary',
+                    !value && 'font-medium text-faint',
                     className,
                 )}
             >
@@ -199,7 +199,7 @@ export function DatePicker({
                     role="dialog"
                     aria-label={t('Escolher data')}
                     onKeyDown={onKeyDown}
-                    className="absolute top-full left-0 z-60 mt-1.5 w-64 rounded-lg border border-strong bg-surface p-3 shadow-[0_16px_40px_rgba(0,0,0,0.55)]"
+                    className="absolute top-full left-0 z-60 mt-1.5 w-64 rounded-md bg-elevated p-3 shadow-float inset-ring inset-ring-strong"
                 >
                     <div className="mb-2 flex items-center justify-between gap-1">
                         <NavButton
@@ -272,7 +272,7 @@ export function DatePicker({
                                     aria-label={longDate(day.key)}
                                     onClick={() => pick(day.key)}
                                     className={cn(
-                                        'h-8 rounded-sm text-[13px] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                                        'h-8 rounded-full text-[13px] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                                         day.inMonth
                                             ? 'text-text'
                                             : 'text-faint',
@@ -281,9 +281,9 @@ export function DatePicker({
                                             'hover:bg-elevated',
                                         isToday &&
                                             !isSelected &&
-                                            'border border-accent text-accent',
+                                            'text-accent inset-ring inset-ring-accent',
                                         isSelected &&
-                                            'bg-primary font-semibold text-white',
+                                            'bg-text font-bold text-bg',
                                         blocked &&
                                             'cursor-not-allowed opacity-30',
                                     )}
@@ -294,12 +294,12 @@ export function DatePicker({
                         })}
                     </div>
 
-                    <div className="mt-2 flex items-center justify-between border-t pt-2 text-xs">
+                    <div className="mt-2 flex items-center justify-between border-t border-strong pt-2 text-xs">
                         <button
                             type="button"
                             disabled={outOfRange(today())}
                             onClick={() => pick(today())}
-                            className="rounded-sm px-2 py-1 text-accent hover:bg-elevated disabled:opacity-40"
+                            className="rounded-full px-2.5 py-1 text-link hover:bg-elevated disabled:opacity-40"
                         >
                             {t('hoje')}
                         </button>
@@ -311,7 +311,7 @@ export function DatePicker({
                                     setOpen(false);
                                     trigger.current?.focus();
                                 }}
-                                className="rounded-sm px-2 py-1 text-muted hover:bg-elevated hover:text-text"
+                                className="rounded-full px-2.5 py-1 text-muted hover:bg-elevated hover:text-text"
                             >
                                 {t('limpar')}
                             </button>
@@ -338,7 +338,7 @@ function NavButton({
             aria-label={label}
             tabIndex={-1}
             onClick={onClick}
-            className="size-7 shrink-0 rounded-sm text-base text-muted hover:bg-elevated hover:text-text"
+            className="size-7 shrink-0 rounded-full text-base text-muted hover:bg-elevated hover:text-text"
         >
             {children}
         </button>

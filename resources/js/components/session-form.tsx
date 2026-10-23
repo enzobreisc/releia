@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
-import { Button, Input } from '@/components/form';
+import { Button, Field, Input } from '@/components/form';
 import { useTranslation } from '@/hooks/use-translation';
 import { store } from '@/routes/sessions';
 import type { ReadingProgress } from '@/types';
@@ -46,10 +46,9 @@ export function SessionForm({
         <form
             key={progress.current_page}
             onSubmit={save}
-            className="flex flex-wrap items-end gap-2.5"
+            className="flex flex-wrap items-end gap-3"
         >
-            <label className="flex min-w-0 flex-[1_1_150px] flex-col gap-1 text-xs text-muted">
-                {t('Parei na página')}
+            <Field label={t('Parei na página')}>
                 <Input
                     type="number"
                     min={1}
@@ -58,23 +57,22 @@ export function SessionForm({
                     onChange={(event) =>
                         form.setData('page_to', event.target.value)
                     }
-                    className="h-10.5 border-primary font-mono text-base"
+                    className="h-12 w-37.5 bg-bg text-lg font-bold"
                 />
-            </label>
-            <div className="flex gap-1">
+            </Field>
+            <div className="flex gap-1.5">
                 {BUMPS.map((pages) => (
-                    <button
+                    <Button
                         key={pages}
-                        type="button"
+                        variant="ghost"
                         onClick={() => bump(pages)}
-                        className="h-10.5 rounded-sm border bg-surface px-2.5 font-mono text-xs text-accent hover:bg-active"
+                        className="h-12 px-3.5 font-mono text-xs font-medium text-link"
                     >
                         +{pages}
-                    </button>
+                    </Button>
                 ))}
             </div>
-            <label className="flex min-w-0 flex-[0_1_110px] flex-col gap-1 text-xs text-muted">
-                {t('Minutos')}
+            <Field label={t('Minutos')}>
                 <Input
                     type="number"
                     min={1}
@@ -83,22 +81,30 @@ export function SessionForm({
                     onChange={(event) =>
                         form.setData('minutes', event.target.value)
                     }
-                    className="h-10.5 text-sm"
+                    className="h-12 w-37.5 bg-bg text-lg font-bold"
                 />
-            </label>
-            <Button type="submit" disabled={form.processing} className="h-10.5">
+            </Field>
+            <Button
+                type="submit"
+                variant="outline"
+                disabled={form.processing}
+                className="h-12 px-5.5 font-extrabold"
+            >
                 {form.processing ? t('Salvando…') : t('Registrar')}
-                <span className="font-mono text-[11px] font-medium opacity-85">
+                <span className="font-mono text-[11px] font-normal text-muted">
                     ↵
                 </span>
             </Button>
             {onFinish && (
-                <Button variant="ghost" onClick={onFinish} className="h-10.5">
+                <Button variant="ghost" onClick={onFinish} className="h-12">
                     {t('Terminei')}
                 </Button>
             )}
             {(form.errors.page_to || form.errors.minutes) && (
-                <p className="basis-full text-xs text-red-300">
+                <p
+                    role="alert"
+                    className="basis-full text-[13px] font-semibold text-warn"
+                >
                     {form.errors.page_to ?? form.errors.minutes}
                 </p>
             )}

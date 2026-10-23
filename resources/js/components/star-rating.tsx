@@ -30,7 +30,7 @@ export function StarRating({
                     aria-label={t(':star de 5', { star })}
                     disabled={disabled}
                     onClick={() => onChange(value === star ? null : star)}
-                    className="rounded-sm p-0.5 hover:bg-active"
+                    className="rounded-full p-0.5 hover:bg-active"
                 >
                     <svg
                         aria-hidden="true"

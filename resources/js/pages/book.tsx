@@ -4,8 +4,9 @@ import type { FormEvent, ReactNode } from 'react';
 import { BookCover } from '@/components/book-cover';
 import { BookEditor } from '@/components/book-editor';
 import { BookNotes } from '@/components/book-notes';
-import { Button, Textarea } from '@/components/form';
-import { SectionTitle } from '@/components/page-header';
+import { cardClass } from '@/components/card';
+import { Button, IconButton, Textarea } from '@/components/form';
+import { DisplayTitle, SectionTitle } from '@/components/page-header';
 import { QueueButton } from '@/components/queue-button';
 import {
     AbandonDialog,
@@ -21,7 +22,7 @@ import type { Removal } from '@/components/reading-dialogs';
 import { SessionForm } from '@/components/session-form';
 import { SessionLog } from '@/components/session-log';
 import { StarRating } from '@/components/star-rating';
-import { STATUS_LABELS, StatusIcon, StatusMenu } from '@/components/status';
+import { STATUS_LABELS } from '@/components/status';
 import type { Status } from '@/components/status';
 import { useTranslation } from '@/hooks/use-translation';
 import type { TranslationKey } from '@/lib/i18n';
@@ -57,7 +58,7 @@ type BookProps = {
     lookup?: Candidate | null;
 };
 
-type Tab = 'sessions' | 'notes' | 'review' | 'readings';
+type Tab = 'sessions' | 'notes' | 'review';
 
 type DialogState =
     | { kind: 'finish' | 'abandon' | 'reread' | 'back' | 'correct' | 'remove' }
@@ -65,9 +66,19 @@ type DialogState =
 
 const options = { preserveScroll: true, preserveState: true };
 
+const STATUS_ORDER: Status[] = ['want_to_read', 'reading', 'read', 'abandoned'];
+
+const STATUS_DOT: Record<string, string> = {
+    want_to_read: 'bg-muted',
+    reading: 'bg-accent',
+    read: 'bg-text',
+    abandoned: 'bg-warn',
+};
+
+const FILLED_STAR_COUNT = 5;
+
 export default function Book({
     book,
-    slug,
     progress,
     sessions,
     can_log,
@@ -94,7 +105,6 @@ export default function Book({
     const [editing, setEditing] = useState(false);
     const close = () => setDialog(null);
 
-    // ⌘E opens the data editor.
     useEffect(() => {
         function onKeyDown(event: KeyboardEvent) {
             if (event.metaKey && event.key.toLowerCase() === 'e') {
@@ -112,8 +122,11 @@ export default function Book({
         router.patch(readingRoute.url(book.id), { status: next }, options);
     }
 
-    // Shelf from the menu: what needs data opens a panel; the rest changes right away, with undo.
     function pickStatus(next: Status) {
+        if (next === status) {
+            return;
+        }
+
         if (status === 'read' && next === 'reading') {
             setDialog({ kind: 'back' });
         } else if (next === 'read') {
@@ -142,74 +155,72 @@ export default function Book({
             abandoned: { label: 'Retomar', run: () => setStatus('reading') },
         };
 
-    const chips = [
+    const facts = [
         book.pages && t(':pages págs', { pages: book.pages }),
         book.publisher,
         book.published_year,
-        book.genre && `#${translateText(book.genre).toLowerCase()}`,
+        book.genre && translateText(book.genre),
+        book.isbn_13 && `ISBN ${book.isbn_13}`,
     ].filter(Boolean);
 
     const tabs: { id: Tab; label: TranslationKey; count?: number }[] = [
         { id: 'sessions', label: 'Sessões', count: sessions.length },
         { id: 'notes', label: 'Notas', count: notes.length },
         { id: 'review', label: 'Resenha' },
-        { id: 'readings', label: 'Leituras', count: readings.length },
     ];
 
     const number = current?.number ?? 1;
+    const canMoveToShopping =
+        status === 'want_to_read' &&
+        readings.length <= 1 &&
+        sessions.length === 0 &&
+        notes.length === 0;
 
     return (
-        <>
+        <div className="flex max-w-270 flex-col gap-12">
             <Head title={book.title} />
-            <div className="flex items-center justify-between gap-3">
-                <div className="font-mono text-[13px] text-muted">
-                    <Link href={libraryIndex.url()} className="hover:text-text">
-                        releia <span className="text-faint">/</span>{' '}
-                        {t('biblioteca')}
+            <div className="flex flex-wrap justify-between gap-3 text-[13px] font-semibold text-muted">
+                <span>
+                    <Link
+                        href={libraryIndex.url()}
+                        className="text-secondary hover:text-text"
+                    >
+                        {t('Biblioteca')}
                     </Link>{' '}
-                    <span className="text-faint">/</span> {slug}
-                </div>
-                <span className="font-mono text-[11px] text-faint">
-                    {t('⌘E edita')}
+                    <span aria-hidden="true">/</span>{' '}
+                    <span className="text-text">{book.title}</span>
                 </span>
+                <span className="font-mono text-[11px]">{t('⌘E edita')}</span>
             </div>
 
-            <div className="flex flex-wrap items-start gap-8">
+            <header className="flex flex-wrap items-end gap-12">
                 <BookCover
                     src={book.cover_url}
                     title={book.title}
-                    className="w-42 border-strong shadow-[0_16px_40px_rgba(0,0,0,0.5)]"
+                    className="w-60 shadow-hero"
                 />
-                <div className="flex min-w-0 flex-[1_1_380px] flex-col gap-3.5">
-                    <div className="flex flex-col gap-1.5">
-                        {number > 1 && previous && (
-                            <span className="self-start rounded-full bg-elevated px-2.5 py-1 font-mono text-[11px] text-nav">
-                                ↻{' '}
-                                {t(
-                                    ':ordinal leitura · a :previous foi em :date',
-                                    {
-                                        ordinal: ordinal(number, 'feminine'),
-                                        previous: ordinal(
-                                            previous.number,
-                                            'feminine',
-                                        ),
-                                        date: previous.finished_at
-                                            ? monthYear(previous.finished_at)
-                                            : '—',
-                                    },
-                                )}
-                                {previous.rating ? `, ★${previous.rating}` : ''}
-                            </span>
-                        )}
-                        <h1 className="font-mono text-[34px] leading-tight font-bold">
-                            {book.title}
-                        </h1>
+                <div className="flex min-w-0 flex-[1_1_400px] flex-col gap-4.5 pb-1">
+                    {number > 1 && previous && (
+                        <span className="inline-flex h-7.5 items-center gap-2 self-start rounded-full bg-elevated px-3 text-xs font-bold text-secondary inset-ring inset-ring-strong">
+                            <span className="font-mono">↻</span>
+                            {t(':ordinal leitura · a :previous foi em :date', {
+                                ordinal: ordinal(number, 'feminine'),
+                                previous: ordinal(previous.number, 'feminine'),
+                                date: previous.finished_at
+                                    ? monthYear(previous.finished_at)
+                                    : '—',
+                            })}
+                            {previous.rating ? `, ★${previous.rating}` : ''}
+                        </span>
+                    )}
+                    <div className="flex flex-col gap-2.5">
+                        <DisplayTitle>{book.title}</DisplayTitle>
                         {book.subtitle && (
-                            <p className="text-[15px] text-muted">
+                            <p className="text-[17px] font-medium text-muted">
                                 {book.subtitle}
                             </p>
                         )}
-                        <p className="text-base text-nav">
+                        <p className="text-xl font-semibold text-secondary">
                             {book.author_links.length === 0
                                 ? t('Autor desconhecido')
                                 : book.author_links.map((author, index) => (
@@ -217,7 +228,7 @@ export default function Book({
                                           {index > 0 && ', '}
                                           <Link
                                               href={authorShow.url(author.id)}
-                                              className="hover:text-accent hover:underline"
+                                              className="hover:text-link hover:underline"
                                           >
                                               {author.name}
                                           </Link>
@@ -226,34 +237,49 @@ export default function Book({
                         </p>
                     </div>
 
-                    {(chips.length > 0 || book.isbn_13) && (
-                        <div className="flex flex-wrap gap-1.5">
-                            {chips.map((chip) => (
-                                <span
-                                    key={String(chip)}
-                                    className="rounded-[4px] border px-2 py-0.5 font-mono text-[11px] text-muted"
-                                >
-                                    {chip}
-                                </span>
+                    {facts.length > 0 && (
+                        <p className="flex flex-wrap gap-x-4.5 gap-y-1.5 font-mono text-xs text-muted">
+                            {facts.map((fact, index) => (
+                                <span key={index}>{fact}</span>
                             ))}
-                            {book.isbn_13 && (
-                                <span className="px-2 py-0.5 font-mono text-[11px] text-faint">
-                                    ISBN {book.isbn_13}
-                                </span>
-                            )}
-                        </div>
+                        </p>
                     )}
 
-                    <div className="flex flex-wrap items-center gap-2.5">
-                        <StatusMenu
-                            status={status}
-                            label={
-                                status === 'want_to_read' && number > 1
-                                    ? t('Quero reler')
-                                    : t(STATUS_LABELS[status])
-                            }
-                            onPick={pickStatus}
-                        />
+                    <div className="relative mt-1 flex flex-wrap items-center gap-3">
+                        <Button
+                            onClick={primary[status].run}
+                            className="h-12 px-6.5 text-[15px]"
+                        >
+                            {t(primary[status].label)}
+                        </Button>
+                        <PillGroup role="radiogroup" label={t('Mover para')}>
+                            {STATUS_ORDER.filter(
+                                (value) =>
+                                    !(
+                                        status === 'read' &&
+                                        value === 'abandoned'
+                                    ),
+                            ).map((value) => (
+                                <PillOption
+                                    key={value}
+                                    role="radio"
+                                    selected={value === status}
+                                    onClick={() => pickStatus(value)}
+                                >
+                                    <span
+                                        className={cn(
+                                            'size-1.5 rounded-full',
+                                            value === status
+                                                ? STATUS_DOT[value]
+                                                : 'bg-strong',
+                                        )}
+                                    />
+                                    {value === 'want_to_read' && number > 1
+                                        ? t('Quero reler')
+                                        : t(STATUS_LABELS[value])}
+                                </PillOption>
+                            ))}
+                        </PillGroup>
                         {(status === 'read' || status === 'abandoned') && (
                             <StarRating
                                 value={book.reading?.rating ?? null}
@@ -264,111 +290,91 @@ export default function Book({
                                         options,
                                     )
                                 }
-                                size={20}
+                                size={22}
                             />
                         )}
-                        <div className="ml-auto flex gap-2">
-                            <Button
-                                onClick={primary[status].run}
-                                className="h-10"
-                            >
-                                {t(primary[status].label)}
-                            </Button>
-                            {status === 'want_to_read' && (
-                                <QueueButton
-                                    bookId={book.id}
-                                    position={queue_position}
-                                    className="h-10"
-                                />
+                        {status === 'want_to_read' && (
+                            <QueueButton
+                                bookId={book.id}
+                                position={queue_position}
+                                className="h-12"
+                            />
+                        )}
+                        <MoreMenu>
+                            {(closeMenu) => (
+                                <>
+                                    <MenuItem
+                                        onClick={() => {
+                                            closeMenu();
+                                            setEditing(true);
+                                        }}
+                                        hint="⌘E"
+                                    >
+                                        {t('Editar dados do livro')}
+                                    </MenuItem>
+                                    {current && status !== 'want_to_read' && (
+                                        <MenuItem
+                                            onClick={() => {
+                                                closeMenu();
+                                                setDialog({
+                                                    kind: 'dates',
+                                                    reading: current,
+                                                });
+                                            }}
+                                        >
+                                            {t('Editar datas da leitura')}
+                                        </MenuItem>
+                                    )}
+                                    {canMoveToShopping && (
+                                        <MenuItem
+                                            onClick={() => {
+                                                closeMenu();
+                                                router.post(
+                                                    shoppingRoute.url(book.id),
+                                                );
+                                            }}
+                                        >
+                                            {t('Mover para compras')}
+                                        </MenuItem>
+                                    )}
+                                    {status === 'read' && (
+                                        <MenuItem
+                                            onClick={() => {
+                                                closeMenu();
+                                                setDialog({ kind: 'correct' });
+                                            }}
+                                        >
+                                            {t('Desmarcar como lido…')}
+                                        </MenuItem>
+                                    )}
+                                    <div className="mx-2 my-1 h-px bg-strong" />
+                                    <MenuItem
+                                        danger
+                                        onClick={() => {
+                                            closeMenu();
+                                            setDialog({ kind: 'remove' });
+                                        }}
+                                    >
+                                        {t('Remover da biblioteca…')}
+                                    </MenuItem>
+                                </>
                             )}
-                            <MoreMenu>
-                                {(closeMenu) => (
-                                    <>
-                                        <MenuItem
-                                            onClick={() => {
-                                                closeMenu();
-                                                setEditing(true);
-                                            }}
-                                            hint="⌘E"
-                                        >
-                                            {t('Editar dados do livro')}
-                                        </MenuItem>
-                                        {status === 'want_to_read' &&
-                                            readings.length <= 1 &&
-                                            sessions.length === 0 &&
-                                            notes.length === 0 && (
-                                                <MenuItem
-                                                    onClick={() => {
-                                                        closeMenu();
-                                                        router.post(
-                                                            shoppingRoute.url(
-                                                                book.id,
-                                                            ),
-                                                        );
-                                                    }}
-                                                >
-                                                    {t('Mover para compras')}
-                                                </MenuItem>
-                                            )}
-                                        {current &&
-                                            status !== 'want_to_read' && (
-                                                <MenuItem
-                                                    onClick={() => {
-                                                        closeMenu();
-                                                        setDialog({
-                                                            kind: 'dates',
-                                                            reading: current,
-                                                        });
-                                                    }}
-                                                >
-                                                    {t(
-                                                        'Editar datas da leitura',
-                                                    )}
-                                                </MenuItem>
-                                            )}
-                                        {status === 'read' && (
-                                            <MenuItem
-                                                onClick={() => {
-                                                    closeMenu();
-                                                    setDialog({
-                                                        kind: 'correct',
-                                                    });
-                                                }}
-                                            >
-                                                {t('Desmarcar como lido…')}
-                                            </MenuItem>
-                                        )}
-                                        <div className="mx-1.5 my-1 h-px bg-border" />
-                                        <MenuItem
-                                            danger
-                                            onClick={() => {
-                                                closeMenu();
-                                                setDialog({ kind: 'remove' });
-                                            }}
-                                        >
-                                            {t('Remover da biblioteca…')}
-                                        </MenuItem>
-                                    </>
-                                )}
-                            </MoreMenu>
-                        </div>
+                        </MoreMenu>
                     </div>
-
-                    {book.description && (
-                        <Description text={book.description} />
-                    )}
                 </div>
-            </div>
+            </header>
+
+            {book.description && <Description text={book.description} />}
 
             {status === 'want_to_read' && (
-                <section className="flex flex-wrap items-center gap-4 rounded-md border border-dashed border-strong p-5">
+                <section className="flex flex-wrap items-center gap-4 rounded-lg border border-dashed border-strong p-6">
                     <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-1">
-                        <p className="text-[15px] font-semibold">
+                        <p className="text-[15px] font-bold">
                             {number > 1
                                 ? t('Releitura planejada')
                                 : t('Ainda não começou')}
                         </p>
-                        <p className="text-[13px] text-muted">
+                        <p className="text-[13px] font-medium text-muted">
                             {progress?.pages && progress.pace
                                 ? `${t(
                                       'No seu ritmo (:pace págs/dia), :pages páginas levam ~:duration.',
@@ -429,7 +435,7 @@ export default function Book({
                     }
                     extra={
                         current.rating === null && (
-                            <span className="text-[13px] text-warn">
+                            <span className="text-[13px] font-semibold text-warn">
                                 {t('sem nota ainda: dê estrelas acima')}
                             </span>
                         )
@@ -455,7 +461,7 @@ export default function Book({
                         setDialog({ kind: 'dates', reading: current })
                     }
                     extra={
-                        <span className="text-[13px] text-muted">
+                        <span className="text-[13px] font-semibold text-muted">
                             {t('motivo: :reason', {
                                 reason:
                                     current.abandon_reason ??
@@ -466,35 +472,28 @@ export default function Book({
                 />
             )}
 
-            <section className="flex flex-col gap-1">
-                <div
-                    role="tablist"
-                    aria-label={t('Detalhes')}
-                    className="flex gap-0.5 border-b"
-                >
+            <section
+                aria-label={t('Sessões, notas e resenha')}
+                className="flex flex-col gap-5"
+            >
+                <PillGroup role="tablist" label={t('Sessões, notas e resenha')}>
                     {tabs.map((item) => (
-                        <button
+                        <PillOption
                             key={item.id}
-                            type="button"
                             role="tab"
-                            aria-selected={tab === item.id}
+                            selected={tab === item.id}
                             onClick={() => setTab(item.id)}
-                            className={cn(
-                                '-mb-px border-b-2 px-3.5 py-2.5 text-sm',
-                                tab === item.id
-                                    ? 'border-primary font-semibold text-text'
-                                    : 'border-transparent text-muted hover:text-text',
-                            )}
+                            className="px-4.5 text-sm"
                         >
                             {t(item.label)}
                             {item.count !== undefined && (
-                                <span className="ml-1.5 font-mono text-[11px] text-faint">
+                                <span className="font-mono text-[11px] font-normal opacity-75">
                                     {item.count}
                                 </span>
                             )}
-                        </button>
+                        </PillOption>
                     ))}
-                </div>
+                </PillGroup>
 
                 {tab === 'sessions' && (
                     <SessionLog
@@ -515,35 +514,30 @@ export default function Book({
                         kinds={note_kinds}
                     />
                 )}
-                {/* The review stays mounted: the draft is not lost when switching tabs. */}
+                {/* The review stays mounted so the draft survives tab switches. */}
                 <div hidden={tab !== 'review'}>
                     <ReviewForm
                         key={current?.id ?? 'none'}
                         bookId={book.id}
                         review={book.reading?.review ?? ''}
-                        label={t(':ordinal leitura', {
-                            ordinal: ordinal(number, 'feminine'),
-                        })}
+                        label={ordinal(number, 'feminine')}
                         active={tab === 'review'}
                     />
                 </div>
-                {tab === 'readings' && (
-                    <ReadingsTab
-                        readings={readings}
-                        pages={book.pages}
-                        onEditDates={(reading) =>
-                            setDialog({ kind: 'dates', reading })
-                        }
-                        onDelete={(reading) =>
-                            setDialog({ kind: 'deleteReading', reading })
-                        }
-                    />
-                )}
             </section>
 
-            <p className="font-mono text-[11px] text-faint">
+            <ReadingsSection
+                readings={readings}
+                pages={book.pages}
+                onEditDates={(reading) => setDialog({ kind: 'dates', reading })}
+                onDelete={(reading) =>
+                    setDialog({ kind: 'deleteReading', reading })
+                }
+            />
+
+            <footer className="border-t border-border pt-4.5 font-mono text-[11px] text-faint">
                 {t('dados: :source', { source: book.source_label })}
-            </p>
+            </footer>
 
             {dialog?.kind === 'finish' && current && (
                 <FinishDialog
@@ -607,20 +601,79 @@ export default function Book({
                     }}
                 />
             )}
-        </>
+        </div>
     );
 }
 
-/** Synopsis limited to three lines, expandable. */
+function PillGroup({
+    role,
+    label,
+    children,
+}: {
+    role: 'radiogroup' | 'tablist';
+    label: string;
+    children: ReactNode;
+}) {
+    return (
+        <div
+            role={role}
+            aria-label={label}
+            className="flex flex-wrap self-start rounded-full bg-surface p-1 inset-ring inset-ring-border"
+        >
+            {children}
+        </div>
+    );
+}
+
+function PillOption({
+    role,
+    selected,
+    onClick,
+    className,
+    children,
+}: {
+    role: 'radio' | 'tab';
+    selected: boolean;
+    onClick: () => void;
+    className?: string;
+    children: ReactNode;
+}) {
+    return (
+        <button
+            type="button"
+            role={role}
+            aria-checked={role === 'radio' ? selected : undefined}
+            aria-selected={role === 'tab' ? selected : undefined}
+            onClick={onClick}
+            className={cn(
+                'flex h-10 items-center gap-2 rounded-full px-3.5 text-[13px] font-bold',
+                role === 'tab'
+                    ? selected
+                        ? 'bg-text text-bg'
+                        : 'text-secondary hover:text-text'
+                    : selected
+                      ? 'bg-active text-white'
+                      : 'text-muted hover:text-text',
+                className,
+            )}
+        >
+            {children}
+        </button>
+    );
+}
+
 function Description({ text }: { text: string }) {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
 
     return (
-        <div className="flex max-w-prose flex-col items-start gap-1">
+        <section
+            aria-label={t('Sinopse')}
+            className="flex max-w-[72ch] flex-col items-start gap-2.5"
+        >
             <p
                 className={cn(
-                    'text-sm leading-relaxed whitespace-pre-line text-muted',
+                    'text-[17px] leading-[1.65] font-medium whitespace-pre-line text-secondary',
                     !open && 'line-clamp-3',
                 )}
             >
@@ -629,15 +682,14 @@ function Description({ text }: { text: string }) {
             <button
                 type="button"
                 onClick={() => setOpen(!open)}
-                className="font-mono text-xs text-accent hover:underline"
+                className="h-8 text-sm font-bold text-link hover:underline"
             >
-                {open ? t('− menos') : t('+ sinopse completa')}
+                {open ? t('− sinopse curta') : t('+ sinopse completa')}
             </button>
-        </div>
+        </section>
     );
 }
 
-/** Rare actions live under "⋯", away from everyday clicks. */
 function MoreMenu({
     children,
 }: {
@@ -675,20 +727,19 @@ function MoreMenu({
 
     return (
         <div ref={ref} className="relative">
-            <button
-                type="button"
-                aria-label={t('Mais ações')}
+            <IconButton
+                label={t('Mais ações')}
                 aria-haspopup="menu"
                 aria-expanded={open}
                 onClick={() => setOpen(!open)}
-                className="size-10 rounded-sm border bg-surface text-base text-nav hover:bg-active hover:text-text"
+                className="size-12 text-lg text-text inset-ring inset-ring-strong"
             >
                 ⋯
-            </button>
+            </IconButton>
             {open && (
                 <div
                     role="menu"
-                    className="absolute top-12 right-0 z-30 flex w-64 flex-col gap-0.5 rounded-[10px] border border-strong bg-surface p-1.5 shadow-[0_18px_44px_rgba(0,0,0,0.55)]"
+                    className="absolute top-14.5 right-0 z-30 flex w-67.5 flex-col rounded-[16px] bg-elevated p-1.5 shadow-float inset-ring inset-ring-strong"
                 >
                     {children(() => setOpen(false))}
                 </div>
@@ -714,15 +765,17 @@ function MenuItem({
             role="menuitem"
             onClick={onClick}
             className={cn(
-                'flex items-center justify-between rounded-sm px-2.5 py-2.5 text-left text-sm',
+                'flex h-11 items-center justify-between rounded-[10px] px-3 text-left text-sm font-semibold',
                 danger
                     ? 'text-danger hover:bg-danger-fill/15'
-                    : 'hover:bg-active',
+                    : 'text-text hover:bg-active',
             )}
         >
             {children}
             {hint && (
-                <span className="font-mono text-[11px] text-faint">{hint}</span>
+                <span className="font-mono text-[11px] font-normal text-muted">
+                    {hint}
+                </span>
             )}
         </button>
     );
@@ -770,75 +823,71 @@ function ProgressCard({
             label: t('termina'),
             value: finishesOn ? `~${finishesOn}` : '—',
         },
-        { label: t('sessões'), value: String(reading.sessions_count) },
     ];
 
     return (
         <section
             aria-label={t('Progresso')}
-            className="flex flex-col rounded-md border bg-surface"
+            className={cardClass('flex flex-col gap-6.5 rounded-lg p-7')}
         >
-            <div className="flex flex-wrap items-end justify-between gap-4 px-5 pt-4.5 pb-3.5">
-                <div className="flex flex-col gap-1">
-                    <SectionTitle>
-                        {reading.number > 1
-                            ? t('progresso · :ordinal leitura', {
-                                  ordinal: ordinal(reading.number, 'feminine'),
-                              })
-                            : t('progresso')}
-                    </SectionTitle>
-                    <p className="font-mono text-[30px] font-bold">
-                        {t('pág. :page', { page: progress.current_page })}{' '}
-                        {progress.pages !== null && (
-                            <span className="text-base font-medium text-muted">
-                                / {progress.pages} · {progress.percent}%
-                            </span>
-                        )}
-                    </p>
-                </div>
-                <dl className="flex gap-6">
-                    {stats.map((stat) => (
-                        <div key={stat.label}>
-                            <dt className="font-mono text-[11px] text-muted">
-                                {stat.label}
-                            </dt>
-                            <dd className="mt-0.5 font-mono text-[15px] font-bold">
-                                {stat.value}
-                            </dd>
-                        </div>
-                    ))}
-                    <div>
-                        <dt className="font-mono text-[11px] text-muted">
-                            {t('começou')}
-                        </dt>
-                        <dd className="mt-0.5">
-                            <button
-                                type="button"
-                                onClick={onEditDates}
-                                title={t('Editar data de início')}
-                                className="font-mono text-[15px] font-bold hover:text-accent"
-                            >
-                                {reading.started_at
-                                    ? shortDate(reading.started_at)
-                                    : '—'}{' '}
-                                <span className="text-xs font-medium text-accent">
-                                    ✎
-                                </span>
-                            </button>
-                        </dd>
-                    </div>
-                </dl>
+            <div className="flex items-baseline justify-between gap-3">
+                <SectionTitle>
+                    {t('Progresso da :ordinal leitura', {
+                        ordinal: ordinal(reading.number, 'feminine'),
+                    })}
+                </SectionTitle>
+                {progress.percent !== null && (
+                    <span className="font-mono text-[13px] text-link">
+                        {progress.percent}%
+                    </span>
+                )}
             </div>
 
-            <div className="mx-5 h-2.5 overflow-hidden rounded-[3px] bg-elevated">
-                <div
-                    className="h-full bg-primary"
-                    style={{ width: `${progress.percent ?? 0}%` }}
-                />
+            <div className="flex flex-col gap-3.5">
+                <p className="flex items-baseline gap-3">
+                    <span className="text-[88px] leading-[0.85] font-extrabold tracking-[-0.05em] tabular-nums">
+                        {progress.current_page}
+                    </span>
+                    {progress.pages !== null && (
+                        <span className="text-[22px] font-bold text-faint">
+                            / {t(':pages págs', { pages: progress.pages })}
+                        </span>
+                    )}
+                </p>
+                <div className="h-2 overflow-hidden rounded-[4px] bg-border">
+                    <div
+                        className="h-full rounded-[4px] bg-text"
+                        style={{ width: `${progress.percent ?? 0}%` }}
+                    />
+                </div>
             </div>
+
+            <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(150px,100%),1fr))] gap-4">
+                {stats.map((stat) => (
+                    <Stat key={stat.label} label={stat.label}>
+                        {stat.value}
+                    </Stat>
+                ))}
+                <Stat label={t('começou')}>
+                    <span className="flex items-baseline gap-2.5">
+                        {reading.started_at
+                            ? shortDate(reading.started_at)
+                            : '—'}
+                        <button
+                            type="button"
+                            onClick={onEditDates}
+                            aria-label={t('Editar data de início')}
+                            className="text-xs font-bold text-link hover:underline"
+                        >
+                            {t('editar')}
+                        </button>
+                    </span>
+                </Stat>
+                <Stat label={t('sessões')}>{reading.sessions_count}</Stat>
+            </dl>
 
             {progress.finish_suggested && (
-                <div className="mx-5 mt-3.5 flex flex-wrap items-center gap-3 rounded-sm border border-primary bg-active px-3.5 py-3 text-sm">
+                <div className="flex flex-wrap items-center gap-3 rounded-sm bg-active px-4 py-3 text-sm font-semibold inset-ring inset-ring-primary">
                     <span className="flex-1">
                         {t('Você chegou à última página.')}
                     </span>
@@ -848,11 +897,11 @@ function ProgressCard({
                 </div>
             )}
 
-            <div className="mt-4 rounded-b-md border-t bg-[#0d131c] px-5 py-3.5">
+            <div id="log" className="border-t border-border pt-5.5">
                 {canLog ? (
                     <SessionForm bookId={bookId} progress={progress} />
                 ) : (
-                    <p className="text-sm text-muted">
+                    <p className="text-sm font-medium text-muted">
                         {t(
                             'Para registrar sessões, a leitura precisa estar em andamento.',
                         )}
@@ -863,7 +912,17 @@ function ProgressCard({
     );
 }
 
-/** Closed reading card: read or abandoned, with editable dates. */
+function Stat({ label, children }: { label: string; children: ReactNode }) {
+    return (
+        <div className="flex flex-col gap-1">
+            <dt className="text-xs font-bold text-muted first-letter:uppercase">
+                {label}
+            </dt>
+            <dd className="text-[22px] font-extrabold">{children}</dd>
+        </div>
+    );
+}
+
 function ClosedCard({
     tone,
     title,
@@ -887,24 +946,29 @@ function ClosedCard({
 
     return (
         <section
-            className={cn(
-                'flex flex-wrap items-center gap-x-6 gap-y-2 rounded-md border bg-surface px-5 py-4.5',
-                tone === 'abandoned' && 'border-warn-line',
+            className={cardClass(
+                cn(
+                    'flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg px-6 py-5',
+                    tone === 'abandoned' && 'inset-ring-warn-line',
+                ),
             )}
         >
             <div className="flex items-center gap-2.5">
-                <StatusIcon status={tone} size={26} />
-                <span className="text-[15px] font-semibold">{title}</span>
+                <span
+                    aria-hidden="true"
+                    className={cn('size-1.5 rounded-full', STATUS_DOT[tone])}
+                />
+                <span className="text-[15px] font-extrabold">{title}</span>
             </div>
             <button
                 type="button"
                 onClick={onEditDates}
                 title={t('Editar datas')}
-                className="font-mono text-[13px] text-nav hover:text-text"
+                className="font-mono text-[13px] text-secondary hover:text-text"
             >
                 {reading.started_at ? shortDate(reading.started_at) : '—'} →{' '}
                 {reading.finished_at ? shortDate(reading.finished_at) : '—'}{' '}
-                <span className="text-accent">✎</span>
+                <span className="text-link">✎</span>
             </button>
             <span className="font-mono text-[13px] text-muted">
                 {details.join(' · ')}
@@ -941,7 +1005,6 @@ function ReviewForm({
         });
     }
 
-    // ⌘S saves the review while the tab is open.
     useEffect(() => {
         if (!active) {
             return;
@@ -960,12 +1023,14 @@ function ReviewForm({
     });
 
     return (
-        <form onSubmit={save} className="flex flex-col gap-2.5 pt-3">
-            <span className="font-mono text-[11px] text-muted">
-                {t('resenha · :label · cada leitura tem a sua', { label })}
-            </span>
-            <label htmlFor="review" className="sr-only">
-                {t('Resenha')}
+        <form onSubmit={save} className="flex flex-col gap-3">
+            <label
+                htmlFor="review"
+                className="text-[13px] font-bold text-muted"
+            >
+                {t('Resenha da :ordinal leitura · cada leitura tem a sua', {
+                    ordinal: label,
+                })}
             </label>
             <Textarea
                 id="review"
@@ -974,13 +1039,13 @@ function ReviewForm({
                 placeholder={t(
                     'O que você achou do livro? Ideias, trechos, impressões.',
                 )}
-                className="min-h-36 leading-relaxed"
+                className="min-h-44 p-5 text-base leading-[1.6]"
             />
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
                 <span
                     className={cn(
-                        'font-mono text-[11px]',
-                        form.isDirty ? 'text-warn' : 'text-faint',
+                        'font-mono text-xs',
+                        form.isDirty ? 'text-warn' : 'text-muted',
                     )}
                 >
                     {form.recentlySuccessful
@@ -991,7 +1056,6 @@ function ReviewForm({
                 </span>
                 <Button
                     type="submit"
-                    variant="ghost"
                     disabled={!form.isDirty || form.processing}
                 >
                     {form.processing ? t('Salvando…') : t('Salvar resenha')}
@@ -1001,8 +1065,7 @@ function ReviewForm({
     );
 }
 
-/** Readings tab: the book's history, most recent first, with the comparison. */
-function ReadingsTab({
+function ReadingsSection({
     readings,
     pages,
     onEditDates,
@@ -1013,138 +1076,205 @@ function ReadingsTab({
     onEditDates: (reading: ReadingHistory) => void;
     onDelete: (reading: ReadingHistory) => void;
 }) {
-    const { t, plural, shortDate, ordinal } = useTranslation();
+    const { t, ordinal } = useTranslation();
     const [open, setOpen] = useState<number | null>(null);
     const finished = readings.filter((item) => item.status === 'read');
+    const latest = readings.at(-1);
 
     return (
-        <div className="flex flex-col gap-2 pt-3">
+        <section aria-labelledby="readings" className="flex flex-col gap-3.5">
+            <h2 id="readings" className="text-xl font-extrabold tracking-tight">
+                {t('Leituras')}
+            </h2>
             {finished.length >= 2 && <Comparison readings={finished} />}
-
-            {[...readings].reverse().map((item) => {
-                const expanded = open === item.id;
-                const detail =
-                    item.status === 'want_to_read'
-                        ? t('ainda não começou')
-                        : item.status === 'reading'
-                          ? t('desde :date · p. :page', {
-                                date: item.started_at
-                                    ? shortDate(item.started_at)
-                                    : '—',
-                                page: pages
-                                    ? t(':page de :pages', {
-                                          page: item.current_page,
-                                          pages,
-                                      })
-                                    : item.current_page,
-                            })
-                          : [
-                                item.started_at && item.finished_at
-                                    ? `${shortDate(item.started_at)} → ${shortDate(item.finished_at)} ${item.finished_at.slice(0, 4)}`
-                                    : null,
-                                item.days && plural(item.days, 'dia', 'dias'),
-                                plural(
-                                    item.sessions_count,
-                                    'sessão',
-                                    'sessões',
-                                ),
-                                item.abandon_reason &&
-                                    t('motivo: :reason', {
-                                        reason: item.abandon_reason,
-                                    }),
-                            ]
-                                .filter(Boolean)
-                                .join(' · ');
-
-                return (
-                    <article
+            <div className={cardClass('overflow-hidden')}>
+                {[...readings].reverse().map((item) => (
+                    <ReadingRow
                         key={item.id}
-                        className={cn(
-                            'flex flex-col rounded-md border bg-surface',
-                            item.id === readings.at(-1)?.id && 'border-primary',
-                        )}
-                    >
-                        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3.5">
-                            <span className="font-mono text-[13px] font-bold">
-                                {t(':ordinal leitura', {
-                                    ordinal: ordinal(item.number, 'feminine'),
-                                })}
-                            </span>
-                            <span className="inline-flex items-center gap-1.5 text-[13px]">
-                                <StatusIcon status={item.status} size={10} />
-                                {item.status_label}
-                            </span>
-                            <span className="min-w-0 flex-1 font-mono text-xs text-nav">
-                                {detail}
-                            </span>
-                            {item.rating !== null && (
-                                <span
-                                    aria-label={t('Nota :rating de 5', {
-                                        rating: item.rating,
-                                    })}
-                                    className="font-mono text-xs text-accent"
-                                >
-                                    {'★'.repeat(item.rating)}
-                                </span>
-                            )}
-                            <span className="flex gap-3 text-xs">
-                                {(item.sessions_count > 0 || item.review) && (
-                                    <button
-                                        type="button"
-                                        aria-expanded={expanded}
-                                        onClick={() =>
-                                            setOpen(expanded ? null : item.id)
-                                        }
-                                        className="text-accent hover:underline"
-                                    >
-                                        {expanded
-                                            ? t('fechar')
-                                            : t('sessões e resenha ›')}
-                                    </button>
-                                )}
-                                {item.status !== 'want_to_read' && (
-                                    <button
-                                        type="button"
-                                        onClick={() => onEditDates(item)}
-                                        className="text-muted hover:text-text"
-                                    >
-                                        {t('datas')}
-                                    </button>
-                                )}
-                                {readings.length > 1 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => onDelete(item)}
-                                        className="text-muted hover:text-danger"
-                                    >
-                                        {t('apagar')}
-                                    </button>
-                                )}
-                            </span>
-                        </div>
-                        {expanded && (
-                            <div className="flex flex-col gap-3 border-t px-4 pt-1 pb-4">
-                                <SessionLog sessions={item.sessions} readOnly />
-                                {item.review && (
-                                    <div className="flex flex-col gap-1">
-                                        <span className="font-mono text-[11px] text-muted">
-                                            ## {t('resenha')}
-                                        </span>
-                                        <p className="text-sm leading-relaxed whitespace-pre-line text-[#c9d3e3]">
-                                            {item.review}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </article>
-                );
-            })}
-        </div>
+                        reading={item}
+                        pages={pages}
+                        isCurrent={item.id === latest?.id}
+                        expanded={open === item.id}
+                        canDelete={readings.length > 1}
+                        onToggle={() =>
+                            setOpen(open === item.id ? null : item.id)
+                        }
+                        onEditDates={() => onEditDates(item)}
+                        onDelete={() => onDelete(item)}
+                    />
+                ))}
+            </div>
+            {latest?.status === 'reading' && latest.number > 1 && (
+                <p className="text-[13px] font-semibold text-muted">
+                    {t(
+                        'Quando a :ordinal leitura terminar, dias, ritmo e nota aparecem lado a lado.',
+                        { ordinal: ordinal(latest.number, 'feminine') },
+                    )}
+                </p>
+            )}
+        </section>
     );
 }
 
-/** Finished readings side by side: duration, pace, sessions and rating. Only against yourself. */
+function ReadingRow({
+    reading,
+    pages,
+    isCurrent,
+    expanded,
+    canDelete,
+    onToggle,
+    onEditDates,
+    onDelete,
+}: {
+    reading: ReadingHistory;
+    pages: number | null;
+    isCurrent: boolean;
+    expanded: boolean;
+    canDelete: boolean;
+    onToggle: () => void;
+    onEditDates: () => void;
+    onDelete: () => void;
+}) {
+    const { t, plural, shortDate, ordinal } = useTranslation();
+    const hasDetails = reading.sessions_count > 0 || reading.review;
+
+    return (
+        <article className="border-b border-border last:border-b-0">
+            <div className="grid grid-cols-[minmax(100px,1fr)_minmax(100px,0.9fr)_minmax(160px,2fr)_auto] items-center gap-3.5 px-5 py-4 max-md:grid-cols-1">
+                <span className="text-[15px] font-extrabold">
+                    {t(':ordinal leitura', {
+                        ordinal: ordinal(reading.number, 'feminine'),
+                    })}
+                </span>
+                <span className="flex items-center gap-1.75 text-[13px] font-bold text-secondary">
+                    <span
+                        aria-hidden="true"
+                        className={cn(
+                            'size-1.5 rounded-full',
+                            STATUS_DOT[reading.status],
+                        )}
+                    />
+                    {reading.status_label}
+                </span>
+                <span className="font-mono text-xs text-muted">
+                    {readingDetail(reading, pages, { t, plural, shortDate })}
+                </span>
+                <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] font-semibold">
+                    <ReadingRating reading={reading} isCurrent={isCurrent} />
+                    {hasDetails && (
+                        <button
+                            type="button"
+                            aria-expanded={expanded}
+                            onClick={onToggle}
+                            className="text-link hover:underline"
+                        >
+                            {expanded ? t('fechar') : t('sessões e resenha ›')}
+                        </button>
+                    )}
+                    {reading.status !== 'want_to_read' && (
+                        <button
+                            type="button"
+                            onClick={onEditDates}
+                            className="text-secondary hover:text-text"
+                        >
+                            {t('datas')}
+                        </button>
+                    )}
+                    {canDelete && (
+                        <button
+                            type="button"
+                            onClick={onDelete}
+                            className="text-secondary hover:text-danger"
+                        >
+                            {t('apagar')}
+                        </button>
+                    )}
+                </span>
+            </div>
+            {expanded && (
+                <div className="flex flex-col gap-4 px-5 pb-5">
+                    <SessionLog sessions={reading.sessions} readOnly />
+                    {reading.review && (
+                        <div className="flex flex-col gap-1.5">
+                            <span className="text-xs font-bold text-muted">
+                                {t('Resenha')}
+                            </span>
+                            <p className="text-sm leading-relaxed font-medium whitespace-pre-line text-secondary">
+                                {reading.review}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            )}
+        </article>
+    );
+}
+
+function ReadingRating({
+    reading,
+    isCurrent,
+}: {
+    reading: ReadingHistory;
+    isCurrent: boolean;
+}) {
+    const { t } = useTranslation();
+
+    if (reading.rating !== null) {
+        return (
+            <span
+                aria-label={t('Nota :rating de 5', { rating: reading.rating })}
+                className="text-sm tracking-widest text-text"
+            >
+                {'★'.repeat(reading.rating)}
+                <span className="text-strong">
+                    {'★'.repeat(FILLED_STAR_COUNT - reading.rating)}
+                </span>
+            </span>
+        );
+    }
+
+    if (isCurrent && reading.status !== 'want_to_read') {
+        return <span className="text-muted">{t('sem nota ainda')}</span>;
+    }
+
+    return null;
+}
+
+function readingDetail(
+    reading: ReadingHistory,
+    pages: number | null,
+    {
+        t,
+        plural,
+        shortDate,
+    }: Pick<ReturnType<typeof useTranslation>, 't' | 'plural' | 'shortDate'>,
+): string {
+    if (reading.status === 'want_to_read') {
+        return t('ainda não começou');
+    }
+
+    if (reading.status === 'reading') {
+        return t('desde :date · p. :page', {
+            date: reading.started_at ? shortDate(reading.started_at) : '—',
+            page: pages
+                ? t(':page de :pages', { page: reading.current_page, pages })
+                : reading.current_page,
+        });
+    }
+
+    return [
+        reading.started_at && reading.finished_at
+            ? `${shortDate(reading.started_at)} → ${shortDate(reading.finished_at)} ${reading.finished_at.slice(0, 4)}`
+            : null,
+        reading.days && plural(reading.days, 'dia', 'dias'),
+        plural(reading.sessions_count, 'sessão', 'sessões'),
+        reading.abandon_reason &&
+            t('motivo: :reason', { reason: reading.abandon_reason }),
+    ]
+        .filter(Boolean)
+        .join(' · ');
+}
+
 function Comparison({ readings }: { readings: ReadingHistory[] }) {
     const { t, plural, monthYear, ordinal } = useTranslation();
     const rows: {
@@ -1174,7 +1304,9 @@ function Comparison({ readings }: { readings: ReadingHistory[] }) {
 
     return (
         <div
-            className="grid gap-x-4 gap-y-2 rounded-md border bg-surface px-4 py-3.5 font-mono text-xs"
+            className={cardClass(
+                'grid gap-x-4 gap-y-2 px-5 py-4 font-mono text-xs',
+            )}
             style={{
                 gridTemplateColumns: `110px repeat(${readings.length}, minmax(0, 1fr))`,
             }}

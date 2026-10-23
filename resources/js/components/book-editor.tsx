@@ -260,16 +260,16 @@ export function BookEditor({
                 role="dialog"
                 aria-modal="true"
                 aria-label={t('Editar dados do livro')}
-                className="absolute inset-y-0 right-0 flex w-115 max-w-full flex-col border-l border-strong bg-surface shadow-[-24px_0_60px_rgba(0,0,0,0.5)]"
+                className="absolute inset-y-0 right-0 flex w-115 max-w-full flex-col bg-surface shadow-float inset-ring inset-ring-border"
             >
                 <div className="flex h-9 shrink-0 app-drag" />
-                <div className="flex items-center justify-between gap-3 border-b px-5 pb-4">
-                    <h2 className="font-mono text-[15px] font-bold">
-                        ## {t('editar dados')}
+                <div className="flex items-center justify-between gap-3 border-b border-border px-5 pb-4">
+                    <h2 className="text-xl font-extrabold tracking-tight first-letter:uppercase">
+                        {t('editar dados')}
                     </h2>
                     <span
                         className={cn(
-                            'font-mono text-[11px]',
+                            'font-mono text-xs',
                             changed > 0 ? 'text-warn' : 'text-faint',
                         )}
                     >
@@ -281,7 +281,7 @@ export function BookEditor({
 
                 <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-5 py-4.5">
                     {diffs.length > 0 && (
-                        <div className="flex flex-col gap-2 rounded-md border border-primary bg-active p-3">
+                        <div className="flex flex-col gap-2 rounded-md bg-active p-4 inset-ring inset-ring-primary">
                             <span className="text-[13px] font-semibold">
                                 {t('A fonte tem dados diferentes')}
                             </span>
@@ -349,14 +349,14 @@ export function BookEditor({
                                 title={form.data.title || t('sem capa')}
                                 className="w-24"
                             />
-                            <button
-                                type="button"
+                            <Button
+                                variant="ghost"
                                 onClick={() => setCoverOpen(!coverOpen)}
                                 aria-expanded={coverOpen}
-                                className="h-8 rounded-sm border text-xs text-accent hover:bg-active"
+                                className="h-8 px-3 text-xs text-link"
                             >
                                 {t('Trocar capa')}
-                            </button>
+                            </Button>
                         </div>
                         <div className="flex min-w-0 flex-1 flex-col gap-2.5">
                             <Field
@@ -395,14 +395,14 @@ export function BookEditor({
                     </div>
 
                     {coverOpen && (
-                        <div className="flex flex-col gap-2 rounded-md border bg-bg p-3">
-                            <span className="font-mono text-[11px] text-muted">
-                                ## {t('nova capa')}
+                        <div className="flex flex-col gap-2 rounded-md bg-bg p-3.5 inset-ring inset-ring-border">
+                            <span className="text-xs font-bold text-muted first-letter:uppercase">
+                                {t('nova capa')}
                             </span>
                             <div
                                 onDragOver={(event) => event.preventDefault()}
                                 onDrop={onDrop}
-                                className="flex h-16 items-center justify-center gap-1 rounded-sm border border-dashed border-strong text-xs text-nav"
+                                className="flex h-16 items-center justify-center gap-1 rounded-sm border border-dashed border-strong text-xs text-secondary"
                             >
                                 {form.data.cover_file
                                     ? form.data.cover_file.name
@@ -468,7 +468,7 @@ export function BookEditor({
                     )}
 
                     <Field label={t('Autores')} error={form.errors.authors}>
-                        <span className="flex min-h-10 flex-wrap items-center gap-1.5 rounded-sm border bg-bg px-2 py-1">
+                        <span className="flex min-h-10 flex-wrap items-center gap-1.5 rounded-full bg-surface px-2 py-1 inset-ring inset-ring-border">
                             {form.data.authors.map((name, index) => (
                                 <span
                                     key={`${index}:${name}`}
@@ -523,7 +523,7 @@ export function BookEditor({
                                 }
                                 className={cn(
                                     'h-10 bg-bg font-mono text-sm',
-                                    errors.pages && 'border-danger-line',
+                                    errors.pages && 'inset-ring-danger-line',
                                 )}
                             />
                         </Field>
@@ -538,7 +538,7 @@ export function BookEditor({
                                 className="text-sm"
                             />
                             {form.errors.genre && (
-                                <span className="text-xs text-red-300">
+                                <span className="text-xs font-semibold text-danger">
                                     {form.errors.genre}
                                 </span>
                             )}
@@ -547,7 +547,7 @@ export function BookEditor({
                     {errors.pages && (
                         <div
                             role="alert"
-                            className="flex flex-col items-start gap-1.5 rounded-sm border border-danger-line bg-[#1c1013] px-3 py-2.5 text-xs leading-relaxed text-danger"
+                            className="flex flex-col items-start gap-1.5 rounded-sm bg-danger-fill/15 px-3.5 py-3 text-xs leading-relaxed text-danger inset-ring inset-ring-danger-line"
                         >
                             <span>{errors.pages}</span>
                             {errors.pages_session && (
@@ -608,7 +608,7 @@ export function BookEditor({
                                 }
                                 className={cn(
                                     'h-10 flex-1 bg-bg font-mono text-sm',
-                                    errors.isbn_13 && 'border-danger-line',
+                                    errors.isbn_13 && 'inset-ring-danger-line',
                                 )}
                             />
                             <Button
@@ -629,12 +629,12 @@ export function BookEditor({
                     {errors.isbn_13 && (
                         <div
                             role="alert"
-                            className="flex flex-col items-start gap-1.5 rounded-sm border border-danger-line bg-[#1c1013] px-3 py-2.5 text-xs leading-relaxed text-danger"
+                            className="flex flex-col items-start gap-1.5 rounded-sm bg-danger-fill/15 px-3.5 py-3 text-xs leading-relaxed text-danger inset-ring inset-ring-danger-line"
                         >
                             <span>{errors.isbn_13}</span>
                             {errors.isbn_13_book && (
                                 <>
-                                    <span className="text-nav">
+                                    <span className="text-secondary">
                                         {t(
                                             'Se são edições diferentes, cada uma pode ficar com seu ISBN.',
                                         )}
@@ -665,7 +665,7 @@ export function BookEditor({
                     {confirmClose && (
                         <div
                             role="alert"
-                            className="flex flex-wrap items-center gap-2 rounded-sm border border-warn-line bg-[#1a1610] px-3 py-2.5 text-[13px] text-warn"
+                            className="flex flex-wrap items-center gap-2 rounded-sm bg-warn-fill px-3.5 py-3 text-[13px] text-warn inset-ring inset-ring-warn-line"
                         >
                             <span className="flex-1">
                                 {changed === 1
@@ -682,18 +682,18 @@ export function BookEditor({
                             >
                                 {t('Continuar editando')}
                             </Button>
-                            <button
-                                type="button"
+                            <Button
+                                variant="danger"
                                 onClick={onClose}
-                                className="h-8 rounded-sm bg-danger-fill px-2.5 text-xs font-semibold text-white"
+                                className="h-8 px-3 text-xs"
                             >
                                 {t('Descartar')}
-                            </button>
+                            </Button>
                         </div>
                     )}
                 </div>
 
-                <div className="flex items-center justify-between gap-2 border-t bg-[#0d131c] px-5 py-3.5">
+                <div className="flex items-center justify-between gap-2 border-t border-border px-5 py-3.5">
                     <Button
                         variant="ghost"
                         onClick={requestClose}

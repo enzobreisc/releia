@@ -64,7 +64,7 @@ export function AmazonCoverField({
     }
 
     return (
-        <div className="flex flex-col gap-1.5 text-[13px] text-muted">
+        <div className="flex flex-col gap-1.5 text-xs font-bold text-muted">
             <label htmlFor="amazon-cover-link">
                 {t('Capa pelo link da Amazon')}
             </label>

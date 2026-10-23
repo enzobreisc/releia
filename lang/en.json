@@ -813,5 +813,12 @@
     "Acervo": "Collection",
     "Próximas leituras": "Up next",
     "Seu histórico": "Your history",
-    "Editar nota": "Edit note"
+    "Editar nota": "Edit note",
+    "Mover para": "Move to",
+    "Sessões, notas e resenha": "Sessions, notes and review",
+    "− sinopse curta": "− shorter synopsis",
+    "Progresso da :ordinal leitura": "Progress of the :ordinal reading",
+    "Resenha da :ordinal leitura · cada leitura tem a sua": "Review of the :ordinal reading · each reading has its own",
+    "Quando a :ordinal leitura terminar, dias, ritmo e nota aparecem lado a lado.": "When the :ordinal reading ends, days, pace and rating appear side by side.",
+    "sem nota ainda": "no rating yet"
 }
