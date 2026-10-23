@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BookCover } from '@/components/book-cover';
 import { Bookshelf } from '@/components/bookshelf';
 import { Kbd } from '@/components/app-sidebar';
+import { cardClass } from '@/components/card';
 import {
     buttonClass,
     Field,
@@ -14,6 +15,7 @@ import { PlusIcon } from '@/components/icons';
 import { PageHeader } from '@/components/page-header';
 import { QueueButton } from '@/components/queue-button';
 import { StatusBadge } from '@/components/status';
+import { useStored } from '@/hooks/use-stored';
 import { useTranslation } from '@/hooks/use-translation';
 import type { TranslationKey } from '@/lib/i18n';
 import { SHELF_GROUPS } from '@/lib/spines';
@@ -43,29 +45,6 @@ const SORTS: { value: string; label: TranslationKey }[] = [
     { value: 'title', label: 'Título' },
     { value: 'rating', label: 'Nota' },
 ];
-
-/** Preference kept in the browser; without storage, the default applies. */
-function useStored<T extends string>(key: string, fallback: T) {
-    const [value, setValue] = useState<T>(() => {
-        try {
-            return (localStorage.getItem(key) as T | null) ?? fallback;
-        } catch {
-            return fallback;
-        }
-    });
-
-    function update(next: T) {
-        setValue(next);
-
-        try {
-            localStorage.setItem(key, next);
-        } catch {
-            // without storage: the choice only lasts for this session
-        }
-    }
-
-    return [value, update] as const;
-}
 
 export default function Library({
     books,
@@ -123,31 +102,25 @@ export default function Library({
         <>
             <PageHeader
                 title={t('Biblioteca')}
+                description={t(':books no total', {
+                    books: plural(total, 'livro', 'livros'),
+                })}
                 actions={
-                    <div className="flex items-center gap-4">
-                        <span className="text-sm text-muted">
-                            {t(':books no total', {
-                                books: plural(total, 'livro', 'livros'),
-                            })}
-                        </span>
-                        <Segmented
-                            className="w-44"
-                            value={view}
-                            onChange={(next) =>
-                                setView(next as 'grid' | 'shelf')
-                            }
-                            options={[
-                                { value: 'grid', label: t('Capas') },
-                                { value: 'shelf', label: t('Estante') },
-                            ]}
-                        />
-                    </div>
+                    <Segmented
+                        className="w-48"
+                        value={view}
+                        onChange={(next) => setView(next as 'grid' | 'shelf')}
+                        options={[
+                            { value: 'grid', label: t('Capas') },
+                            { value: 'shelf', label: t('Estante') },
+                        ]}
+                    />
                 }
             />
 
             <div className="flex flex-wrap gap-3">
                 <Field
-                    className="flex-[2_1_240px]"
+                    className="flex-[2_1_260px]"
                     label={
                         <span className="flex items-center gap-2">
                             {t('Buscar')} <Kbd>⌘F</Kbd>
@@ -162,7 +135,7 @@ export default function Library({
                         placeholder={t('Título, autor ou ISBN')}
                     />
                 </Field>
-                <Field label={t('Gênero')} className="flex-[1_1_150px]">
+                <Field label={t('Gênero')} className="flex-[1_1_160px]">
                     <Select
                         value={filters.genre}
                         onChange={(event) =>
@@ -180,7 +153,7 @@ export default function Library({
                 {view === 'shelf' ? (
                     <Field
                         label={t('Organizar por')}
-                        className="flex-[1_1_150px]"
+                        className="flex-[1_1_160px]"
                     >
                         <Select
                             value={group}
@@ -198,7 +171,7 @@ export default function Library({
                 ) : (
                     <Field
                         label={t('Ordenar por')}
-                        className="flex-[1_1_150px]"
+                        className="flex-[1_1_160px]"
                     >
                         <Select
                             value={filters.sort}
@@ -219,7 +192,7 @@ export default function Library({
             <div
                 role="tablist"
                 aria-label={t('Estantes')}
-                className="flex flex-wrap gap-2 border-b pb-3"
+                className="flex flex-wrap gap-2 border-b pb-5"
             >
                 {shelves.map((shelf) => {
                     const selected = (filters.shelf ?? null) === shelf.value;
@@ -232,14 +205,14 @@ export default function Library({
                             aria-selected={selected}
                             onClick={() => apply({ shelf: shelf.value })}
                             className={cn(
-                                'rounded-sm px-4 py-3 text-sm',
+                                'flex h-10 items-center gap-2 rounded-full px-4 text-[13px] font-bold',
                                 selected
-                                    ? 'bg-primary font-semibold text-white'
-                                    : 'border bg-surface text-text hover:bg-active',
+                                    ? 'bg-text text-bg'
+                                    : 'bg-surface text-secondary inset-ring inset-ring-border hover:bg-elevated hover:text-text',
                             )}
                         >
                             {shelf.label}{' '}
-                            <span className="font-mono text-xs opacity-75">
+                            <span className="font-mono text-[11px] font-normal opacity-75">
                                 {shelf.count}
                             </span>
                         </button>
@@ -254,19 +227,22 @@ export default function Library({
                     bookshelves={bookshelves}
                 />
             ) : books.length > 0 ? (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(128px,1fr))] gap-x-5 gap-y-6">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-x-5.5 gap-y-8">
                     {books.map((book) => (
                         // The queue button sits outside the Link, which cannot contain buttons.
-                        <div key={book.id} className="flex flex-col gap-2">
+                        <div
+                            key={book.id}
+                            className="flex min-w-0 flex-col gap-2.5"
+                        >
                             <Link
                                 href={show.url(book.id)}
-                                className="group flex flex-col gap-2"
+                                className="group flex min-w-0 flex-col gap-2.5"
                             >
                                 <span className="relative">
                                     <BookCover
                                         src={book.cover_url}
                                         title={book.title}
-                                        className="w-full transition group-hover:border-primary"
+                                        className="w-full transition group-hover:-translate-y-0.5"
                                     />
                                     {(book.readings_count ?? 0) > 1 && (
                                         <span
@@ -275,18 +251,21 @@ export default function Library({
                                                 'leitura',
                                                 'leituras',
                                             )}
-                                            className="absolute top-1.5 right-1.5 rounded-full bg-bg/90 px-1.5 py-0.5 font-mono text-[10px] text-nav"
+                                            className="absolute top-2 right-2 rounded-full bg-bg/85 px-2 py-0.75 font-mono text-[10px] text-text"
                                         >
                                             ↻ {book.readings_count}
                                         </span>
                                     )}
                                 </span>
-                                <div className="line-clamp-2 text-sm font-semibold">
-                                    {book.title}
-                                </div>
-                                <div className="line-clamp-1 text-[13px] text-muted">
-                                    {book.authors || t('Autor desconhecido')}
-                                </div>
+                                <span className="flex min-w-0 flex-col gap-0.75">
+                                    <span className="line-clamp-2 text-sm leading-tight font-bold">
+                                        {book.title}
+                                    </span>
+                                    <span className="truncate text-[13px] font-medium text-muted">
+                                        {book.authors ||
+                                            t('Autor desconhecido')}
+                                    </span>
+                                </span>
                                 {book.status && book.status_label && (
                                     <StatusBadge
                                         status={book.status}
@@ -298,7 +277,7 @@ export default function Library({
                                 <QueueButton
                                     bookId={book.id}
                                     position={book.queue_position}
-                                    className="h-8 px-2.5 text-xs"
+                                    className="h-8 px-3"
                                 />
                             )}
                         </div>
@@ -315,11 +294,11 @@ function EmptyLibrary({ filtered }: { filtered: boolean }) {
     const { t } = useTranslation();
 
     return (
-        <div className="flex flex-col items-start gap-4 rounded-md border bg-surface p-6">
-            <p className="font-mono text-sm text-muted">
+        <div className={cardClass('flex flex-col items-start gap-4 p-6')}>
+            <p className="text-[15px] font-semibold text-muted">
                 {filtered
-                    ? `## ${t('nenhum livro com esses filtros')}`
-                    : `## ${t('sua biblioteca está vazia')}`}
+                    ? t('Nenhum livro com esses filtros.')
+                    : t('Sua biblioteca está vazia.')}
             </p>
             {!filtered && (
                 <Link href={addBook.url()} className={buttonClass()}>

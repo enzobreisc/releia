@@ -1,6 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { Button, Input } from '@/components/form';
 import { useTranslation } from '@/hooks/use-translation';
 import {
     buildSections,
@@ -79,7 +80,7 @@ export function Bookshelf({
     }
 
     return (
-        <div ref={ref} className="flex flex-col gap-8">
+        <div ref={ref} className="flex flex-col gap-9">
             {sections.map((section) => (
                 <Section
                     key={section.key}
@@ -131,7 +132,7 @@ function Section({
                 onDrop(null);
             }}
             className={cn(
-                'flex flex-col gap-2 rounded-md',
+                'flex flex-col gap-3 rounded-md',
                 over && 'bg-active',
             )}
         >
@@ -141,7 +142,7 @@ function Section({
 
             {rows.length === 0 ? (
                 <Row>
-                    <p className="pb-3 font-mono text-xs text-faint">
+                    <p className="pb-3 text-xs font-semibold text-faint">
                         {editable ? t('arraste livros para cá') : t('vazia')}
                     </p>
                 </Row>
@@ -165,14 +166,10 @@ function Section({
     );
 }
 
-/** A row of spines resting on a board. */
 function Row({ children }: { children: React.ReactNode }) {
     return (
-        <div className="flex flex-col">
-            <div className="flex min-h-[188px] items-end gap-[3px] px-2">
-                {children}
-            </div>
-            <div className="h-3 rounded-b-[3px] border-x border-t-2 border-b border-t-strong bg-elevated shadow-[0_6px_10px_-4px_rgba(0,0,0,0.6)]" />
+        <div className="flex min-h-[230px] items-end gap-1 rounded-xs border-b-[6px] px-3">
+            {children}
         </div>
     );
 }
@@ -225,7 +222,7 @@ function Spine({
                 onDropBefore();
             }}
             style={{ width, height, backgroundColor: bg, color: fg }}
-            className="group relative flex shrink-0 origin-bottom flex-col items-center justify-between gap-1 overflow-hidden rounded-t-[3px] pb-1.5 shadow-[inset_-3px_0_4px_-2px_rgba(0,0,0,0.35),inset_2px_0_2px_-1px_rgba(255,255,255,0.12)] transition-transform duration-150 hover:z-10 hover:-translate-y-2"
+            className="group relative flex shrink-0 origin-bottom flex-col items-center justify-between gap-1 overflow-hidden rounded-t-[3px] pb-1.5 inset-shadow-2xs inset-shadow-white/10 transition-transform duration-150 hover:z-10 hover:-translate-y-2"
         >
             <span
                 aria-hidden
@@ -255,7 +252,7 @@ function Spine({
                         src={book.cover_url}
                         alt=""
                         loading="lazy"
-                        className="aspect-[2/3] w-[calc(100%-8px)] rounded-[2px] object-cover shadow-[0_0_0_1px_rgba(0,0,0,0.25)]"
+                        className="aspect-[2/3] w-[calc(100%-8px)] rounded-[2px] object-cover"
                     />
                 ) : (
                     <span
@@ -294,7 +291,7 @@ function ShelfTitle({
     }
 
     return (
-        <div className="flex items-center gap-3 px-2">
+        <div className="flex items-baseline gap-2.5 px-3">
             {editing ? (
                 <form onSubmit={save}>
                     <input
@@ -303,15 +300,13 @@ function ShelfTitle({
                         maxLength={60}
                         onChange={(event) => setName(event.target.value)}
                         onBlur={save}
-                        className="h-8 rounded-sm border bg-surface px-2 font-mono text-sm"
+                        className="h-9 rounded-full bg-surface px-4 text-sm font-semibold inset-ring inset-ring-border focus:inset-ring-primary focus:outline-none"
                     />
                 </form>
             ) : (
-                <h2 className="font-mono text-sm font-semibold text-nav">
-                    {section.label}
-                </h2>
+                <h2 className="text-[15px] font-extrabold">{section.label}</h2>
             )}
-            <span className="font-mono text-xs text-faint">
+            <span className="font-mono text-[11px] text-muted">
                 {section.books.length}
             </span>
             {editable &&
@@ -335,7 +330,7 @@ function ShelfTitle({
                                     { preserveScroll: true },
                                 )
                             }
-                            className="text-xs text-muted hover:text-red-300"
+                            className="text-xs text-muted hover:text-danger"
                         >
                             {t('apagar')}
                         </button>
@@ -363,19 +358,16 @@ function NewShelf() {
 
     return (
         <form onSubmit={submit} className="flex gap-2">
-            <input
+            <Input
                 value={name}
                 maxLength={60}
                 onChange={(event) => setName(event.target.value)}
                 placeholder={t('Nome da nova prateleira')}
-                className="h-10 w-72 rounded-sm border bg-surface px-3 text-sm placeholder:text-muted"
+                className="w-72"
             />
-            <button
-                type="submit"
-                className="h-10 rounded-sm border border-primary bg-surface px-4 text-sm font-semibold text-accent hover:bg-active"
-            >
+            <Button type="submit" variant="outline">
                 {t('+ Prateleira')}
-            </button>
+            </Button>
         </form>
     );
 }
