@@ -5,14 +5,23 @@ import { AmazonCoverField } from '@/components/amazon-cover-field';
 import { DatePicker } from '@/components/date-picker';
 import { GenreSelect } from '@/components/genre-select';
 import { BookCover } from '@/components/book-cover';
-import { Field, Input, Segmented, Textarea } from '@/components/form';
-import { LibraryIcon, PencilIcon, SearchIcon } from '@/components/icons';
+import { cardClass } from '@/components/card';
+import {
+    Button,
+    buttonClass,
+    Field,
+    Input,
+    Segmented,
+    Textarea,
+} from '@/components/form';
+import { LibraryIcon } from '@/components/icons';
 import { PageHeader, SectionTitle } from '@/components/page-header';
 import { useTranslation } from '@/hooks/use-translation';
 import { today } from '@/lib/dates';
 import { cn } from '@/lib/utils';
 import { isBrazilianIsbn, visibleEditions } from '@/lib/editions';
 import type { TranslationKey } from '@/lib/i18n';
+import { index as libraryIndex } from '@/routes/library';
 import { create as addBook, show, store } from '@/routes/books';
 import type { Candidate, Editions, Option } from '@/types';
 
@@ -108,11 +117,9 @@ export default function AddBook({
         editions?.work_key ?? null,
     );
     const [showMore, setShowMore] = useState(false);
-    // Manual entry: the review panel opens without a chosen result.
     const [manualMode, setManualMode] = useState(false);
     const form = useForm<BookForm>(emptyForm);
 
-    // The full details (by ISBN) arrive later: they only fill in what is empty.
     useEffect(() => {
         if (!preview || preview.isbn_13 !== form.data.isbn_13) {
             return;
@@ -150,7 +157,6 @@ export default function AddBook({
                 replace: true,
                 onStart: () => setSearching(true),
                 onFinish: () => setSearching(false),
-                // With a publisher, the edition is what matters: open the first result's editions.
                 onSuccess: (page) => {
                     const first = (page.props.results as Candidate[])[0];
 
@@ -218,7 +224,6 @@ export default function AddBook({
         form.submit(store());
     }
 
-    // ⌘↵ saves from any field, like the button.
     useEffect(() => {
         function onKey(event: KeyboardEvent) {
             if (
@@ -241,57 +246,63 @@ export default function AddBook({
 
     return (
         <>
+            <Link
+                href={libraryIndex.url()}
+                className="-mb-3 self-start text-[13px] font-semibold text-secondary hover:text-text"
+            >
+                {t('Biblioteca')}
+                <span className="text-muted"> / {t('adicionar')}</span>
+            </Link>
             <PageHeader
                 title={t('Adicionar livro')}
                 actions={<Steps current={editing ? 3 : 1} />}
             />
 
-            <form
-                role="search"
-                onSubmit={onSearch}
-                className="flex flex-wrap items-stretch rounded-md border border-primary bg-surface ring-3 ring-primary/20"
-            >
-                <label className="flex min-w-0 flex-[3_1_260px] items-center gap-3 px-4">
-                    <SearchIcon className="shrink-0 text-muted" />
-                    <span className="sr-only">{t('ISBN ou título')}</span>
-                    <input
-                        autoFocus
-                        type="search"
-                        value={search}
-                        onChange={(event) => setSearch(event.target.value)}
-                        placeholder={t('ISBN ou título')}
-                        className="h-14 min-w-0 flex-1 bg-transparent text-[17px] outline-none placeholder:text-muted"
-                    />
-                </label>
-                <label className="flex min-w-0 flex-[1_1_160px] items-center gap-2 border-l px-3.5">
-                    <span className="font-mono text-[11px] text-faint">
-                        {t('editora:')}
-                    </span>
-                    <input
-                        type="search"
-                        value={publisherFilter}
-                        onChange={(event) =>
-                            setPublisherFilter(event.target.value)
-                        }
-                        placeholder={t('qualquer')}
-                        className="h-14 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted"
-                    />
-                </label>
-                <button
-                    type="submit"
-                    disabled={searching || search.trim() === ''}
-                    className="m-1.5 flex items-center gap-2 rounded-sm bg-primary px-4.5 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
-                >
-                    {searching ? t('Buscando…') : t('Buscar')}
-                    <span className="font-mono text-[11px] opacity-85">↵</span>
-                </button>
-            </form>
-
             <div className="flex flex-wrap items-start gap-7">
                 <section
                     aria-label={t('Resultados')}
-                    className="flex min-w-0 flex-[1_1_360px] flex-col gap-2.5"
+                    className="flex min-w-0 flex-[3_1_480px] flex-col gap-4.5"
                 >
+                    <form
+                        role="search"
+                        onSubmit={onSearch}
+                        className="flex flex-wrap items-end gap-2.5"
+                    >
+                        <Field
+                            label={t('ISBN ou título')}
+                            className="flex-[3_1_260px]"
+                        >
+                            <Input
+                                autoFocus
+                                type="search"
+                                value={search}
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                            />
+                        </Field>
+                        <Field
+                            label={t('editora:')}
+                            className="flex-[1_1_150px]"
+                        >
+                            <Input
+                                type="search"
+                                value={publisherFilter}
+                                onChange={(event) =>
+                                    setPublisherFilter(event.target.value)
+                                }
+                                placeholder={t('qualquer')}
+                            />
+                        </Field>
+                        <Button
+                            type="submit"
+                            disabled={searching || search.trim() === ''}
+                            className="px-5.5"
+                        >
+                            {searching ? t('Buscando…') : t('Buscar')}
+                        </Button>
+                    </form>
+
                     {query !== '' && (
                         <>
                             <div className="flex items-baseline justify-between gap-3">
@@ -303,13 +314,20 @@ export default function AddBook({
                                           })}
                                 </SectionTitle>
                                 {publisher && (
-                                    <span className="font-mono text-[11px] text-faint">
+                                    <span className="font-mono text-[11px] text-muted">
                                         {t('editora:')} {publisher}
                                     </span>
                                 )}
+                                <button
+                                    type="button"
+                                    onClick={manual}
+                                    className="text-[13px] font-bold text-link hover:text-text"
+                                >
+                                    {t('Não achou? Cadastrar à mão')}
+                                </button>
                             </div>
                             {results.length > 0 && (
-                                <div className="overflow-hidden rounded-md border bg-surface">
+                                <div className="flex flex-col gap-2.5">
                                     {results.map((result, index) => (
                                         <ResultRow
                                             key={`${keyOf(result)}-${index}`}
@@ -346,7 +364,6 @@ export default function AddBook({
                                                         onSelect={(edition) =>
                                                             select({
                                                                 ...edition,
-                                                                // Editions carry no authors; they come from the work.
                                                                 authors:
                                                                     result.authors,
                                                             })
@@ -367,25 +384,28 @@ export default function AddBook({
                         </>
                     )}
 
-                    <button
-                        type="button"
-                        onClick={manual}
-                        className="flex items-center gap-2 self-start py-2.5 text-sm font-semibold text-accent hover:underline"
-                    >
-                        <PencilIcon />
-                        {t('Não achou? Cadastrar à mão')}
-                    </button>
+                    {query === '' && (
+                        <button
+                            type="button"
+                            onClick={manual}
+                            className="self-start text-[13px] font-bold text-link hover:text-text"
+                        >
+                            {t('Não achou? Cadastrar à mão')}
+                        </button>
+                    )}
                 </section>
 
                 <form
                     aria-label={t('Revisar livro')}
                     onSubmit={save}
-                    className="flex min-w-0 flex-[1_1_380px] flex-col rounded-md border bg-surface"
+                    className={cardClass(
+                        'flex min-w-0 flex-[2_1_340px] flex-col gap-4.5 rounded-lg p-6',
+                    )}
                 >
-                    <div className="flex items-center justify-between gap-3 border-b px-5 py-3.5">
-                        <SectionTitle>{t('revisar')}</SectionTitle>
+                    <div className="flex items-baseline justify-between gap-3">
+                        <SectionTitle>{t('Revisar livro')}</SectionTitle>
                         {editing && (
-                            <span className="rounded-[4px] bg-elevated px-2 py-0.5 font-mono text-[11px] text-muted">
+                            <span className="font-mono text-[11px] text-muted">
                                 {form.data.source === 'manual'
                                     ? t('manual')
                                     : t('fonte: :source', {
@@ -398,47 +418,52 @@ export default function AddBook({
                     </div>
 
                     {editing ? (
-                        <div className="flex flex-col gap-4 p-5">
-                            <div className="flex gap-4.5">
+                        <>
+                            <div className="flex items-end gap-5">
                                 <BookCover
                                     src={form.data.cover_url || null}
                                     title={form.data.title || t('sem capa')}
-                                    className="w-26"
+                                    className="w-32"
                                 />
-                                <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-                                    <Field
-                                        label={t('Título')}
-                                        error={form.errors.title}
-                                    >
-                                        <Input
-                                            required
-                                            value={form.data.title}
-                                            onChange={(event) =>
-                                                form.setData(
-                                                    'title',
-                                                    event.target.value,
-                                                )
-                                            }
-                                            className="h-10.5 bg-bg text-base font-semibold"
-                                        />
-                                    </Field>
-                                    <Field
-                                        label={t('Autor (separe por vírgula)')}
-                                        error={form.errors.authors}
-                                    >
-                                        <Input
-                                            value={form.data.authors}
-                                            onChange={(event) =>
-                                                form.setData(
-                                                    'authors',
-                                                    event.target.value,
-                                                )
-                                            }
-                                            className="h-10 bg-bg"
-                                        />
-                                    </Field>
+                                <div className="flex min-w-0 flex-col gap-1.5 pb-1">
+                                    <span className="text-[26px] leading-none font-extrabold tracking-tight">
+                                        {form.data.title}
+                                    </span>
+                                    <span className="text-sm font-semibold text-secondary">
+                                        {form.data.authors}
+                                    </span>
                                 </div>
                             </div>
+
+                            <Field
+                                label={t('Título')}
+                                error={form.errors.title}
+                            >
+                                <Input
+                                    required
+                                    value={form.data.title}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'title',
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                            </Field>
+                            <Field
+                                label={t('Autor (separe por vírgula)')}
+                                error={form.errors.authors}
+                            >
+                                <Input
+                                    value={form.data.authors}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'authors',
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                            </Field>
 
                             <AmazonCoverField
                                 onFound={(coverUrl) =>
@@ -446,10 +471,11 @@ export default function AddBook({
                                 }
                             />
 
-                            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+                            <div className="flex gap-2.5">
                                 <Field
                                     label={t('Páginas')}
                                     error={form.errors.pages}
+                                    className="flex-1"
                                 >
                                     <Input
                                         type="number"
@@ -461,10 +487,10 @@ export default function AddBook({
                                                 event.target.value,
                                             )
                                         }
-                                        className="h-10 bg-bg font-mono"
+                                        className="min-w-0 font-mono"
                                     />
                                 </Field>
-                                <div className="flex flex-col gap-1.5 text-[13px] text-muted">
+                                <div className="flex flex-[2_1_0] flex-col gap-1.5 text-xs font-bold text-muted">
                                     <span>{t('Gênero')}</span>
                                     <GenreSelect
                                         value={form.data.genre}
@@ -474,19 +500,19 @@ export default function AddBook({
                                         genres={genres}
                                     />
                                     {form.errors.genre && (
-                                        <span className="text-xs text-red-300">
+                                        <span className="text-xs font-semibold text-danger">
                                             {form.errors.genre}
                                         </span>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="flex flex-col gap-2.5 border-t pt-2.5">
+                            <div className="flex flex-col gap-2.5">
                                 <button
                                     type="button"
                                     onClick={() => setShowMore(!showMore)}
                                     aria-expanded={showMore}
-                                    className="self-start font-mono text-xs text-accent hover:underline"
+                                    className="self-start text-[13px] font-bold text-link hover:text-text"
                                 >
                                     {showMore ? '−' : '+'}{' '}
                                     {t('editora, ano, ISBN e descrição')}
@@ -495,7 +521,7 @@ export default function AddBook({
                             </div>
 
                             <fieldset className="flex flex-col gap-1.5">
-                                <legend className="pb-1.5 text-xs text-muted">
+                                <legend className="pb-1.5 text-xs font-bold text-muted">
                                     {t('Estante')}
                                 </legend>
                                 <Segmented
@@ -520,7 +546,7 @@ export default function AddBook({
                                 )}
                                 {form.data.status === 'read' && (
                                     <div className="mt-1.5 flex flex-col gap-1.5">
-                                        <span className="text-[13px] text-muted">
+                                        <span className="text-xs font-bold text-muted">
                                             {t('Terminou em')}
                                         </span>
                                         <div className="max-w-52">
@@ -541,7 +567,7 @@ export default function AddBook({
                                                         value,
                                                     )
                                                 }
-                                                className="h-10 bg-bg"
+                                                className="h-11"
                                             />
                                         </div>
                                         <label className="flex items-center gap-2 text-xs text-muted">
@@ -554,7 +580,7 @@ export default function AddBook({
                                                         event.target.checked,
                                                     )
                                                 }
-                                                className="accent-primary"
+                                                className="accent-accent"
                                             />
                                             {t(
                                                 'Não lembro / sem data de término',
@@ -568,9 +594,9 @@ export default function AddBook({
                                     </div>
                                 )}
                             </fieldset>
-                        </div>
+                        </>
                     ) : (
-                        <div className="m-5 flex min-h-75 flex-col items-center justify-center gap-2 rounded-md border border-dashed p-6 text-center">
+                        <div className="flex min-h-75 flex-col items-center justify-center gap-2 p-6 text-center">
                             <LibraryIcon
                                 width={28}
                                 height={28}
@@ -587,23 +613,21 @@ export default function AddBook({
                         </div>
                     )}
 
-                    <div className="mt-auto flex flex-wrap items-center justify-between gap-3 rounded-b-md border-t bg-[#0d131c] px-5 py-3.5">
-                        <span className="text-xs text-muted">
-                            {t('Tudo pode ser editado antes de salvar.')}
+                    <span className="text-[13px] font-medium text-muted">
+                        {t('Tudo pode ser editado antes de salvar.')}
+                    </span>
+                    <Button
+                        type="submit"
+                        disabled={!editing || form.processing}
+                        className="h-12 text-sm"
+                    >
+                        {form.processing
+                            ? t('Salvando…')
+                            : t('Salvar na biblioteca')}
+                        <span className="font-mono text-[11px] font-normal opacity-70">
+                            ⌘↵
                         </span>
-                        <button
-                            type="submit"
-                            disabled={!editing || form.processing}
-                            className="flex items-center gap-2.5 rounded-sm bg-primary px-4.5 py-3 text-sm font-semibold text-white hover:bg-primary/90 disabled:opacity-60"
-                        >
-                            {form.processing
-                                ? t('Salvando…')
-                                : t('Salvar na biblioteca')}
-                            <span className="font-mono text-[11px] opacity-85">
-                                ⌘↵
-                            </span>
-                        </button>
-                    </div>
+                    </Button>
                 </form>
             </div>
         </>
@@ -622,38 +646,21 @@ function Steps({ current }: { current: number }) {
     return (
         <ol
             aria-label={t('Etapas')}
-            className="flex flex-wrap items-center gap-2.5 font-mono text-xs"
+            className="flex flex-wrap rounded-full bg-surface p-1 inset-ring inset-ring-border"
         >
             {steps.map((label, index) => {
-                const done = index + 1 <= current;
+                const active = index + 1 === current;
 
                 return (
                     <li
                         key={label}
-                        aria-current={
-                            index + 1 === current ? 'step' : undefined
-                        }
+                        aria-current={active ? 'step' : undefined}
                         className={cn(
-                            'flex items-center gap-1.5',
-                            done ? 'text-accent' : 'text-faint',
+                            'flex h-9 items-center gap-2 rounded-full px-4 text-[13px] font-bold',
+                            active ? 'bg-text text-bg' : 'text-secondary',
                         )}
                     >
-                        {index > 0 && (
-                            <span
-                                aria-hidden="true"
-                                className="mr-1 text-faint"
-                            >
-                                ──
-                            </span>
-                        )}
-                        <span
-                            className={cn(
-                                'inline-flex size-5 items-center justify-center rounded-[4px] border',
-                                done
-                                    ? 'border-primary bg-active'
-                                    : 'bg-surface',
-                            )}
-                        >
+                        <span className="font-mono text-[11px] font-normal">
                             {index + 1}
                         </span>
                         {t(label)}
@@ -687,77 +694,77 @@ function ResultRow({
     ].filter(Boolean);
 
     return (
-        <div
-            className={cn(
-                'border-b last:border-b-0',
-                selected &&
-                    'bg-active shadow-[inset_2px_0_0_var(--color-primary)]',
+        <article
+            className={cardClass(
+                selected ? 'bg-active inset-ring-primary' : undefined,
             )}
         >
-            <div className="flex items-center gap-3.5 px-3.5 py-3">
+            <div className="flex items-center gap-4 px-4 py-3.5">
                 <BookCover
                     src={result.cover_url}
                     title={result.title}
-                    className="w-11"
+                    className="w-12"
                 />
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                    <div className="line-clamp-2 text-[15px] font-semibold">
+                <div className="flex min-w-0 flex-1 flex-col gap-0.75">
+                    <span className="line-clamp-2 text-base font-extrabold">
                         {result.title}
-                    </div>
-                    <div className="line-clamp-1 text-[13px] text-muted">
+                    </span>
+                    <span className="line-clamp-1 text-[13px] font-medium text-muted">
                         {meta.join(' · ')}
-                    </div>
-                    <div className="mt-0.5 flex flex-wrap gap-1.5">
-                        {onToggleEditions && (
-                            <button
-                                type="button"
-                                onClick={onToggleEditions}
-                                aria-expanded={editionsOpen}
-                                className="rounded-[4px] border bg-bg px-2 py-0.5 font-mono text-[11px] text-accent hover:bg-active"
-                            >
-                                {editionsOpen ? '−' : '+'}{' '}
-                                {t(':count edições', {
-                                    count: result.edition_count ?? 0,
-                                })}
-                            </button>
-                        )}
-                        {result.isbn_13 && (
-                            <span className="py-0.5 font-mono text-[11px] text-faint">
-                                ISBN {result.isbn_13}
-                            </span>
-                        )}
+                    </span>
+                    <span className="flex flex-wrap gap-x-3 gap-y-1.5 font-mono text-[11px] text-muted">
+                        {result.isbn_13 && <span>ISBN {result.isbn_13}</span>}
                         {result.library_id !== null && (
-                            <span className="rounded-[4px] bg-elevated px-2 py-0.5 font-mono text-[11px] text-muted">
+                            <span className="text-link">
                                 {t('já na biblioteca')}
                             </span>
                         )}
-                    </div>
+                    </span>
                 </div>
-                {result.library_id ? (
-                    <Link
-                        href={show.url(result.library_id)}
-                        className="shrink-0 rounded-sm border px-3.5 py-2.5 text-[13px] text-accent hover:bg-active"
-                    >
-                        {t('Abrir')}
-                    </Link>
-                ) : (
-                    <button
-                        type="button"
-                        onClick={onSelect}
-                        aria-pressed={selected}
-                        className={cn(
-                            'shrink-0 rounded-sm border px-3.5 py-2.5 text-[13px] font-semibold',
-                            selected
-                                ? 'border-primary bg-primary text-white'
-                                : 'hover:bg-active',
-                        )}
-                    >
-                        {selected ? t('✓ Escolhido') : t('Escolher')}
-                    </button>
-                )}
+                <div className="flex gap-2">
+                    {onToggleEditions && (
+                        <button
+                            type="button"
+                            onClick={onToggleEditions}
+                            aria-expanded={editionsOpen}
+                            className={buttonClass(
+                                'ghost',
+                                'h-10 bg-transparent px-4 text-[13px]',
+                            )}
+                        >
+                            {editionsOpen ? '−' : '+'}{' '}
+                            {t(':count edições', {
+                                count: result.edition_count ?? 0,
+                            })}
+                        </button>
+                    )}
+                    {result.library_id ? (
+                        <Link
+                            href={show.url(result.library_id)}
+                            className={buttonClass(
+                                'ghost',
+                                'h-10 px-4 text-[13px]',
+                            )}
+                        >
+                            {t('Abrir')}
+                        </Link>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={onSelect}
+                            aria-pressed={selected}
+                            className={buttonClass(
+                                selected ? 'outline' : 'ghost',
+                                'h-10 px-4 text-[13px]',
+                            )}
+                        >
+                            {selected ? t('✓ Escolhido') : t('Escolher')}
+                        </button>
+                    )}
+                </div>
             </div>
             {children}
-        </div>
+        </article>
     );
 }
 
@@ -778,7 +785,7 @@ function EditionList({
 
     if (editions === null) {
         return (
-            <p className="mb-3 ml-18 font-mono text-xs text-muted">
+            <p className="px-4 pb-3 font-mono text-xs text-muted">
                 {t('carregando edições…')}
             </p>
         );
@@ -786,7 +793,7 @@ function EditionList({
 
     if (editions.length === 0) {
         return (
-            <p className="mb-3 ml-18 text-sm text-muted">
+            <p className="px-4 pb-3 text-sm text-muted">
                 {publisher
                     ? t('Nenhuma edição com ISBN da editora ":publisher".', {
                           publisher,
@@ -796,7 +803,6 @@ function EditionList({
         );
     }
 
-    // Brazilian ones first and alone, without duplicates; with none, the others.
     const {
         items: visible,
         foreign,
@@ -806,7 +812,7 @@ function EditionList({
     return (
         <ul
             aria-label={t('Edições')}
-            className="mr-3.5 mb-3 ml-18 flex max-h-96 flex-col gap-1 overflow-y-auto border-l pl-3"
+            className="mx-4 mb-3 flex max-h-96 flex-col overflow-y-auto"
         >
             {visible.map((edition) => {
                 const isSelected = selected === keyOf(edition);
@@ -821,10 +827,10 @@ function EditionList({
                         {edition.library_id ? (
                             <Link
                                 href={show.url(edition.library_id)}
-                                className="flex items-center gap-2.5 rounded-sm border bg-bg px-2.5 py-2 hover:bg-active"
+                                className="flex items-center gap-3 border-t py-2.5 hover:bg-active"
                             >
                                 <EditionLabel edition={edition} meta={meta} />
-                                <span className="font-mono text-[11px] text-accent">
+                                <span className="font-mono text-[11px] text-link">
                                     {t('na biblioteca')}
                                 </span>
                             </Link>
@@ -834,8 +840,8 @@ function EditionList({
                                 onClick={() => onSelect(edition)}
                                 aria-pressed={isSelected}
                                 className={cn(
-                                    'flex w-full items-center gap-2.5 rounded-sm border bg-bg px-2.5 py-2 text-left hover:bg-active',
-                                    isSelected && 'border-primary',
+                                    'flex w-full items-center gap-3 border-t py-2.5 text-left hover:bg-active',
+                                    isSelected && 'text-link',
                                 )}
                             >
                                 <EditionLabel edition={edition} meta={meta} />
@@ -849,7 +855,7 @@ function EditionList({
                     <button
                         type="button"
                         onClick={() => setShowAll(true)}
-                        className="text-xs text-accent hover:underline"
+                        className="py-2.5 text-[13px] font-bold text-secondary hover:text-text"
                     >
                         {t('+ Mostrar :editions de outros países', {
                             editions: plural(foreign, 'edição', 'edições'),
@@ -862,7 +868,7 @@ function EditionList({
                     <button
                         type="button"
                         onClick={() => setExpanded(true)}
-                        className="text-xs text-accent hover:underline"
+                        className="py-2.5 text-[13px] font-bold text-secondary hover:text-text"
                     >
                         {t('+ Mostrar mais :count', { count: more })}
                     </button>
@@ -881,18 +887,19 @@ function EditionLabel({
 }) {
     return (
         <>
-            <span className="min-w-0 flex-1 text-[13px]">
+            <span className="min-w-0 flex-1 text-[13px] font-bold">
                 {edition.publisher ?? edition.title}
                 {meta.length > 0 && (
-                    <span className="text-muted"> · {meta.join(' · ')}</span>
+                    <span className="font-mono text-xs font-normal text-muted">
+                        {' '}
+                        · {meta.join(' · ')}
+                    </span>
                 )}
             </span>
             {isBrazilianIsbn(edition.isbn_13) && (
-                <span className="rounded-[4px] bg-active px-1.5 py-px font-mono text-[10px] text-accent">
-                    pt-BR
-                </span>
+                <span className="font-mono text-[11px] text-link">pt-BR</span>
             )}
-            <span className="font-mono text-[11px] text-faint">
+            <span className="font-mono text-xs text-muted">
                 {edition.isbn_13}
             </span>
         </>
@@ -910,7 +917,6 @@ function MoreFields({ form }: { form: ReturnType<typeof useForm<BookForm>> }) {
                     onChange={(event) =>
                         form.setData('subtitle', event.target.value)
                     }
-                    className="h-10"
                 />
             </Field>
             <div className="flex flex-wrap gap-3">
@@ -924,7 +930,6 @@ function MoreFields({ form }: { form: ReturnType<typeof useForm<BookForm>> }) {
                         onChange={(event) =>
                             form.setData('publisher', event.target.value)
                         }
-                        className="h-10"
                     />
                 </Field>
                 <Field
@@ -938,7 +943,6 @@ function MoreFields({ form }: { form: ReturnType<typeof useForm<BookForm>> }) {
                         onChange={(event) =>
                             form.setData('published_year', event.target.value)
                         }
-                        className="h-10"
                     />
                 </Field>
             </div>
@@ -948,7 +952,7 @@ function MoreFields({ form }: { form: ReturnType<typeof useForm<BookForm>> }) {
                     onChange={(event) =>
                         form.setData('isbn_13', event.target.value)
                     }
-                    className="h-10 font-mono"
+                    className="font-mono"
                 />
             </Field>
             <Field label={t('Descrição')} error={form.errors.description}>
