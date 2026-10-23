@@ -10,6 +10,7 @@ test('cada tela abre com o componente certo', function (string $route, string $c
     ['home', 'home'],
     ['library.index', 'library'],
     ['authors.index', 'authors'],
+    ['timeline.index', 'timeline'],
     ['books.create', 'add-book'],
     ['queue.index', 'queue'],
     ['shopping.index', 'shopping'],

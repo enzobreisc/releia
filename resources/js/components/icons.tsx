@@ -209,3 +209,14 @@ export function AuthorsIcon(props: IconProps) {
         </LineIcon>
     );
 }
+
+export function TimelineIcon(props: IconProps) {
+    return (
+        <LineIcon {...props}>
+            <path d="M2 8h12" />
+            <circle cx="4" cy="8" r="1.6" />
+            <circle cx="8.5" cy="8" r="1.6" />
+            <path d="M12.5 5.5v5" />
+        </LineIcon>
+    );
+}

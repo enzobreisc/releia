@@ -19,6 +19,7 @@ use App\Http\Controllers\ShoppingController;
 use App\Http\Controllers\ShoppingCoverController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\SuggestionController;
+use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\UndoController;
 use App\Http\Controllers\WrappedController;
 use Illuminate\Support\Facades\Route;
@@ -73,6 +74,7 @@ Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show')
 Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 Route::post('/profile/pins', [ProfileController::class, 'pin'])->name('profile.pins.store');
 Route::delete('/profile/pins/{book}', [ProfileController::class, 'unpin'])->whereNumber('book')->name('profile.pins.destroy');
+Route::get('/timeline', [TimelineController::class, 'index'])->name('timeline.index');
 Route::get('/stats', [StatsController::class, 'index'])->name('stats.index');
 Route::get('/wrapped', [WrappedController::class, 'show'])->name('wrapped.show');
 

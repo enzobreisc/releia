@@ -8,6 +8,7 @@ import {
     ShoppingIcon,
     StatsIcon,
     SuggestionsIcon,
+    TimelineIcon,
     WrappedIcon,
 } from '@/components/icons';
 import { home } from '@/routes';
@@ -18,6 +19,7 @@ import { index as queueIndex } from '@/routes/queue';
 import { index as shoppingIndex } from '@/routes/shopping';
 import { show as profileShow } from '@/routes/profile';
 import { index as statsIndex } from '@/routes/stats';
+import { index as timelineIndex } from '@/routes/timeline';
 import { show as wrappedShow } from '@/routes/wrapped';
 import { index as suggestionsIndex } from '@/routes/suggestions';
 import type { NavGroup, NavItem } from '@/types';
@@ -35,6 +37,11 @@ export const navGroups: NavGroup[] = [
                 count: 'books',
             },
             { title: 'Autores', href: authorsIndex.url(), icon: AuthorsIcon },
+            {
+                title: 'Linha do tempo',
+                href: timelineIndex.url(),
+                icon: TimelineIcon,
+            },
         ],
     },
     {

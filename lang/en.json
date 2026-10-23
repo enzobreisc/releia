@@ -859,5 +859,13 @@
     "Sessão salva": "Session saved",
     "min": "min",
     "Resumo": "Summary",
-    "Novo item": "New item"
+    "Novo item": "New item",
+    "Linha do tempo": "Timeline",
+    "Os livros por onde você passou": "The books you have been through",
+    "Faixas por mês": "Lanes by month",
+    "lido": "read",
+    "deixado de lado": "set aside",
+    "até hoje": "up to today",
+    "quando tudo começou": "when it all began",
+    "parou em :month": "stopped in :month"
 }
