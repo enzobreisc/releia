@@ -8,6 +8,7 @@ export type AuthorIndexBook = {
 export type AuthorIndexEntry = {
     id: number;
     name: string;
+    photo_url: string | null;
     owned: number;
     read: number;
     pages_read: number;

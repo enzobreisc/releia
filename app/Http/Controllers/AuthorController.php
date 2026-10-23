@@ -32,7 +32,7 @@ class AuthorController extends Controller
             ->get();
 
         return Inertia::render('author', [
-            'author' => ['id' => $author->id, 'name' => $author->name],
+            'author' => ['id' => $author->id, 'name' => $author->name, 'photo_url' => $author->photoUrl()],
             'books' => $books->map(fn (Book $book) => BookPresenter::spine($book))->values(),
         ]);
     }

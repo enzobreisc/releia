@@ -46,6 +46,7 @@ class AuthorIndex
         return [
             'id' => $author->id,
             'name' => $author->name,
+            'photo_url' => $author->photoUrl(),
             'owned' => $author->books->count(),
             'read' => $readBooks->count(),
             'pages_read' => $pagesRead,

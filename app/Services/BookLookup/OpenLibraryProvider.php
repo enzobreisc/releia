@@ -3,6 +3,7 @@
 namespace App\Services\BookLookup;
 
 use App\Enums\BookSource;
+use App\Services\AuthorPhoto\AuthorRecord;
 use App\Support\BookIdentity;
 use App\Support\Genres;
 use App\Support\Isbn;
@@ -411,6 +412,49 @@ class OpenLibraryProvider implements MetadataProvider
         }
 
         return $works;
+    }
+
+    /** Photos and Wikipedia/Wikidata references of an author record, or null if Open Library does not answer. */
+    public function authorRecord(string $key): ?AuthorRecord
+    {
+        if (preg_match('/^OL\d+A$/', $key) !== 1) {
+            return null;
+        }
+
+        $data = $this->get("/authors/{$key}.json", []);
+
+        if ($data === []) {
+            return null;
+        }
+
+        $photoIds = array_filter(is_array($data['photos'] ?? null) ? $data['photos'] : [], fn (mixed $id) => is_int($id) && $id > 0);
+        $wikidataId = $data['remote_ids']['wikidata'] ?? null;
+
+        return new AuthorRecord(
+            key: $key,
+            photoUrls: array_values(array_map(fn (int $id) => "https://covers.openlibrary.org/a/id/{$id}-M.jpg", $photoIds)),
+            wikidataId: is_string($wikidataId) && preg_match('/^Q\d+$/', $wikidataId) === 1 ? $wikidataId : null,
+            wikipediaTitles: $this->wikipediaTitles(is_array($data['links'] ?? null) ? $data['links'] : []),
+        );
+    }
+
+    /**
+     * @param  array<mixed>  $links
+     * @return array<string, string>
+     */
+    private function wikipediaTitles(array $links): array
+    {
+        $titles = [];
+
+        foreach ($links as $link) {
+            $url = is_array($link) ? ($link['url'] ?? null) : null;
+
+            if (is_string($url) && preg_match('#^https?://([a-z]{2})\.wikipedia\.org/wiki/([^?\#]+)#', $url, $match) === 1) {
+                $titles += [$match[1] => urldecode($match[2])];
+            }
+        }
+
+        return $titles;
     }
 
     /** Nome igual ou muito parecido (grafias de língua diferente: Tolstói / Tolstoy). */

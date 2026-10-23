@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import { AuthorAvatar } from '@/components/author-avatar';
 import { BookCover } from '@/components/book-cover';
 import { Input, Segmented } from '@/components/form';
 import { PageHeader, SectionTitle } from '@/components/page-header';
@@ -119,7 +120,14 @@ function TopAuthorHero({ author }: { author: AuthorIndexEntry }) {
                 ))}
             </div>
             <div className="flex min-w-0 flex-1 basis-85 flex-col gap-4">
-                <SectionTitle>{t('Seu autor mais lido')}</SectionTitle>
+                <div className="flex items-center gap-4">
+                    <AuthorAvatar
+                        name={author.name}
+                        photoUrl={author.photo_url}
+                        className="size-14 text-lg"
+                    />
+                    <SectionTitle>{t('Seu autor mais lido')}</SectionTitle>
+                </div>
                 <span className="text-[clamp(44px,5vw,68px)] leading-[0.92] font-extrabold tracking-[-0.045em]">
                     {author.name}
                 </span>
@@ -156,17 +164,24 @@ function AuthorRow({ author }: { author: AuthorIndexEntry }) {
             href={show.url(author.id)}
             className="grid grid-cols-[minmax(0,1fr)_auto_auto_20px] items-center gap-4 border-b border-border px-5 py-4 last:border-b-0 hover:bg-active sm:grid-cols-[minmax(180px,1.6fr)_minmax(120px,1.2fr)_minmax(70px,0.6fr)_minmax(70px,0.6fr)_20px]"
         >
-            <span className="flex min-w-0 flex-col gap-0.5">
-                <span className="truncate text-[17px] font-extrabold tracking-tight">
-                    {author.name}
-                </span>
-                {author.last_finished_title && (
-                    <span className="truncate font-mono text-[11px] text-muted">
-                        {t('último: :title', {
-                            title: author.last_finished_title,
-                        })}
+            <span className="flex min-w-0 items-center gap-3">
+                <AuthorAvatar
+                    name={author.name}
+                    photoUrl={author.photo_url}
+                    className="size-10 text-sm"
+                />
+                <span className="flex min-w-0 flex-col gap-0.5">
+                    <span className="truncate text-[17px] font-extrabold tracking-tight">
+                        {author.name}
                     </span>
-                )}
+                    {author.last_finished_title && (
+                        <span className="truncate font-mono text-[11px] text-muted">
+                            {t('último: :title', {
+                                title: author.last_finished_title,
+                            })}
+                        </span>
+                    )}
+                </span>
             </span>
             <span
                 role="img"

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AmazonCoverController;
 use App\Http\Controllers\AuthorController;
+use App\Http\Controllers\AuthorPhotoController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookCoverController;
 use App\Http\Controllers\BookshelfController;
@@ -45,6 +46,8 @@ Route::post('/library/{book}/reread', [ReadingController::class, 'reread'])->whe
 Route::get('/authors', [AuthorController::class, 'index'])->name('authors.index');
 Route::get('/authors/{author}', [AuthorController::class, 'show'])->whereNumber('author')->name('authors.show');
 Route::get('/authors/{author}/works', [AuthorController::class, 'works'])->whereNumber('author')->name('authors.works');
+Route::get('/authors/{author}/photo', [AuthorPhotoController::class, 'show'])->whereNumber('author')->name('authors.photo');
+Route::get('/authors/{author}/look-up-photo', [AuthorPhotoController::class, 'lookUp'])->whereNumber('author')->name('authors.lookUpPhoto');
 
 // Lifecycle of each reading, and undo
 Route::post('/readings/{reading}/finish', [ReadingController::class, 'finish'])->whereNumber('reading')->name('readings.finish');

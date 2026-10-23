@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import { AuthorAvatar } from '@/components/author-avatar';
 import { BookCover } from '@/components/book-cover';
 import { cardClass } from '@/components/card';
 import { buttonClass } from '@/components/form';
@@ -7,7 +8,11 @@ import { DisplayTitle, SectionTitle } from '@/components/page-header';
 import { StatusBadge, STATUS_LABELS } from '@/components/status';
 import type { Status } from '@/components/status';
 import { useTranslation } from '@/hooks/use-translation';
-import { index as authorsIndex, works as worksRoute } from '@/routes/authors';
+import {
+    index as authorsIndex,
+    lookUpPhoto,
+    works as worksRoute,
+} from '@/routes/authors';
 import { create as addBook, show as bookShow } from '@/routes/books';
 import type { SpineBook } from '@/types';
 
@@ -22,26 +27,17 @@ type Work = {
 
 type Works = { verified: boolean; items: Work[] };
 
-const INITIALS_LENGTH = 2;
-
-function initialsOf(name: string): string {
-    return name
-        .split(/\s+/)
-        .filter(Boolean)
-        .map((word) => word[0])
-        .slice(0, INITIALS_LENGTH)
-        .join('')
-        .toUpperCase();
-}
+type AuthorProfile = { id: number; name: string; photo_url: string | null };
 
 export default function Author({
     author,
     books,
 }: {
-    author: { id: number; name: string };
+    author: AuthorProfile;
     books: SpineBook[];
 }) {
     const { t, plural } = useTranslation();
+    const photoUrl = useAuthorPhoto(author);
     const statusSummary = (Object.keys(STATUS_LABELS) as Status[])
         .map((status) => ({
             status,
@@ -65,12 +61,11 @@ export default function Author({
             </Link>
 
             <header className="flex flex-wrap items-end gap-8">
-                <span
-                    aria-hidden="true"
-                    className="flex size-30 shrink-0 items-center justify-center rounded-full bg-active text-[40px] font-extrabold tracking-tight text-link inset-ring inset-ring-strong"
-                >
-                    {initialsOf(author.name)}
-                </span>
+                <AuthorAvatar
+                    name={author.name}
+                    photoUrl={photoUrl}
+                    className="size-30 text-[40px]"
+                />
                 <div className="flex min-w-0 flex-col gap-2">
                     <DisplayTitle>{author.name}</DisplayTitle>
                     <p className="text-[15px] font-medium text-muted">
@@ -98,6 +93,35 @@ export default function Author({
             <OtherWorks authorId={author.id} name={author.name} />
         </>
     );
+}
+
+/** The stored photo, or the one fetched in the background when the author has none yet. */
+function useAuthorPhoto(author: AuthorProfile): string | null {
+    const [fetchedUrl, setFetchedUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (author.photo_url !== null) {
+            return;
+        }
+
+        let active = true;
+
+        fetch(lookUpPhoto.url(author.id), {
+            headers: { Accept: 'application/json' },
+        })
+            .then((response) => (response.ok ? response.json() : null))
+            .then(
+                (data: { photo_url: string | null } | null) =>
+                    active && setFetchedUrl(data?.photo_url ?? null),
+            )
+            .catch(() => undefined);
+
+        return () => {
+            active = false;
+        };
+    }, [author.id, author.photo_url]);
+
+    return author.photo_url ?? fetchedUrl;
 }
 
 function OwnedBook({ book }: { book: SpineBook }) {
@@ -145,7 +169,13 @@ function OtherWorks({ authorId, name }: { authorId: number; name: string }) {
         fetch(worksRoute.url(authorId), {
             headers: { Accept: 'application/json' },
         })
-            .then((response) => response.json())
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Works request failed: ${response.status}`);
+                }
+
+                return response.json();
+            })
             .then((data: Works) => active && setWorks(data))
             .catch(() => active && setFailed(true));
 
