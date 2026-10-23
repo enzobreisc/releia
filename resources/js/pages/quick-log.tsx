@@ -2,8 +2,10 @@ import { Head, router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { BookCover } from '@/components/book-cover';
+import { cardClass } from '@/components/card';
+import { Button, Field, IconButton, Select } from '@/components/form';
 import { heatClass } from '@/components/heat-map';
-import { LogoMark } from '@/components/icons';
+import { SectionTitle } from '@/components/page-header';
 import { StarRating } from '@/components/star-rating';
 import { Toaster } from '@/components/toaster';
 import { useTranslation } from '@/hooks/use-translation';
@@ -52,8 +54,20 @@ type QuickLogProps = {
     saved: Saved | null;
 };
 
-/** Each grid square lights up per minute read; 25 = a full grid. */
-const GRID = 25;
+/** Each grid square lights up per minute read; 30 = a full grid. */
+const MINUTE_SQUARES = 30;
+
+/** Every fifth lit square is brighter, so minutes are easy to count. */
+const BRIGHT_EVERY = 5;
+
+/** Quick page jumps offered when saving a session. */
+const PAGE_JUMPS = [5, 10, 20];
+
+/** Option value that starts a book from the "want to read" shelf. */
+const START_PREFIX = 'start-';
+
+const pageInputClass =
+    'w-28 [appearance:textfield] bg-transparent text-center font-extrabold tracking-tighter tabular-nums outline-none [&::-webkit-inner-spin-button]:appearance-none';
 
 /** "CmdOrCtrl+Shift+L" becomes "⇧⌘L", as macOS shows it in menus. */
 function formatShortcut(shortcut: string) {
@@ -75,12 +89,6 @@ function formatShortcut(shortcut: string) {
         .sort((a, b) => order.indexOf(a) - order.indexOf(b));
 
     return `${mods.join('')}${key.toUpperCase()}`;
-}
-
-function clock(seconds: number) {
-    const pad = (n: number) => String(n).padStart(2, '0');
-
-    return `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor(seconds / 60) % 60)}:${pad(seconds % 60)}`;
 }
 
 /** Timer seconds, counted in the browser from what the server sent. */
@@ -115,7 +123,7 @@ function useElapsed(timer: Timer | null) {
 }
 
 /**
- * Menu bar window (360×560): the day's reading. It does not use the layout with
+ * Menu bar window (380×680): the day's reading. It does not use the layout with
  * a sidebar: app.tsx skips the layout for this page.
  */
 export default function QuickLog({
@@ -152,7 +160,7 @@ export default function QuickLog({
         body = done.finished ? (
             <FinishedPhase saved={done} onClose={() => setDone(null)} />
         ) : (
-            <DonePhase saved={done} week={week} onClose={() => setDone(null)} />
+            <DonePhase saved={done} onClose={() => setDone(null)} />
         );
     } else if (selected === null) {
         body = <EmptyPhase available={available} />;
@@ -186,26 +194,21 @@ export default function QuickLog({
     }
 
     return (
-        <div className="flex h-screen flex-col overflow-hidden bg-bg text-text select-none">
+        <div className="flex h-screen flex-col gap-4.5 overflow-hidden bg-bg p-5 text-text select-none">
             <Head title={t('Leitura do dia')} />
 
-            <header className="flex items-center justify-between gap-2.5 border-b border-elevated px-4 pt-3.5 pb-3">
-                <div className="flex items-center gap-2">
-                    <LogoMark size={16} />
-                    <span className="font-mono text-xs font-bold">
-                        {t('leitura de hoje')}
-                    </span>
-                </div>
-                <div
-                    className="flex items-center gap-2"
-                    title={t('Últimos 7 dias')}
-                >
-                    <WeekStrip week={week} size="sm" />
-                    <span className="font-mono text-[11px] text-muted">
-                        {streak}d
-                    </span>
-                </div>
+            <header className="flex items-baseline justify-between">
+                <h1 className="text-lg font-extrabold tracking-tight">
+                    {t('Leitura do dia')}
+                </h1>
+                <span className="font-mono text-[11px] text-muted">
+                    {t(':shortcut abre isto', {
+                        shortcut: formatShortcut(shortcut),
+                    })}
+                </span>
             </header>
+
+            <WeekCard week={week} streak={streak} />
 
             {selected && !done && (
                 <BookPicker
@@ -220,40 +223,51 @@ export default function QuickLog({
             {body}
 
             <Toaster variant="bar" />
-
-            <footer className="flex justify-between border-t border-elevated px-4 py-2 font-mono text-[10px] text-faint">
-                <span>
-                    {t(':shortcut abre isto', {
-                        shortcut: formatShortcut(shortcut),
-                    })}
-                </span>
-                <span>releia</span>
-            </footer>
         </div>
     );
 }
 
-function WeekStrip({ week, size }: { week: number[]; size: 'sm' | 'lg' }) {
+function WeekCard({ week, streak }: { week: number[]; streak: number }) {
+    const { t, plural } = useTranslation();
+    const readingDays = week.filter((level) => level > 0).length;
+
     return (
         <div
-            aria-hidden="true"
-            className={cn('flex', size === 'sm' ? 'gap-[3px]' : 'gap-1.5')}
+            className={cardClass(
+                'flex items-center justify-between rounded-sm px-3.5 py-3',
+            )}
         >
-            {week.map((level, index) => (
-                <span
-                    key={index}
-                    className={cn(
-                        heatClass(level),
-                        size === 'sm'
-                            ? 'size-[9px] rounded-[2px]'
-                            : 'size-6.5 rounded-[5px]',
-                        index === week.length - 1 &&
-                            (level > 0
-                                ? 'ring-2 ring-heat-3'
-                                : 'ring-1 ring-primary ring-inset'),
-                    )}
-                />
-            ))}
+            <div className="flex flex-col gap-1.5">
+                <span className="text-[11px] font-bold text-muted">
+                    {t('Últimos 7 dias')}
+                </span>
+                <div
+                    role="img"
+                    aria-label={t(':count de 7 dias com leitura', {
+                        count: readingDays,
+                    })}
+                    className="flex gap-1"
+                >
+                    {week.map((level, index) => (
+                        <span
+                            key={index}
+                            className={cn(
+                                heatClass(level),
+                                'size-4 rounded-[4px]',
+                                index === week.length - 1 &&
+                                    (level > 0
+                                        ? 'ring-2 ring-heat-3'
+                                        : 'ring-1 ring-primary ring-inset'),
+                            )}
+                        />
+                    ))}
+                </div>
+            </div>
+            <span className="text-[13px] font-extrabold">
+                {t(':days seguidos', {
+                    days: plural(streak, 'dia', 'dias'),
+                })}
+            </span>
         </div>
     );
 }
@@ -272,131 +286,87 @@ function BookPicker({
     onSelect: (bookId: number) => void;
 }) {
     const { t } = useTranslation();
-    const [adding, setAdding] = useState(false);
+
+    function choose(value: string) {
+        if (!value.startsWith(START_PREFIX)) {
+            onSelect(Number(value));
+
+            return;
+        }
+
+        const id = Number(value.slice(START_PREFIX.length));
+        router.post(startBook.url(), { book_id: id });
+        onSelect(id);
+    }
 
     return (
-        <div className="flex flex-col gap-2.5 px-4 pt-3.5">
-            <div
-                role="radiogroup"
-                aria-label={t('Livro')}
-                className="flex items-end gap-2"
-            >
-                {readings.map((item) => {
-                    const isSelected = item.book_id === selected.book_id;
-
-                    return (
-                        <button
-                            key={item.book_id}
-                            type="button"
-                            role="radio"
-                            aria-checked={isSelected}
-                            aria-label={item.title}
-                            title={item.title}
-                            disabled={locked && !isSelected}
-                            onClick={() => onSelect(item.book_id)}
-                            className={cn(
-                                'shrink-0 rounded-[4px] transition-all',
-                                isSelected
-                                    ? 'w-12 ring-2 ring-primary/40'
-                                    : 'w-8.5 opacity-70 hover:opacity-100 disabled:opacity-30',
-                            )}
-                        >
-                            <BookCover
-                                src={item.cover_url}
-                                title={item.title}
-                                className={cn(
-                                    'w-full',
-                                    isSelected && 'border-primary',
-                                )}
-                            />
-                        </button>
-                    );
-                })}
-                {!locked && available.length > 0 && (
-                    <button
-                        type="button"
-                        onClick={() => setAdding(!adding)}
-                        aria-expanded={adding}
-                        aria-label={t('Começar outro livro')}
-                        title={t('Começar outro livro')}
-                        className="flex h-12.5 w-8.5 shrink-0 items-center justify-center rounded-[4px] border border-dashed text-muted hover:border-primary hover:text-accent"
-                    >
-                        +
-                    </button>
-                )}
-            </div>
-
-            {adding ? (
-                <label className="flex flex-col gap-1 text-xs text-muted">
-                    {t('Começar a ler')}
-                    <select
-                        defaultValue=""
-                        onChange={(event) => {
-                            if (event.target.value) {
-                                router.post(startBook.url(), {
-                                    book_id: event.target.value,
-                                });
-                                onSelect(Number(event.target.value));
-                                setAdding(false);
-                            }
-                        }}
-                        className="h-9 rounded-sm border bg-surface px-2 text-sm text-text"
-                    >
-                        <option value="" disabled>
-                            {t('Um livro de "quero ler"…')}
+        <div className="flex items-center gap-3.5">
+            <BookCover
+                src={selected.cover_url}
+                title={selected.title}
+                className="w-13"
+            />
+            <Field label={t('Livro')} className="flex-1 text-[11px]">
+                <Select
+                    value={String(selected.book_id)}
+                    disabled={locked}
+                    onChange={(event) => choose(event.target.value)}
+                    className="h-10 text-sm font-bold"
+                >
+                    {readings.map((item) => (
+                        <option key={item.book_id} value={item.book_id}>
+                            {item.title} ·{' '}
+                            {t('p. :page', { page: item.current_page })}
                         </option>
-                        {available.map((book) => (
-                            <option key={book.id} value={book.id}>
-                                {book.title}
-                            </option>
-                        ))}
-                    </select>
-                </label>
-            ) : (
-                <div className="flex flex-col gap-1.5">
-                    <div className="flex items-baseline justify-between gap-2">
-                        <span className="truncate text-[15px] font-bold">
-                            {selected.title}
-                        </span>
-                        <span className="shrink-0 font-mono text-[11px] text-muted">
-                            {t('p. :page', { page: selected.current_page })}
-                            {selected.pages !== null && `/${selected.pages}`}
-                        </span>
-                    </div>
-                    <div className="h-1 rounded-full bg-elevated">
-                        <div
-                            className="h-1 rounded-full bg-primary"
-                            style={{ width: `${selected.percent ?? 0}%` }}
-                        />
-                    </div>
-                </div>
-            )}
+                    ))}
+                    {!locked && available.length > 0 && (
+                        <optgroup label={t('Começar outro livro')}>
+                            {available.map((book) => (
+                                <option
+                                    key={book.id}
+                                    value={`${START_PREFIX}${book.id}`}
+                                >
+                                    {book.title}
+                                </option>
+                            ))}
+                        </optgroup>
+                    )}
+                </Select>
+            </Field>
         </div>
     );
 }
 
-/** 5×5 grid that lights one square per minute, in ever lighter tones. */
+/** One square per minute read, up to a full grid. */
 function MinuteGrid({ seconds, live }: { seconds: number; live: boolean }) {
-    const lit = Math.min(GRID, Math.floor(seconds / 60));
+    const { t } = useTranslation();
+    const minutes = Math.floor(seconds / 60);
 
     return (
         <div
-            aria-hidden="true"
-            className="grid grid-cols-[repeat(5,22px)] grid-rows-[repeat(5,22px)] gap-1.25"
+            role="img"
+            aria-label={t(':minutes minutos lidos', { minutes })}
+            className="grid grid-cols-10 gap-1"
         >
-            {Array.from({ length: GRID }, (_, index) => {
-                const on = index < lit;
-                const current = live && index === lit;
-                const level = on ? 1 + Math.min(3, Math.floor(index / 7)) : 0;
+            {Array.from({ length: MINUTE_SQUARES }, (_, index) => {
+                const lit = index < minutes;
+                const current = live && index === minutes;
 
                 return (
                     <span
                         key={index}
                         className={cn(
-                            'rounded-[4px] transition-colors duration-700',
+                            'aspect-square rounded-[4px] transition-colors duration-700',
                             current
-                                ? 'animate-pulse bg-primary'
-                                : heatClass(level),
+                                ? 'animate-pulse bg-accent'
+                                : heatClass(
+                                      lit
+                                          ? index % BRIGHT_EVERY ===
+                                            BRIGHT_EVERY - 1
+                                              ? 3
+                                              : 2
+                                          : 0,
+                                  ),
                         )}
                     />
                 );
@@ -413,13 +383,13 @@ function EmptyPhase({
     const { t } = useTranslation();
 
     return (
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+        <div className="flex flex-1 flex-col gap-3.5">
             <MinuteGrid seconds={0} live={false} />
-            <p className="text-sm text-muted">
+            <p className="text-sm font-medium text-muted">
                 {t('Nenhum livro em andamento.')}
             </p>
             {available.length > 0 && (
-                <select
+                <Select
                     defaultValue=""
                     aria-label={t('Começar a ler')}
                     onChange={(event) =>
@@ -428,7 +398,6 @@ function EmptyPhase({
                             book_id: event.target.value,
                         })
                     }
-                    className="h-10 w-full rounded-sm border bg-surface px-2.5 text-sm"
                 >
                     <option value="" disabled>
                         {t('Começar um livro de "quero ler"…')}
@@ -438,7 +407,7 @@ function EmptyPhase({
                             {book.title}
                         </option>
                     ))}
-                </select>
+                </Select>
             )}
         </div>
     );
@@ -463,32 +432,24 @@ function IdlePhase({ book }: { book: ReadingSummary }) {
     }
 
     return (
-        <form
-            onSubmit={begin}
-            className="flex flex-1 flex-col justify-between gap-4 px-4 pt-4.5 pb-4"
-        >
-            <div className="flex flex-col items-center gap-3.5">
-                <MinuteGrid seconds={0} live={false} />
-                <p className="text-center text-xs text-muted">
-                    {t('cada quadrado acende a cada minuto lido')}
-                </p>
-            </div>
+        <form onSubmit={begin} className="flex flex-1 flex-col gap-3.5">
+            <MinuteGrid seconds={0} live={false} />
+            <p className="text-xs font-medium text-muted">
+                {t('cada quadrado acende a cada minuto lido')}
+            </p>
 
-            <div className="flex flex-col gap-2">
-                <label className="flex h-12.5 items-center justify-between gap-2.5 rounded-md border bg-surface pr-1.5 pl-3.5">
-                    <span className="text-[13px] text-muted">
-                        {t('começo na página')}
-                    </span>
-                    <span className="flex items-center gap-1">
-                        <button
-                            type="button"
-                            aria-label={t('Página anterior')}
+            <div className="mt-auto flex flex-col gap-2">
+                <label className="flex flex-col gap-2 text-xs font-bold text-muted">
+                    {t('começo na página')}
+                    <span className="flex items-center gap-2.5">
+                        <IconButton
+                            label={t('Página anterior')}
                             onClick={() => step(-1)}
                             disabled={page <= book.current_page}
-                            className="size-7.5 rounded-sm bg-elevated text-nav hover:text-text disabled:opacity-40"
+                            className="size-12 text-xl"
                         >
                             −
-                        </button>
+                        </IconButton>
                         <input
                             type="number"
                             inputMode="numeric"
@@ -497,35 +458,34 @@ function IdlePhase({ book }: { book: ReadingSummary }) {
                             onChange={(event) =>
                                 form.setData('start_page', event.target.value)
                             }
-                            className="h-9 w-13 [appearance:textfield] bg-transparent text-center font-mono text-xl font-bold outline-none [&::-webkit-inner-spin-button]:appearance-none"
+                            className={cn(pageInputClass, 'text-5xl text-text')}
                         />
-                        <button
-                            type="button"
-                            aria-label={t('Próxima página')}
+                        <IconButton
+                            label={t('Próxima página')}
                             onClick={() => step(1)}
-                            className="size-7.5 rounded-sm bg-elevated text-nav hover:text-text"
+                            className="size-12 text-xl"
                         >
                             +
-                        </button>
+                        </IconButton>
                     </span>
                 </label>
                 {form.errors.start_page && (
-                    <p className="text-xs text-red-300">
+                    <p className="text-xs font-semibold text-danger">
                         {form.errors.start_page}
                     </p>
                 )}
-                <button
+                <Button
                     type="submit"
                     autoFocus
                     disabled={form.processing}
-                    className="flex h-12 items-center justify-center gap-2.5 rounded-md bg-primary text-[15px] font-bold text-white hover:bg-primary/90 disabled:opacity-60"
+                    className="h-12"
                 >
                     <PlayIcon />
                     {t('Começar a ler')}
-                    <span className="font-mono text-[11px] font-medium opacity-80">
+                    <span className="font-mono text-[11px] font-medium opacity-60">
                         ↵
                     </span>
-                </button>
+                </Button>
             </div>
         </form>
     );
@@ -534,77 +494,89 @@ function IdlePhase({ book }: { book: ReadingSummary }) {
 function RunningPhase({ timer, onStop }: { timer: Timer; onStop: () => void }) {
     const { t } = useTranslation();
     const seconds = useElapsed(timer);
-    // Two taps to discard: confirm() disappears with the menu bar window.
-    const [confirming, setConfirming] = useState(false);
+    const stateColor = timer.paused ? 'text-warn' : 'text-accent';
 
     return (
-        <div className="flex flex-1 flex-col justify-between gap-3.5 px-4 pt-4.5 pb-4">
-            <div className="flex flex-col items-center gap-3">
-                <MinuteGrid seconds={seconds} live={!timer.paused} />
-                <div
-                    role="timer"
-                    className="font-mono text-[44px] leading-none font-bold tracking-tight tabular-nums"
+        <section
+            aria-label={t('Sessão em andamento')}
+            className="flex flex-1 flex-col gap-3.5"
+        >
+            <div className="flex items-baseline justify-between">
+                <span
+                    className={cn(
+                        'flex items-center gap-2 text-xs font-extrabold tracking-widest uppercase',
+                        stateColor,
+                    )}
                 >
-                    {clock(seconds)}
-                </div>
-                <div className="flex items-center gap-1.5 font-mono text-[11px] text-muted">
                     <span
                         className={cn(
-                            'size-1.5 rounded-full',
-                            timer.paused
-                                ? 'bg-faint'
-                                : 'animate-pulse bg-heat-3',
+                            'size-1.75 rounded-full bg-current',
+                            !timer.paused && 'animate-pulse',
                         )}
                     />
-                    {timer.paused ? t('pausado') : t('lendo')} ·{' '}
+                    {timer.paused ? t('pausado') : t('lendo')}
+                </span>
+                <span className="font-mono text-xs text-muted">
                     {t('desde a p. :page', { page: timer.start_page })}
-                </div>
+                </span>
             </div>
+            <div
+                role="timer"
+                className="text-7xl leading-[0.9] font-extrabold tracking-[-0.05em] tabular-nums"
+            >
+                {Math.floor(seconds / 60)}
+                <span className="text-[22px] font-bold tracking-normal text-faint">
+                    {' '}
+                    {t('min')}
+                </span>
+            </div>
+            <MinuteGrid seconds={seconds} live={!timer.paused} />
+            <span className="text-xs font-medium text-muted">
+                {t('cada quadrado acende a cada minuto lido')}
+            </span>
 
-            <div className="flex flex-col gap-1.5">
-                <div className="flex gap-2">
-                    <button
-                        type="button"
+            <div className="mt-auto flex flex-col items-center gap-1">
+                <div className="flex w-full gap-2">
+                    <Button
+                        variant="ghost"
                         onClick={() =>
                             router.post(
                                 timer.paused ? resume.url() : pause.url(),
                             )
                         }
-                        className="h-12 flex-1 rounded-md border bg-surface text-sm font-semibold hover:bg-active"
+                        className="h-12 flex-1"
                     >
                         {timer.paused ? t('▶ Continuar') : t('❚❚ Pausar')}
-                    </button>
-                    <button
-                        type="button"
-                        autoFocus
-                        onClick={onStop}
-                        className="flex h-12 flex-[1.4] items-center justify-center gap-2 rounded-md bg-primary text-sm font-bold text-white hover:bg-primary/90"
-                    >
-                        <span className="size-2.5 rounded-[2px] bg-white" />
+                    </Button>
+                    <Button autoFocus onClick={onStop} className="h-12 flex-1">
                         {t('Terminar')}
-                    </button>
+                    </Button>
                 </div>
-                <button
-                    type="button"
-                    onClick={() =>
-                        confirming
-                            ? router.delete(discard.url())
-                            : setConfirming(true)
-                    }
-                    onBlur={() => setConfirming(false)}
-                    className={cn(
-                        'h-7 text-xs',
-                        confirming
-                            ? 'font-semibold text-red-300'
-                            : 'text-faint hover:text-muted',
-                    )}
-                >
-                    {confirming
-                        ? t('confirmar: descartar sem salvar')
-                        : t('descartar')}
-                </button>
+                <DiscardButton />
             </div>
-        </div>
+        </section>
+    );
+}
+
+/** Two taps to discard: confirm() disappears with the menu bar window. */
+function DiscardButton() {
+    const { t } = useTranslation();
+    const [confirming, setConfirming] = useState(false);
+
+    return (
+        <button
+            type="button"
+            onClick={() =>
+                confirming ? router.delete(discard.url()) : setConfirming(true)
+            }
+            onBlur={() => setConfirming(false)}
+            className={cn(
+                'h-9 text-[13px] font-bold',
+                confirming ? 'text-danger' : 'text-muted hover:text-text',
+            )}
+        >
+            {confirming ? t('confirmar: descartar sem salvar') : t('descartar')}
+        </button>
     );
 }
 
@@ -623,6 +595,7 @@ function FinishPhase({
     const form = useForm({ page_to: String(timer.start_page + 1) });
     const pageTo = Number(form.data.page_to) || 0;
     const gained = Math.max(0, pageTo - timer.start_page);
+    const lastPage = book.pages ?? Infinity;
 
     function save(event: FormEvent) {
         event.preventDefault();
@@ -631,142 +604,155 @@ function FinishPhase({
         });
     }
 
-    function bump(pages: number) {
-        const next = timer.start_page + pages;
-        form.setData(
-            'page_to',
-            String(book.pages ? Math.min(book.pages, next) : next),
+    function moveTo(page: number) {
+        const bounded = Math.min(
+            lastPage,
+            Math.max(timer.start_page + 1, page),
         );
+        form.setData('page_to', String(bounded));
     }
 
     return (
-        <form
-            onSubmit={save}
-            className="flex flex-1 flex-col justify-between gap-3 px-4 pt-4 pb-4"
-        >
-            <div className="flex flex-col gap-2.5">
-                <span className="font-mono text-[11px] text-muted">
-                    ## {t('sessão de :minutes min', { minutes })}
+        <form onSubmit={save} className="flex flex-1 flex-col gap-3.5">
+            <SectionTitle>
+                {t('sessão de :minutes min', { minutes })}
+            </SectionTitle>
+            <div className="flex flex-col gap-2">
+                <span className="text-xs font-bold text-muted">
+                    {t('parei na página')}
                 </span>
-                <label className="flex flex-col items-center gap-1 rounded-[10px] border border-primary bg-surface p-3.5">
-                    <span className="text-[13px] text-muted">
-                        {t('parei na página')}
-                    </span>
-                    <input
-                        type="number"
-                        inputMode="numeric"
-                        autoFocus
-                        min={timer.start_page + 1}
-                        max={book.pages ?? undefined}
-                        value={form.data.page_to}
-                        onChange={(event) =>
-                            form.setData('page_to', event.target.value)
-                        }
-                        onFocus={(event) => event.target.select()}
-                        className="w-32 [appearance:textfield] bg-transparent text-center font-mono text-5xl leading-none font-bold outline-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                    {book.pages !== null && (
-                        <span className="font-mono text-[11px] text-faint">
-                            {t('de :pages', { pages: book.pages })}
-                        </span>
-                    )}
-                </label>
+                <div className="flex items-center gap-2.5">
+                    <IconButton
+                        label={t('Página anterior')}
+                        onClick={() => moveTo(pageTo - 1)}
+                        disabled={pageTo <= timer.start_page + 1}
+                        className="size-12 text-xl"
+                    >
+                        −
+                    </IconButton>
+                    <label className="flex min-w-0 flex-1 items-baseline justify-center gap-1">
+                        <input
+                            type="number"
+                            inputMode="numeric"
+                            autoFocus
+                            min={timer.start_page + 1}
+                            max={book.pages ?? undefined}
+                            value={form.data.page_to}
+                            onChange={(event) =>
+                                form.setData('page_to', event.target.value)
+                            }
+                            onFocus={(event) => event.target.select()}
+                            aria-label={t('parei na página')}
+                            className={cn(pageInputClass, 'text-[56px]')}
+                        />
+                        {book.pages !== null && (
+                            <span className="shrink-0 text-base font-bold text-faint">
+                                {t('de :pages', { pages: book.pages })}
+                            </span>
+                        )}
+                    </label>
+                    <IconButton
+                        label={t('Próxima página')}
+                        onClick={() => moveTo(pageTo + 1)}
+                        disabled={pageTo >= lastPage}
+                        className="size-12 text-xl"
+                    >
+                        +
+                    </IconButton>
+                </div>
                 <div className="flex justify-center gap-1.5">
-                    {[5, 10, 20].map((pages) => (
-                        <button
+                    {PAGE_JUMPS.map((pages) => (
+                        <Button
                             key={pages}
-                            type="button"
-                            onClick={() => bump(pages)}
-                            className="h-8 rounded-full border px-3 font-mono text-xs text-accent hover:bg-active"
+                            variant="ghost"
+                            onClick={() => moveTo(timer.start_page + pages)}
+                            className="h-8 px-3 font-mono text-xs"
                         >
                             +{pages}
-                        </button>
+                        </Button>
                     ))}
                 </div>
-                <div className="flex justify-between rounded-md bg-surface px-3 py-2.5 font-mono text-xs">
-                    <span className="text-heat-3">
-                        +{t(':pages págs', { pages: gained })}
-                    </span>
-                    <span className="text-muted">
-                        {t(':minutes min', { minutes })}
-                    </span>
-                    <span className="text-muted">
-                        ~
-                        {t(':pages págs/h', {
-                            pages: Math.round(gained / (minutes / 60)),
-                        })}
-                    </span>
-                </div>
-                {form.errors.page_to && (
-                    <p className="text-center text-xs text-red-300">
-                        {form.errors.page_to}
-                    </p>
-                )}
             </div>
+            <div
+                className={cardClass(
+                    'flex justify-between rounded-sm px-3.5 py-3 font-mono text-xs text-secondary',
+                )}
+            >
+                <span>{t(':pages págs', { pages: gained })}</span>
+                <span>{t(':minutes min', { minutes })}</span>
+                <span>
+                    {t(':pages págs/h', {
+                        pages: Math.round(gained / (minutes / 60)),
+                    })}
+                </span>
+            </div>
+            {form.errors.page_to && (
+                <p className="text-center text-xs font-semibold text-danger">
+                    {form.errors.page_to}
+                </p>
+            )}
 
-            <div className="flex flex-col gap-1.5">
-                <button
-                    type="submit"
-                    disabled={form.processing || gained === 0}
-                    className="h-12 rounded-md bg-primary text-[15px] font-bold text-white hover:bg-primary/90 disabled:opacity-60"
-                >
-                    {form.processing ? t('Salvando…') : t('Salvar sessão')}{' '}
-                    <span className="font-mono text-[11px] font-medium opacity-80">
-                        ↵
-                    </span>
-                </button>
+            <Button
+                type="submit"
+                disabled={form.processing || gained === 0}
+                className="mt-auto h-12"
+            >
+                {form.processing ? t('Salvando…') : t('Salvar sessão')}
+                <span className="font-mono text-[11px] font-medium opacity-60">
+                    ↵
+                </span>
+            </Button>
+            <div className="flex justify-between">
                 <button
                     type="button"
                     onClick={() => {
                         router.post(resume.url(), {}, { preserveState: true });
                         onCancel();
                     }}
-                    className="h-8 text-xs text-muted hover:text-text"
+                    className="h-9 text-[13px] font-bold text-link hover:underline"
                 >
                     {t('voltar a ler')}
                 </button>
+                <DiscardButton />
             </div>
         </form>
     );
 }
 
-function DonePhase({
-    saved,
-    week,
-    onClose,
-}: {
-    saved: Saved;
-    week: number[];
-    onClose: () => void;
-}) {
-    const { t, plural } = useTranslation();
+function DonePhase({ saved, onClose }: { saved: Saved; onClose: () => void }) {
+    const { t } = useTranslation();
 
     return (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3.5 px-4 pt-4.5 pb-4 text-center">
-            <WeekStrip week={week} size="lg" />
-            <div className="font-mono text-[22px] font-bold">
-                {t(':days seguidos', {
-                    days: plural(saved.streak, 'dia', 'dias'),
-                })}
-            </div>
-            <div className="text-[13px] text-muted">
-                +{t(':pages págs', { pages: saved.pages })}
+        <section
+            aria-label={t('Sessão salva')}
+            className="flex flex-1 flex-col items-start gap-2.5"
+        >
+            <span className="text-xs font-extrabold tracking-widest text-link uppercase">
+                {t('Terminou!')}
+            </span>
+            <span className="text-[44px] leading-none font-extrabold tracking-tighter">
+                {t(':pages págs hoje', { pages: saved.pages })}
+            </span>
+            <span className="font-mono text-[13px] text-secondary">
                 {saved.minutes !== null &&
-                    ` ${t('em :minutes min', { minutes: saved.minutes })}`}{' '}
-                · {t('agora na p. :page', { page: saved.page_to })}
-            </div>
-            <div className="font-mono text-[11px] text-accent">
+                    `${t('em :minutes min', { minutes: saved.minutes })} · `}
+                {t('agora na p. :page', { page: saved.page_to })}
+            </span>
+            <span className="font-mono text-[11px] text-accent">
                 {saved.hash} · {saved.title}
-            </div>
-            <button
-                type="button"
+            </span>
+            <span className="text-[13px] font-semibold text-muted">
+                {t('a data é hoje; ajuste no app se precisar')}
+            </span>
+            <Button
+                variant="ghost"
                 autoFocus
                 onClick={onClose}
-                className="mt-2 h-10 rounded-md border bg-surface px-4.5 text-[13px] hover:bg-active"
+                className="mt-auto h-12 self-stretch"
             >
                 {t('Fechar')}
-            </button>
-        </div>
+            </Button>
+        </section>
     );
 }
 
@@ -782,22 +768,24 @@ function FinishedPhase({
     const [rating, setRating] = useState<number | null>(null);
 
     return (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 pt-4.5 pb-4 text-center">
-            <span className="flex size-10 items-center justify-center rounded-full bg-accent text-lg font-bold text-bg">
-                ✓
-            </span>
-            <div className="font-mono text-[17px] font-bold">
+        <section
+            aria-label={t('Sessão salva')}
+            className="flex flex-1 flex-col items-start gap-3"
+        >
+            <span className="text-xs font-extrabold tracking-widest text-link uppercase">
                 {t('Terminou!')}
-            </div>
-            <div className="text-xs text-muted">
+            </span>
+            <span className="text-[28px] leading-tight font-extrabold tracking-tight">
                 {saved.title}
+            </span>
+            <span className="font-mono text-[13px] text-secondary">
                 {saved.days !== null &&
-                    ` · ${plural(saved.days, 'dia', 'dias')}`}{' '}
-                · +{t(':pages págs hoje', { pages: saved.pages })}
-            </div>
+                    `${plural(saved.days, 'dia', 'dias')} · `}
+                +{t(':pages págs hoje', { pages: saved.pages })}
+            </span>
             <StarRating
                 value={rating}
-                size={24}
+                size={28}
                 onChange={(value) => {
                     setRating(value);
                     router.patch(
@@ -807,35 +795,36 @@ function FinishedPhase({
                     );
                 }}
             />
-            <span className="text-[11px] text-faint">
+            <span className="text-[13px] font-semibold text-muted">
                 {t('a data é hoje; ajuste no app se precisar')}
             </span>
-            {saved.next && (
-                <button
-                    type="button"
-                    autoFocus
-                    onClick={() => {
-                        router.post(startBook.url(), {
-                            book_id: saved.next!.id,
-                        });
-                        onClose();
-                    }}
-                    className="mt-1 h-11 w-full rounded-md bg-primary text-[13px] font-semibold text-white hover:bg-primary/90"
+            <div className="mt-auto flex w-full flex-col gap-2">
+                {saved.next && (
+                    <Button
+                        autoFocus
+                        onClick={() => {
+                            router.post(startBook.url(), {
+                                book_id: saved.next!.id,
+                            });
+                            onClose();
+                        }}
+                        className="h-12"
+                    >
+                        {t('Começar :title, o próximo', {
+                            title: saved.next.title,
+                        })}
+                    </Button>
+                )}
+                <Button
+                    variant="ghost"
+                    autoFocus={!saved.next}
+                    onClick={onClose}
+                    className="h-12"
                 >
-                    {t('Começar :title, o próximo', {
-                        title: saved.next.title,
-                    })}
-                </button>
-            )}
-            <button
-                type="button"
-                autoFocus={!saved.next}
-                onClick={onClose}
-                className="h-9 rounded-md px-4 text-xs text-muted hover:text-text"
-            >
-                {t('Fechar')}
-            </button>
-        </div>
+                    {t('Fechar')}
+                </Button>
+            </div>
+        </section>
     );
 }
 

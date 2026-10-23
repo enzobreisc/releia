@@ -838,6 +838,11 @@
     "Nenhum livro com esses filtros.": "No books match these filters.",
     "Sua biblioteca está vazia.": "Your library is empty.",
     ":books na sua biblioteca": ":books in your library",
+    ":count de 7 dias com leitura": ":count of 7 days with reading",
+    ":minutes minutos lidos": ":minutes minutes read",
+    "Sessão em andamento": "Session in progress",
+    "Sessão salva": "Session saved",
+    "min": "min",
     "Resumo": "Summary",
     "Novo item": "New item"
 }
