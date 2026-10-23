@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Presenters\BookPresenter;
 use App\Models\Author;
 use App\Models\Book;
+use App\Services\AuthorIndex;
 use App\Services\AuthorService;
 use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
@@ -14,18 +15,10 @@ class AuthorController extends Controller
 {
     public function __construct(private readonly AuthorService $authors) {}
 
-    /** Autores da biblioteca, com quantos livros de cada um. */
-    public function index(): Response
+    /** Autores da biblioteca, com o que o leitor tem e leu de cada um. */
+    public function index(AuthorIndex $index): Response
     {
-        return Inertia::render('authors', [
-            'authors' => Author::query()
-                ->withCount('books')
-                ->has('books')
-                ->orderByRaw('name COLLATE NOCASE')
-                ->get()
-                ->map(fn (Author $author) => ['id' => $author->id, 'name' => $author->name, 'books' => $author->books_count])
-                ->values(),
-        ]);
+        return Inertia::render('authors', $index->build());
     }
 
     /** Os livros do autor na biblioteca. As outras obras chegam à parte (`works`), por serem de rede. */

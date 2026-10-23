@@ -1,7 +1,9 @@
 <?php
 
+use App\Enums\ReadingStatus;
 use App\Models\Author;
 use App\Models\Book;
+use App\Models\Reading;
 use App\Services\BookLookup\BrasilApiProvider;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -32,13 +34,63 @@ function fakeAuthorApi(array $works): void
     });
 }
 
+function authorFinishedBook(string $author, string $title, int $pages, ?int $rating, string $finishedAt): Book
+{
+    $book = Book::factory()->withAuthors([$author])->create(['title' => $title, 'pages' => $pages]);
+    Reading::factory()->for($book)->create(['status' => ReadingStatus::Read, 'rating' => $rating, 'finished_at' => $finishedAt]);
+
+    return $book;
+}
+
 test('a lista de autores mostra quantos livros cada um tem', function () {
     authorWithBook();
     Book::factory()->withAuthors(['Itamar Vieira Junior'])->create();
 
     $this->get(route('authors.index'))->assertInertia(fn ($page) => $page
         ->where('authors.0.name', 'Itamar Vieira Junior')
-        ->where('authors.0.books', 2));
+        ->where('authors.0.owned', 2)
+        ->has('authors.0.books', 2));
+});
+
+test('a lista de autores resume o que foi lido de cada um', function () {
+    authorFinishedBook('Machado de Assis', 'Dom Casmurro', 256, 5, '2026-01-10');
+    authorFinishedBook('Machado de Assis', 'Quincas Borba', 384, 4, '2026-03-05');
+    Book::factory()->withAuthors(['Machado de Assis'])->onShelf(ReadingStatus::WantToRead)->create(['pages' => 500]);
+    authorFinishedBook('Clarice Lispector', 'A Hora da Estrela', 88, null, '2026-02-01');
+
+    $this->get(route('authors.index'))->assertInertia(fn ($page) => $page
+        ->where('authors_with_read_books', 2)
+        ->where('authors.0.name', 'Clarice Lispector')
+        ->where('authors.0.average_rating', null)
+        ->where('authors.1.name', 'Machado de Assis')
+        ->where('authors.1.owned', 3)
+        ->where('authors.1.read', 2)
+        ->where('authors.1.pages_read', 640)
+        ->where('authors.1.average_rating', 4.5)
+        ->where('authors.1.last_finished_title', 'Quincas Borba')
+        ->where('authors.1.reading_share', 88)
+        ->where('authors.1.books.2.is_read', false));
+});
+
+test('autor sem livro lido não tem nota, último livro nem páginas lidas', function () {
+    Book::factory()->withAuthors(['Franz Kafka'])->onShelf(ReadingStatus::Reading)->create();
+
+    $this->get(route('authors.index'))->assertInertia(fn ($page) => $page
+        ->where('authors_with_read_books', 0)
+        ->where('authors.0.read', 0)
+        ->where('authors.0.pages_read', 0)
+        ->where('authors.0.average_rating', null)
+        ->where('authors.0.last_finished_title', null)
+        ->where('authors.0.reading_share', null));
+});
+
+test('só a leitura mais recente de cada livro conta na lista de autores', function () {
+    $book = authorFinishedBook('Franz Kafka', 'O Processo', 296, 5, '2026-01-10');
+    Reading::factory()->for($book)->create(['status' => ReadingStatus::Reading]);
+
+    $this->get(route('authors.index'))->assertInertia(fn ($page) => $page
+        ->where('authors.0.read', 0)
+        ->where('authors.0.owned', 1));
 });
 
 test('as obras vêm pelas chaves do autor, sem o que já está na biblioteca', function () {
