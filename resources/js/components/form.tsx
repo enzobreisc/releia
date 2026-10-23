@@ -102,6 +102,39 @@ export function Button({
     );
 }
 
+type IconButtonVariant = 'filled' | 'plain';
+
+const iconButtonVariants: Record<IconButtonVariant, string> = {
+    filled: 'bg-elevated text-secondary hover:bg-active hover:text-text',
+    plain: 'bg-transparent text-muted hover:bg-elevated hover:text-text',
+};
+
+/** Round 40px button holding only an icon or glyph; `label` names it for screen readers. */
+export function IconButton({
+    label,
+    variant = 'filled',
+    className,
+    type = 'button',
+    ...props
+}: Omit<ComponentProps<'button'>, 'aria-label'> & {
+    label: string;
+    variant?: IconButtonVariant;
+}) {
+    return (
+        <button
+            type={type}
+            aria-label={label}
+            title={label}
+            className={cn(
+                'inline-flex size-10 shrink-0 items-center justify-center rounded-full text-sm disabled:opacity-60',
+                iconButtonVariants[variant],
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
 /** Side-by-side options with one selected (shelf, store, view). */
 export function Segmented({
     options,

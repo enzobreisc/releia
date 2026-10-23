@@ -43,3 +43,12 @@ export function SectionTitle({ children }: { children: string }) {
         </h2>
     );
 }
+
+/** Oversized title for pages about one thing (a book, an author). */
+export function DisplayTitle({ children }: { children: ReactNode }) {
+    return (
+        <h1 className="text-[clamp(48px,6vw,76px)] leading-[0.92] font-extrabold tracking-[-0.045em]">
+            {children}
+        </h1>
+    );
+}
