@@ -125,7 +125,7 @@ class ProfileController extends Controller
      */
     private function yearBooks(int $year): array
     {
-        return Reading::query()
+        $spines = Reading::query()
             ->with(['book.authors', 'book.currentReading'])
             ->where('status', ReadingStatus::Read->value)
             ->whereBetween('finished_at', ["{$year}-01-01", "{$year}-12-31"])
@@ -133,7 +133,8 @@ class ProfileController extends Controller
             ->get()
             ->unique('book_id')
             ->map(fn (Reading $reading) => BookPresenter::spine($reading->book))
-            ->values()
             ->all();
+
+        return array_values($spines);
     }
 }

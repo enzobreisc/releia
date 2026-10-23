@@ -57,6 +57,10 @@ class RecommendationService
 
     private const CACHE_DAYS = 7;
 
+    private const FIVE_STAR_WEIGHT = 1.0;
+
+    private const FOUR_STAR_WEIGHT = 0.7;
+
     /** Want-to-read + 5 × ratings on Open Library: below this, a little-known work. */
     private const MIN_SUBJECT_POPULARITY = 40;
 
@@ -426,7 +430,12 @@ class RecommendationService
             ->inRandomOrder()
             ->limit(self::MAX_SOURCES)
             ->get()
-            ->map(fn (Reading $reading) => [$reading->book, $reading->rating === 5 ? 1.0 : 0.7]);
+            ->map(fn (Reading $reading) => [$reading->book, self::ratingWeight($reading)]);
+    }
+
+    private static function ratingWeight(Reading $reading): float
+    {
+        return $reading->rating === 5 ? self::FIVE_STAR_WEIGHT : self::FOUR_STAR_WEIGHT;
     }
 
     /**
