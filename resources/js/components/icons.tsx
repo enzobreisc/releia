@@ -156,11 +156,22 @@ export function GripIcon(props: IconProps) {
     );
 }
 
-export function SidebarIcon(props: IconProps) {
+export function SidebarCollapseIcon(props: IconProps) {
     return (
         <LineIcon {...props}>
             <rect x="2.5" y="3" width="11" height="10" rx="1.5" />
             <path d="M6.5 3v10" />
+            <path d="M11 6l-2 2 2 2" />
+        </LineIcon>
+    );
+}
+
+export function SidebarExpandIcon(props: IconProps) {
+    return (
+        <LineIcon {...props}>
+            <rect x="2.5" y="3" width="11" height="10" rx="1.5" />
+            <path d="M6.5 3v10" />
+            <path d="M9 6l2 2-2 2" />
         </LineIcon>
     );
 }

@@ -1,30 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { AppSidebar } from '@/components/app-sidebar';
 import { CommandPalette } from '@/components/command-palette';
 import { Toaster } from '@/components/toaster';
+import { useStored } from '@/hooks/use-stored';
 
 const COLLAPSED_KEY = 'releia.sidebar.collapsed';
 
-function readCollapsed(): boolean {
-    try {
-        return localStorage.getItem(COLLAPSED_KEY) === '1';
-    } catch {
-        return false;
-    }
-}
-
 export default function AppLayout({ children }: { children: ReactNode }) {
-    const [collapsed, setCollapsed] = useState(readCollapsed);
+    const [sidebarState, setSidebarState] = useStored<'collapsed' | 'expanded'>(
+        COLLAPSED_KEY,
+        'expanded',
+    );
+    const collapsed = sidebarState === 'collapsed';
     const [commandOpen, setCommandOpen] = useState(false);
 
-    useEffect(() => {
-        try {
-            localStorage.setItem(COLLAPSED_KEY, collapsed ? '1' : '0');
-        } catch {
-            // Sem localStorage a barra só não lembra o estado.
-        }
-    }, [collapsed]);
+    const toggleSidebar = useCallback(
+        () => setSidebarState(collapsed ? 'expanded' : 'collapsed'),
+        [collapsed, setSidebarState],
+    );
 
     useEffect(() => {
         function onKeyDown(event: KeyboardEvent) {
@@ -36,7 +30,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
             if (key === 'b') {
                 event.preventDefault();
-                setCollapsed((value) => !value);
+                toggleSidebar();
             } else if (key === 'p') {
                 event.preventDefault();
                 setCommandOpen((value) => !value);
@@ -46,15 +40,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         window.addEventListener('keydown', onKeyDown);
 
         return () => window.removeEventListener('keydown', onKeyDown);
-    }, []);
+    }, [toggleSidebar]);
 
     return (
         <div className="flex h-screen overflow-hidden">
-            <AppSidebar
-                collapsed={collapsed}
-                onToggle={() => setCollapsed((value) => !value)}
-                onOpenCommand={() => setCommandOpen(true)}
-            />
+            <AppSidebar collapsed={collapsed} onToggle={toggleSidebar} />
             <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
                 <div className="sticky top-0 z-10 h-9 shrink-0 bg-bg app-drag" />
                 <main className="flex flex-1 flex-col gap-7 px-10 pt-2 pb-8">

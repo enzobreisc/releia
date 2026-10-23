@@ -1,6 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Fragment } from 'react';
-import { LogoMark, SearchIcon, SidebarIcon } from '@/components/icons';
+import { IconButton } from '@/components/form';
+import {
+    LogoMark,
+    SidebarCollapseIcon,
+    SidebarExpandIcon,
+} from '@/components/icons';
 import { SidebarReadingCard } from '@/components/sidebar-reading';
 import { useTranslation } from '@/hooks/use-translation';
 import { addBookItem, isActive, navGroups } from '@/lib/navigation';
@@ -11,14 +16,9 @@ import type { NavItem } from '@/types';
 type AppSidebarProps = {
     collapsed: boolean;
     onToggle: () => void;
-    onOpenCommand: () => void;
 };
 
-export function AppSidebar({
-    collapsed,
-    onToggle,
-    onOpenCommand,
-}: AppSidebarProps) {
+export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
     const { url, props } = usePage();
     const { t } = useTranslation();
 
@@ -26,48 +26,58 @@ export function AppSidebar({
         <nav
             aria-label={t('Principal')}
             className={cn(
-                'flex h-screen shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-active/60 bg-sidebar pb-4',
+                'flex h-screen shrink-0 flex-col gap-0.5 overflow-x-hidden overflow-y-auto border-r border-active/60 bg-sidebar pb-4 transition-[width,padding] duration-200 ease-out motion-reduce:transition-none',
                 collapsed ? 'w-14 px-2' : 'w-61 px-3.5',
             )}
         >
             {/* Draggable strip under the macOS window buttons. */}
             <div className="h-9 shrink-0 app-drag" />
 
-            <Link
-                href={home.url()}
-                aria-label={t('releia: ir para o Início')}
-                title={t('Início')}
+            <div
                 className={cn(
-                    'mb-5 flex items-center gap-2.5 self-start rounded-sm',
-                    collapsed ? 'self-center' : 'px-3',
+                    'mb-5 flex items-center',
+                    collapsed
+                        ? 'flex-col gap-3'
+                        : 'justify-between pr-0.5 pl-3',
                 )}
             >
-                <LogoMark size={22} />
-                {!collapsed && (
-                    <span className="font-brand text-[17px] font-bold">
-                        releia
-                    </span>
-                )}
-            </Link>
+                <Link
+                    href={home.url()}
+                    aria-label={t('releia: ir para o Início')}
+                    title={t('Início')}
+                    className="flex items-center gap-2.5 rounded-sm"
+                >
+                    <LogoMark size={22} />
+                    {!collapsed && (
+                        <span className="font-brand text-[17px] font-bold">
+                            releia
+                        </span>
+                    )}
+                </Link>
 
-            <button
-                type="button"
-                onClick={onOpenCommand}
-                aria-label={t('Ir para (⌘P)')}
-                title={t('Ir para… (⌘P)')}
-                className={cn(
-                    'mb-3.5 flex h-10 items-center gap-2.5 rounded-full bg-elevated text-left text-[13px] font-medium text-muted hover:text-text',
-                    collapsed ? 'justify-center' : 'px-3.5',
-                )}
-            >
-                <SearchIcon strokeWidth={1.9} />
-                {!collapsed && (
-                    <>
-                        <span className="flex-1">{t('Ir para…')}</span>
-                        <Kbd>⌘P</Kbd>
-                    </>
-                )}
-            </button>
+                <IconButton
+                    label={
+                        collapsed
+                            ? t('Expandir barra lateral')
+                            : t('Recolher barra lateral')
+                    }
+                    title={
+                        collapsed
+                            ? t('Expandir barra lateral (⌘B)')
+                            : t('Recolher barra lateral (⌘B)')
+                    }
+                    variant="plain"
+                    aria-expanded={!collapsed}
+                    onClick={onToggle}
+                    className="size-8 app-no-drag"
+                >
+                    {collapsed ? (
+                        <SidebarExpandIcon />
+                    ) : (
+                        <SidebarCollapseIcon />
+                    )}
+                </IconButton>
+            </div>
 
             {navGroups.map((group, index) => (
                 <Fragment key={group.title ?? index}>
@@ -106,35 +116,13 @@ export function AppSidebar({
                 aria-label={t(addBookItem.title)}
                 title={t(addBookItem.title)}
                 className={cn(
-                    'mt-2 flex h-11 items-center gap-2 rounded-full bg-elevated text-sm font-bold text-text inset-ring inset-ring-strong hover:bg-active',
-                    collapsed ? 'justify-center' : 'justify-center px-3',
+                    'mt-2 flex items-center justify-center gap-2 rounded-full bg-elevated text-sm font-bold text-text inset-ring inset-ring-strong hover:bg-active',
+                    collapsed ? 'size-10 self-center' : 'h-11 px-3',
                 )}
             >
                 <addBookItem.icon strokeWidth={2} />
                 {!collapsed && <span>{t(addBookItem.title)}</span>}
             </Link>
-
-            <button
-                type="button"
-                onClick={onToggle}
-                aria-label={
-                    collapsed
-                        ? t('Expandir barra lateral')
-                        : t('Recolher barra lateral')
-                }
-                title={
-                    collapsed
-                        ? t('Expandir barra lateral (⌘B)')
-                        : t('Recolher barra lateral (⌘B)')
-                }
-                className={cn(
-                    'mt-1.5 flex h-10 items-center gap-2.5 rounded-sm text-left text-[13px] font-medium text-muted hover:text-text',
-                    collapsed ? 'justify-center' : 'px-3',
-                )}
-            >
-                <SidebarIcon />
-                {!collapsed && <span>{t('Recolher')}</span>}
-            </button>
         </nav>
     );
 }
