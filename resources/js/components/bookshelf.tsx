@@ -4,13 +4,18 @@ import type { FormEvent } from 'react';
 import { Button, Input } from '@/components/form';
 import { useTranslation } from '@/hooks/use-translation';
 import {
+    SPINE_MAX_HEIGHT,
+    SPINE_RECESSED_BACKGROUND,
+    SPINE_RECESSED_TEXT,
+    SPINE_RING_WIDTH,
+    SPINE_VERTICAL_PADDING,
     buildSections,
     chunkRows,
-    extractColors,
-    spineColors,
-    spineSize,
+    extractCoverColor,
+    fallbackColor,
+    pickInk,
+    spineLook,
 } from '@/lib/spines';
-import type { SpineColors } from '@/lib/spines';
 import type { ShelfGroup, ShelfSection } from '@/lib/spines';
 import { cn } from '@/lib/utils';
 import { bookshelf as moveBook, show } from '@/routes/books';
@@ -45,8 +50,8 @@ function useWidth() {
 }
 
 /**
- * Bookcase of spines: thickness comes from the pages, color from the cover (or the title
- * until it loads). On the custom shelf books can be dragged between shelves.
+ * Flat, graphic bookcase: thickness comes from the pages, color and mark from the title.
+ * On the custom shelf books can be dragged between shelves.
  */
 export function Bookshelf({
     books,
@@ -166,9 +171,14 @@ function Section({
     );
 }
 
+const SPINE_HOVER_LIFT = 8;
+
 function Row({ children }: { children: React.ReactNode }) {
     return (
-        <div className="flex min-h-[230px] items-end gap-1 rounded-xs border-b-[6px] px-3">
+        <div
+            className="flex items-end gap-1.5 border-b-2 border-strong px-3"
+            style={{ minHeight: SPINE_MAX_HEIGHT + SPINE_HOVER_LIFT }}
+        >
             {children}
         </div>
     );
@@ -187,25 +197,29 @@ function Spine({
     onDragEnd: () => void;
     onDropBefore: () => void;
 }) {
-    const [colors, setColors] = useState<SpineColors>(() => spineColors(book));
-    const { bg, fg, accent } = colors;
-    const { width, height } = spineSize(book);
-    const tip = [book.title, book.author].filter(Boolean).join(' — ');
+    const { width, height, fontSize } = spineLook(book);
+    const [coverColor, setCoverColor] = useState<string | null>(null);
+    const color = coverColor ?? fallbackColor(book);
 
-    // The color comes from the cover; until the image is read (or without a cover) the provisional title color applies.
     useEffect(() => {
-        let active = true;
+        let isActive = true;
 
         if (book.cover_url) {
-            void extractColors(book.cover_url).then(
-                (found) => active && found && setColors(found),
+            void extractCoverColor(book.cover_url).then(
+                (found) => isActive && setCoverColor(found),
             );
         }
 
         return () => {
-            active = false;
+            isActive = false;
         };
     }, [book.cover_url]);
+
+    const isRecessed =
+        book.status === 'want_to_read' || book.status === 'abandoned';
+    const isDashed = book.status === 'abandoned';
+    const ink = isRecessed ? SPINE_RECESSED_TEXT : pickInk(color);
+    const tip = [book.title, book.author].filter(Boolean).join(' — ');
 
     return (
         <Link
@@ -221,46 +235,35 @@ function Spine({
                 event.stopPropagation();
                 onDropBefore();
             }}
-            style={{ width, height, backgroundColor: bg, color: fg }}
-            className="group relative flex shrink-0 origin-bottom flex-col items-center justify-between gap-1 overflow-hidden rounded-t-[3px] pb-1.5 inset-shadow-2xs inset-shadow-white/10 transition-transform duration-150 hover:z-10 hover:-translate-y-2"
+            style={{
+                width,
+                height,
+                paddingBlock: SPINE_VERTICAL_PADDING,
+                backgroundColor: isRecessed ? SPINE_RECESSED_BACKGROUND : color,
+                color: ink,
+            }}
+            className="relative flex shrink-0 justify-center overflow-hidden rounded-[2px] transition-transform duration-150 hover:z-10 hover:-translate-y-2 focus-visible:z-10 focus-visible:-translate-y-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
+            {isRecessed && (
+                <span
+                    aria-hidden
+                    className="absolute inset-0"
+                    style={{
+                        border: `${SPINE_RING_WIDTH}px ${isDashed ? 'dashed' : 'solid'} ${color}`,
+                    }}
+                />
+            )}
+            {book.status === 'reading' && (
+                <span
+                    aria-hidden
+                    className="absolute top-0 left-1/2 size-2.5 -translate-x-1/2 bg-current [clip-path:polygon(0_0,100%_0,50%_100%)]"
+                />
+            )}
             <span
-                aria-hidden
-                className="h-1.5 w-full"
-                style={{ backgroundColor: accent, opacity: 0.85 }}
-            />
-            <span className="flex min-h-0 flex-1 items-center gap-1 overflow-hidden py-1.5 [writing-mode:vertical-rl]">
-                <span className="max-h-full overflow-hidden text-[12px] leading-tight font-bold text-ellipsis whitespace-nowrap">
-                    {book.title}
-                </span>
-                {width >= 36 && book.author && (
-                    <span className="max-h-full overflow-hidden text-[10px] leading-tight text-ellipsis whitespace-nowrap opacity-70">
-                        {book.author}
-                    </span>
-                )}
-            </span>
-            <span className="relative flex w-full flex-col items-center gap-1">
-                {book.status === 'reading' && (
-                    <span
-                        aria-hidden
-                        className="size-1.5 rounded-full bg-current"
-                    />
-                )}
-                {book.cover_url && width >= 30 ? (
-                    // Cover thumbnail at the foot of the spine: it is what makes the book recognizable.
-                    <img
-                        src={book.cover_url}
-                        alt=""
-                        loading="lazy"
-                        className="aspect-[2/3] w-[calc(100%-8px)] rounded-[2px] object-cover"
-                    />
-                ) : (
-                    <span
-                        aria-hidden
-                        className="h-1.5 w-full"
-                        style={{ backgroundColor: accent, opacity: 0.85 }}
-                    />
-                )}
+                className="max-h-full rotate-180 overflow-hidden font-display leading-none font-bold tracking-[-0.04em] whitespace-nowrap uppercase [writing-mode:vertical-rl]"
+                style={{ fontSize }}
+            >
+                {book.title}
             </span>
         </Link>
     );

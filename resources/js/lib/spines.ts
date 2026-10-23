@@ -34,67 +34,84 @@ export type ShelfSection = {
     renamable?: boolean;
 };
 
-/** Spine colors: background and text, matte to match the dark theme. */
-const PALETTE: [string, string][] = [
-    ['#7a2e2e', '#f6e3d8'],
-    ['#2f4f6f', '#e3eef8'],
-    ['#365e4a', '#e2f1e8'],
-    ['#8a6a2c', '#fbf0d6'],
-    ['#4a3a6b', '#ece5f8'],
-    ['#2c5f66', '#dff3f4'],
-    ['#8a4a2c', '#fbe6d8'],
-    ['#3f4a6b', '#e6eaf8'],
-    ['#5c6b2f', '#eef3d8'],
-    ['#6b2f55', '#f8e3f0'],
-    ['#2f2f3a', '#dcdce6'],
-    ['#a8873a', '#2a2214'],
-    ['#d8cfbf', '#2b2a26'],
-    ['#9c3d3d', '#fde7e7'],
+export const SPINE_INK_LIGHT = '#f4f1ea';
+export const SPINE_INK_DARK = '#0b0d12';
+export const SPINE_RECESSED_BACKGROUND = 'var(--color-elevated)';
+export const SPINE_RECESSED_TEXT = 'var(--color-text)';
+export const SPINE_RING_WIDTH = 2;
+
+/** Night blues used when a book has no readable cover. */
+export const SPINE_FALLBACK_COLORS = [
+    '#17365f',
+    '#1d4f9e',
+    '#2563c4',
+    '#0f2a4d',
+    '#33425c',
+    '#5b9bff',
+    '#bcd7ff',
 ];
 
-function hash(text: string): number {
-    let value = 5381;
+const COVER_SAMPLE_WIDTH = 32;
+const COVER_SAMPLE_HEIGHT = 48;
 
-    for (const char of text) {
-        value = (value * 33 + char.charCodeAt(0)) >>> 0;
-    }
+const SPINE_HEIGHTS = [212, 236, 224, 250, 204, 242];
+export const SPINE_MAX_HEIGHT = Math.max(...SPINE_HEIGHTS);
+const SPINE_MIN_WIDTH = 24;
+const SPINE_MAX_WIDTH = 64;
+const SPINE_WIDTH_BASE = 18;
+const SPINE_PAGES_PER_PIXEL = 11;
+const SPINE_DEFAULT_PAGES = 280;
+const SPINE_MIN_FONT_SIZE = 16;
+const SPINE_MAX_FONT_SIZE = 30;
+const SPINE_FONT_RATIO = 0.62;
+export const SPINE_GAP = 6;
+export const SPINE_VERTICAL_PADDING = 10;
 
-    return value;
+function channelLuminance(value: number): number {
+    const unit = value / 255;
+
+    return unit <= 0.03928 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
 }
 
-export type SpineColors = { bg: string; fg: string; accent: string };
+function relativeLuminance(hex: string): number {
+    const [red, green, blue] = [1, 3, 5].map((start) =>
+        channelLuminance(parseInt(hex.slice(start, start + 2), 16)),
+    );
 
-const extracted = new Map<string, Promise<SpineColors | null>>();
-
-function hex(rgb: number[]): string {
-    return `#${rgb.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}`;
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
 }
 
-function luminance([r, g, b]: number[]): number {
-    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+function contrastRatio(first: string, second: string): number {
+    const [lighter, darker] = [
+        relativeLuminance(first),
+        relativeLuminance(second),
+    ].sort((a, b) => b - a);
+
+    return (lighter + 0.05) / (darker + 0.05);
 }
+
+const extractedCovers = new Map<string, Promise<string | null>>();
 
 /**
- * Cover colors: the most frequent among those with color (near-white, black or
- * gray tones weigh little) becomes the background; the second, quite different from the first, becomes the stripe.
- * The text is light or dark depending on the background. Without a readable cover, returns null.
+ * Dominant cover color: the most frequent among those with color (near-white,
+ * black and gray tones weigh little). Null when the cover cannot be read.
  */
-export function extractColors(src: string): Promise<SpineColors | null> {
-    const cached = extracted.get(src);
+export function extractCoverColor(src: string): Promise<string | null> {
+    const cached = extractedCovers.get(src);
 
     if (cached) {
         return cached;
     }
 
-    const promise = new Promise<SpineColors | null>((resolve) => {
+    const promise = new Promise<string | null>((resolve) => {
         const image = new Image();
         image.crossOrigin = 'anonymous';
         image.onerror = () => resolve(null);
         image.onload = () => {
             try {
                 const canvas = document.createElement('canvas');
-                canvas.width = 32;
-                canvas.height = 48;
+                canvas.width = COVER_SAMPLE_WIDTH;
+                canvas.height = COVER_SAMPLE_HEIGHT;
                 const context = canvas.getContext('2d', {
                     willReadFrequently: true,
                 });
@@ -103,8 +120,19 @@ export function extractColors(src: string): Promise<SpineColors | null> {
                     return resolve(null);
                 }
 
-                context.drawImage(image, 0, 0, 32, 48);
-                const { data } = context.getImageData(0, 0, 32, 48);
+                context.drawImage(
+                    image,
+                    0,
+                    0,
+                    COVER_SAMPLE_WIDTH,
+                    COVER_SAMPLE_HEIGHT,
+                );
+                const { data } = context.getImageData(
+                    0,
+                    0,
+                    COVER_SAMPLE_WIDTH,
+                    COVER_SAMPLE_HEIGHT,
+                );
                 const bins = new Map<
                     number,
                     { weight: number; sum: number[]; count: number }
@@ -135,28 +163,23 @@ export function extractColors(src: string): Promise<SpineColors | null> {
                     bins.set(key, bin);
                 }
 
-                const ranked = [...bins.values()]
-                    .sort((a, b) => b.weight - a.weight)
-                    .map((bin) => bin.sum.map((v) => v / bin.count));
+                const [top] = [...bins.values()].sort(
+                    (a, b) => b.weight - a.weight,
+                );
 
-                if (ranked.length === 0) {
+                if (!top) {
                     return resolve(null);
                 }
 
-                const base = ranked[0];
-                const distance = (a: number[], b: number[]) =>
-                    Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
-                const second =
-                    ranked.slice(1, 12).find((c) => distance(c, base) > 90) ??
-                    base.map((v) =>
-                        luminance(base) > 0.5 ? v * 0.6 : v + (255 - v) * 0.5,
-                    );
-
-                resolve({
-                    bg: hex(base),
-                    fg: luminance(base) > 0.55 ? '#1b1b1f' : '#f5f5f7',
-                    accent: hex(second),
-                });
+                resolve(
+                    `#${top.sum
+                        .map((v) =>
+                            Math.round(v / top.count)
+                                .toString(16)
+                                .padStart(2, '0'),
+                        )
+                        .join('')}`,
+                );
             } catch {
                 resolve(null);
             }
@@ -164,27 +187,53 @@ export function extractColors(src: string): Promise<SpineColors | null> {
         image.src = src;
     });
 
-    extracted.set(src, promise);
+    extractedCovers.set(src, promise);
 
     return promise;
 }
 
-/** Provisional color (and fallback, without a cover): derived from the title, so not everything looks the same. */
-export function spineColors(book: SpineBook): SpineColors {
-    const [bg, fg] =
-        PALETTE[hash(`${book.title}${book.author ?? ''}`) % PALETTE.length];
-
-    return { bg, fg, accent: fg };
+export function pickInk(background: string): string {
+    return contrastRatio(background, SPINE_INK_DARK) >=
+        contrastRatio(background, SPINE_INK_LIGHT)
+        ? SPINE_INK_DARK
+        : SPINE_INK_LIGHT;
 }
 
-/** Thickness and height from the pages, with a fixed variation per book so it is not uniform. */
-export function spineSize(book: SpineBook): { width: number; height: number } {
-    const pages = Math.min(book.pages ?? 280, 800);
-    const jitter = hash(String(book.id)) % 17;
+function hash(text: string): number {
+    let value = 5381;
+
+    for (const char of text) {
+        value = (value * 33 + char.charCodeAt(0)) >>> 0;
+    }
+
+    return value;
+}
+
+export function fallbackColor(book: SpineBook): string {
+    return SPINE_FALLBACK_COLORS[
+        hash(`${book.title}${book.author ?? ''}`) % SPINE_FALLBACK_COLORS.length
+    ];
+}
+
+export type SpineLook = { width: number; height: number; fontSize: number };
+
+export function spineLook(book: SpineBook): SpineLook {
+    const pages = book.pages ?? SPINE_DEFAULT_PAGES;
+    const width = Math.max(
+        SPINE_MIN_WIDTH,
+        Math.min(
+            SPINE_MAX_WIDTH,
+            Math.round(SPINE_WIDTH_BASE + pages / SPINE_PAGES_PER_PIXEL),
+        ),
+    );
 
     return {
-        width: Math.round(24 + (pages / 800) * 30),
-        height: 148 + Math.round((pages / 800) * 40) + jitter,
+        width,
+        height: SPINE_HEIGHTS[book.id % SPINE_HEIGHTS.length],
+        fontSize: Math.max(
+            SPINE_MIN_FONT_SIZE,
+            Math.min(SPINE_MAX_FONT_SIZE, Math.round(width * SPINE_FONT_RATIO)),
+        ),
     };
 }
 
@@ -335,14 +384,14 @@ function custom(
     return sections;
 }
 
-/** Splits a shelf into rows that fit the width, like upright books on a real bookcase. */
+/** Splits a shelf into rows that fit the width. */
 export function chunkRows(books: SpineBook[], width: number): SpineBook[][] {
     const rows: SpineBook[][] = [];
     let row: SpineBook[] = [];
     let used = 0;
 
     for (const book of books) {
-        const next = spineSize(book).width + 3;
+        const next = spineLook(book).width + SPINE_GAP;
 
         if (row.length > 0 && used + next > width) {
             rows.push(row);

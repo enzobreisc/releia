@@ -16,6 +16,9 @@ export default defineConfig({
                 bunny('Manrope', {
                     weights: [400, 500, 600, 700, 800],
                 }),
+                bunny('Space Grotesk', {
+                    weights: [500, 700],
+                }),
                 bunny('Geist Mono', {
                     weights: [400, 500],
                 }),
