@@ -2,7 +2,16 @@ import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, MouseEvent } from 'react';
 import { BookCover } from '@/components/book-cover';
-import { Button, Field, Input, Segmented, Select } from '@/components/form';
+import { cardClass } from '@/components/card';
+import {
+    Button,
+    buttonClass,
+    Field,
+    IconButton,
+    Input,
+    Segmented,
+    Select,
+} from '@/components/form';
 import { ClockIcon, PlusIcon } from '@/components/icons';
 import { PageHeader, SectionTitle } from '@/components/page-header';
 import { useTranslation } from '@/hooks/use-translation';
@@ -45,8 +54,8 @@ type ShoppingFilters = {
     sort: string | null;
 };
 
-const STATUS_FILTERS: { value: string | null; label: TranslationKey }[] = [
-    { value: null, label: 'Todos' },
+const STATUS_FILTERS: { value: string; label: TranslationKey }[] = [
+    { value: '', label: 'Todos' },
     { value: 'pending', label: 'Por comprar' },
     { value: 'bought', label: 'Comprados' },
 ];
@@ -58,6 +67,8 @@ const SORT_OPTIONS: { value: string; label: TranslationKey }[] = [
     { value: 'price_asc', label: 'Menor preço' },
     { value: 'price_desc', label: 'Maior preço' },
 ];
+
+const actionButtonClass = 'h-10 px-4 text-[13px]';
 
 export default function Shopping({
     shopping,
@@ -71,10 +82,26 @@ export default function Shopping({
     const { t } = useTranslation();
 
     return (
-        <>
+        <div className="flex flex-col gap-8">
             <PageHeader
                 title={t('Compras')}
                 description={t('O que comprar e quanto vai custar')}
+                actions={
+                    <Link
+                        href={queueIndex.url()}
+                        className={buttonClass(
+                            'ghost',
+                            cn(actionButtonClass, 'gap-2'),
+                        )}
+                    >
+                        {t('Fila de leitura')}
+                        {queue_count > 0 && (
+                            <span className="font-mono text-[11px] font-normal text-muted">
+                                {t(':count na fila', { count: queue_count })}
+                            </span>
+                        )}
+                    </Link>
+                }
             />
 
             <ShoppingSection
@@ -85,17 +112,7 @@ export default function Shopping({
                 queueOnBuy={queue_on_buy}
                 matches={matches}
             />
-
-            <Link
-                href={queueIndex.url()}
-                className="mt-4 inline-flex text-[13px] text-accent hover:underline"
-            >
-                {t('Fila de leitura')}
-                {queue_count > 0 &&
-                    ` (${t(':count na fila', { count: queue_count })})`}{' '}
-                →
-            </Link>
-        </>
+        </div>
     );
 }
 
@@ -154,36 +171,19 @@ function ShoppingSection({
     }, [search]);
 
     return (
-        <section
-            aria-label={t('Lista de compras')}
-            className="flex min-w-0 flex-[1.2_1_400px] flex-col rounded-md border bg-surface"
-        >
-            <div className="flex flex-wrap items-start justify-between gap-3 px-5 pt-4">
-                <div className="flex flex-col items-start gap-2">
-                    <SectionTitle>{t('lista de compras')}</SectionTitle>
-                    {/* Saved preference: applies to every purchase until changed. */}
-                    <button
-                        type="button"
-                        onClick={() =>
-                            router.put(
-                                preference.url(),
-                                { queue_on_buy: !queueOnBuy },
-                                { preserveScroll: true },
-                            )
-                        }
-                        title={t('Clique para alternar')}
-                        className="h-7 rounded-full border px-2.5 text-xs text-nav hover:bg-active hover:text-text"
-                    >
-                        {t('ao comprar:')}{' '}
-                        {queueOnBuy ? t('quero ler + fila') : t('só quero ler')}{' '}
-                        ⇄
-                    </button>
-                </div>
-                <div className="text-right">
-                    <div className="font-mono text-[22px] font-bold">
+        <>
+            <section
+                aria-label={t('Resumo')}
+                className={cardClass(
+                    'flex flex-wrap items-center gap-6 rounded-lg p-6',
+                )}
+            >
+                <div className="flex flex-[1_1_260px] flex-col gap-1.5">
+                    <SectionTitle>{t('Lista de compras')}</SectionTitle>
+                    <span className="text-5xl leading-none font-extrabold tracking-tighter">
                         {formatBRL(totals.pending_cents)}
-                    </div>
-                    <div className="text-xs text-muted">
+                    </span>
+                    <span className="text-sm font-semibold text-muted">
                         {t(':items por comprar', {
                             items: plural(
                                 totals.pending_count,
@@ -191,125 +191,136 @@ function ShoppingSection({
                                 'itens',
                             ),
                         })}
-                    </div>
+                    </span>
                 </div>
-            </div>
-
-            <div
-                role="tablist"
-                aria-label={t('Onde comprar')}
-                className="mx-5 mt-3 flex gap-0.5 overflow-x-auto border-b"
-            >
-                {[
-                    { value: null, label: t('Todos'), count: allCount },
-                    ...stores,
-                ].map((store) => {
-                    const selected = (storeFilter ?? null) === store.value;
-
-                    return (
-                        <button
-                            key={store.label}
-                            type="button"
-                            role="tab"
-                            aria-selected={selected}
-                            onClick={() => filterBy({ store: store.value })}
-                            className={cn(
-                                '-mb-px border-b-2 px-3 py-2.5 text-[13px] whitespace-nowrap',
-                                selected
-                                    ? 'border-primary font-semibold text-text'
-                                    : 'border-transparent text-muted hover:text-text',
-                            )}
-                        >
-                            {store.label}{' '}
-                            <span className="font-mono text-[11px] text-faint">
-                                {store.count}
-                            </span>
-                        </button>
-                    );
-                })}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 px-5 pt-3">
-                <Input
-                    type="search"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder={t('Buscar por título ou autor')}
-                    aria-label={t('Buscar na lista')}
-                    className="h-9 min-w-44 flex-1 text-[13px]"
-                />
-                <Select
-                    value={filters.sort ?? ''}
-                    onChange={(event) =>
-                        filterBy({ sort: event.target.value || null })
+                {/* Saved preference: applies to every purchase until changed. */}
+                <button
+                    type="button"
+                    onClick={() =>
+                        router.put(
+                            preference.url(),
+                            { queue_on_buy: !queueOnBuy },
+                            { preserveScroll: true },
+                        )
                     }
-                    aria-label={t('Ordenar')}
-                    className="h-9 w-auto text-[13px]"
+                    title={t('Clique para alternar')}
+                    className="flex flex-col items-start gap-1 rounded-[16px] bg-bg px-4.5 py-3.5 text-left inset-ring inset-ring-strong hover:bg-surface"
                 >
-                    {SORT_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                            {t(option.label)}
-                        </option>
-                    ))}
-                </Select>
-                <div
-                    role="group"
-                    aria-label={t('Situação')}
-                    className="flex gap-1 rounded-md border bg-bg p-0.5"
+                    <span className="text-xs font-bold text-muted">
+                        {t('ao comprar:')}
+                    </span>
+                    <span className="text-[15px] font-extrabold">
+                        {queueOnBuy ? t('quero ler + fila') : t('só quero ler')}
+                    </span>
+                </button>
+                <Button
+                    aria-expanded={adding}
+                    onClick={() => setAdding(!adding)}
+                    className="h-11 px-5.5"
                 >
-                    {STATUS_FILTERS.map((option) => (
-                        <button
-                            key={option.label}
-                            type="button"
-                            aria-pressed={filters.status === option.value}
-                            onClick={() => filterBy({ status: option.value })}
-                            className={cn(
-                                'h-8 rounded-[5px] px-2.5 text-[13px] whitespace-nowrap',
-                                filters.status === option.value
-                                    ? 'bg-active font-semibold text-accent'
-                                    : 'text-nav hover:bg-surface',
-                            )}
-                        >
-                            {t(option.label)}
-                        </button>
-                    ))}
-                </div>
-            </div>
+                    <PlusIcon />
+                    {t('Adicionar item')}
+                </Button>
+            </section>
 
-            {shopping.length === 0 ? (
-                <p className="px-5 py-4 text-sm text-muted">
-                    {filtered
-                        ? t('Nenhum item com esses filtros.')
-                        : t('Nenhum item nessa loja ainda.')}
-                </p>
-            ) : (
-                <ul className="flex flex-col px-5">
-                    {shopping.map((item) => (
-                        <ShoppingRow key={item.id} item={item} />
-                    ))}
-                </ul>
-            )}
-
-            {adding ? (
+            {adding && (
                 <ShoppingForm
                     stores={stores}
                     storeFilter={storeFilter}
                     matches={matches}
                     onClose={() => setAdding(false)}
                 />
-            ) : (
-                <button
-                    type="button"
-                    onClick={() => setAdding(true)}
-                    className="mx-5 mt-3.5 flex h-11 items-center justify-center gap-2 rounded-md border border-dashed text-sm font-semibold text-accent hover:bg-active"
-                >
-                    <PlusIcon />
-                    {t('Adicionar item')}
-                </button>
             )}
 
-            <div className="mb-4" />
-        </section>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+                <div
+                    role="tablist"
+                    aria-label={t('Onde comprar')}
+                    className={cardClass('flex flex-wrap p-1')}
+                >
+                    {[
+                        { value: null, label: t('Todos'), count: allCount },
+                        ...stores,
+                    ].map((store) => {
+                        const selected = (storeFilter ?? null) === store.value;
+
+                        return (
+                            <button
+                                key={store.label}
+                                type="button"
+                                role="tab"
+                                aria-selected={selected}
+                                onClick={() => filterBy({ store: store.value })}
+                                className={cn(
+                                    'h-9 rounded-full px-4 text-[13px] font-bold whitespace-nowrap',
+                                    selected
+                                        ? 'bg-text text-bg'
+                                        : 'text-secondary hover:bg-elevated hover:text-text',
+                                )}
+                            >
+                                {store.label}{' '}
+                                <span
+                                    className={cn(
+                                        'font-mono text-[11px] font-normal',
+                                        selected ? 'text-bg/70' : 'text-faint',
+                                    )}
+                                >
+                                    {store.count}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+                <div className="flex flex-wrap items-center gap-2.5">
+                    <Input
+                        type="search"
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder={t('Buscar por título ou autor')}
+                        aria-label={t('Buscar na lista')}
+                        className="w-60"
+                    />
+                    <Select
+                        value={filters.sort ?? ''}
+                        onChange={(event) =>
+                            filterBy({ sort: event.target.value || null })
+                        }
+                        aria-label={t('Ordenar')}
+                        className="w-auto"
+                    >
+                        {SORT_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {t(option.label)}
+                            </option>
+                        ))}
+                    </Select>
+                    <Segmented
+                        options={STATUS_FILTERS.map((option) => ({
+                            value: option.value,
+                            label: t(option.label),
+                        }))}
+                        value={filters.status ?? ''}
+                        onChange={(value) =>
+                            filterBy({ status: value || null })
+                        }
+                    />
+                </div>
+            </div>
+
+            {shopping.length === 0 ? (
+                <p className="text-[15px] font-semibold text-muted">
+                    {filtered
+                        ? t('Nenhum item com esses filtros.')
+                        : t('Nenhum item nessa loja ainda.')}
+                </p>
+            ) : (
+                <ul className={cardClass('flex flex-col overflow-hidden')}>
+                    {shopping.map((item) => (
+                        <ShoppingRow key={item.id} item={item} />
+                    ))}
+                </ul>
+            )}
+        </>
     );
 }
 
@@ -317,65 +328,98 @@ function ShoppingRow({ item }: { item: ShoppingEntry }) {
     const { t } = useTranslation();
 
     return (
-        <li className="flex items-center gap-3 border-b py-3">
-            <input
-                type="checkbox"
+        <li
+            className={cn(
+                'flex flex-wrap items-center gap-4 border-b px-4.5 py-3.5 last:border-b-0',
+                item.bought && 'opacity-55',
+            )}
+        >
+            <button
+                type="button"
+                role="checkbox"
+                aria-checked={item.bought}
                 aria-label={t('Marcar como comprado: :title', {
                     title: item.title,
                 })}
-                checked={item.bought}
                 // A purchase can be undone: unmarking removes from the queue what entered through it.
-                onChange={() =>
+                onClick={() =>
                     router.post(
                         item.bought ? unbuy.url(item.id) : buy.url(item.id),
                         {},
                         { preserveScroll: true },
                     )
                 }
-                className="size-4.5 shrink-0 accent-primary"
-            />
+                className={cn(
+                    'size-6.5 shrink-0 rounded-[8px] text-sm font-extrabold text-bg inset-ring-[1.5px]',
+                    item.bought
+                        ? 'bg-text inset-ring-text'
+                        : 'bg-transparent inset-ring-strong hover:inset-ring-secondary',
+                )}
+            >
+                {item.bought && '✓'}
+            </button>
             <BookCover
                 src={item.cover_url}
                 title={item.title}
-                className="w-8.5"
+                className="w-10"
             />
-            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span
-                    className={cn(
-                        'truncate text-sm font-semibold',
-                        item.bought && 'text-muted line-through',
-                    )}
-                >
-                    {item.title}
-                </span>
-                <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
-                    {item.author || t('Autor não informado')}
-                    <span className="rounded-[4px] border px-1.5 font-mono text-[10px]">
-                        {item.store_label.toLowerCase()}
+            <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-1">
+                <span className="flex flex-wrap items-center gap-2">
+                    <span
+                        className={cn(
+                            'text-[15px] font-extrabold',
+                            item.bought && 'line-through',
+                        )}
+                    >
+                        {item.title}
                     </span>
+                    {item.queued && (
+                        <span className="inline-flex h-5.5 items-center rounded-full bg-active px-2.5 text-[11px] font-bold text-link">
+                            {t('na fila')}
+                        </span>
+                    )}
                 </span>
-                {item.bought ? (
+                <span className="text-[13px] font-medium text-muted">
+                    {item.author || t('Autor não informado')} ·{' '}
+                    {item.store_label}
+                </span>
+                {item.bought && (
                     <span className="font-mono text-[11px] text-muted">
                         {t('comprado em :date', { date: item.bought_on ?? '' })}
-                        {item.queued && ` · ${t('na fila')}`}
                     </span>
-                ) : (
-                    <BuyMenu item={item} />
                 )}
             </div>
             <PriceEditor item={item} />
-            <button
-                type="button"
-                aria-label={t('Excluir :title', { title: item.title })}
-                onClick={() =>
-                    router.delete(destroyShopping.url(item.id), {
-                        preserveScroll: true,
-                    })
-                }
-                className="size-8 shrink-0 rounded-sm text-muted hover:bg-active hover:text-text"
-            >
-                ×
-            </button>
+            <div className="flex items-center gap-1.5">
+                {!item.bought && <BuyMenu item={item} />}
+                {!item.bought && item.isbn && (
+                    <Button
+                        variant="ghost"
+                        title={t('menor preço na Estante Virtual')}
+                        onClick={() =>
+                            router.post(
+                                lookupPrice.url(item.id),
+                                {},
+                                { preserveScroll: true },
+                            )
+                        }
+                        className={cn(actionButtonClass, 'bg-transparent')}
+                    >
+                        {t('Buscar preço')}
+                    </Button>
+                )}
+                <IconButton
+                    variant="plain"
+                    label={t('Excluir :title', { title: item.title })}
+                    onClick={() =>
+                        router.delete(destroyShopping.url(item.id), {
+                            preserveScroll: true,
+                        })
+                    }
+                >
+                    ×
+                </IconButton>
+            </div>
         </li>
     );
 }
@@ -448,14 +492,14 @@ function BuyMenu({ item }: { item: ShoppingEntry }) {
                 aria-haspopup="menu"
                 aria-expanded={open}
                 onClick={() => setOpen(!open)}
-                className="text-xs font-semibold text-accent hover:underline"
+                className={buttonClass('ghost', actionButtonClass)}
             >
                 {t('Comprar')} {open ? '▴' : '▾'}
             </button>
             {open && (
                 <ul
                     role="menu"
-                    className="absolute top-full left-0 z-30 mt-1 w-56 rounded-lg border border-strong bg-surface p-1 shadow-[0_16px_40px_rgba(0,0,0,0.55)]"
+                    className="absolute top-full left-0 z-30 mt-1 w-60 rounded-sm bg-surface p-1 shadow-float"
                 >
                     {entries.map((entry) => (
                         <li key={entry.key} role="none">
@@ -467,35 +511,13 @@ function BuyMenu({ item }: { item: ShoppingEntry }) {
                                 onClick={(event) =>
                                     openLink(event, entry.store)
                                 }
-                                className="flex items-center justify-between rounded-sm px-3 py-2 text-[13px] text-text hover:bg-elevated"
+                                className="flex items-center justify-between rounded-[8px] px-3 py-2 text-[13px] font-semibold text-text hover:bg-elevated"
                             >
                                 {entry.label}
                                 <span className="text-muted">↗</span>
                             </a>
                         </li>
                     ))}
-                    {item.isbn && (
-                        <li role="none" className="mt-1 border-t pt-1">
-                            <button
-                                type="button"
-                                role="menuitem"
-                                onClick={() => {
-                                    setOpen(false);
-                                    router.post(
-                                        lookupPrice.url(item.id),
-                                        {},
-                                        { preserveScroll: true },
-                                    );
-                                }}
-                                className="flex w-full flex-col items-start rounded-sm px-3 py-2 text-left text-[13px] text-text hover:bg-elevated"
-                            >
-                                {t('Buscar preço')}
-                                <span className="text-[11px] text-faint">
-                                    {t('menor preço na Estante Virtual')}
-                                </span>
-                            </button>
-                        </li>
-                    )}
                     <li
                         role="none"
                         className="px-3 pt-1 pb-1.5 text-[11px] leading-snug text-faint"
@@ -545,18 +567,18 @@ function PriceEditor({ item }: { item: ShoppingEntry }) {
                     placeholder={t('34,90')}
                     inputMode="decimal"
                     autoFocus
-                    className="h-9 w-24 font-mono"
+                    className="h-10 w-24 font-mono"
                 />
                 <Button
                     type="submit"
                     variant="ghost"
                     disabled={form.processing}
-                    className="h-9"
+                    className={actionButtonClass}
                 >
                     {t('Salvar')}
                 </Button>
                 {form.errors.estimated_price && (
-                    <span className="text-xs text-red-300">
+                    <span className="text-xs font-semibold text-danger">
                         {form.errors.estimated_price}
                     </span>
                 )}
@@ -570,9 +592,9 @@ function PriceEditor({ item }: { item: ShoppingEntry }) {
             disabled={item.bought}
             onClick={() => setEditing(true)}
             title={t('Atualizar preço')}
-            className="flex shrink-0 flex-col items-end gap-0.5 rounded-sm px-2 py-1.5 hover:bg-active disabled:hover:bg-transparent"
+            className="flex min-w-27.5 shrink-0 flex-col items-end gap-0.5 rounded-sm px-2 py-1 hover:bg-active disabled:hover:bg-transparent"
         >
-            <span className="font-mono text-sm font-bold">
+            <span className="text-lg font-extrabold">
                 {item.estimated_price_cents === null
                     ? t('sem preço')
                     : formatBRL(item.estimated_price_cents)}
@@ -580,8 +602,8 @@ function PriceEditor({ item }: { item: ShoppingEntry }) {
             {item.price_checked_on && (
                 <span
                     className={cn(
-                        'flex items-center gap-1 font-mono text-[10px]',
-                        item.price_stale ? 'text-nav' : 'text-faint',
+                        'flex items-center gap-1 font-mono text-[11px]',
+                        item.price_stale ? 'text-warn' : 'text-muted',
                     )}
                 >
                     {item.price_stale && <ClockIcon width={10} height={10} />}
@@ -685,17 +707,17 @@ function ShoppingForm({
     }
 
     return (
-        <div className="mx-5 mt-4 flex flex-col gap-3 rounded-md border border-primary bg-bg p-3.5">
+        <section
+            aria-label={t('Novo item')}
+            className={cardClass(
+                'flex flex-col gap-3.5 rounded-lg p-6 inset-ring-primary',
+            )}
+        >
             <div className="flex items-center justify-between">
-                <SectionTitle>{t('novo item')}</SectionTitle>
-                <button
-                    type="button"
-                    onClick={onClose}
-                    aria-label={t('Fechar')}
-                    className="size-8 rounded-sm text-muted hover:bg-active hover:text-text"
-                >
+                <SectionTitle>{t('Novo item')}</SectionTitle>
+                <IconButton label={t('Fechar')} onClick={onClose}>
                     ×
-                </button>
+                </IconButton>
             </div>
 
             <form onSubmit={lookUp} className="flex items-end gap-2">
@@ -707,14 +729,13 @@ function ShoppingForm({
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
                         placeholder={t('Cole o link do anúncio ou digite')}
-                        className="h-10.5 font-mono text-sm"
+                        className="font-mono"
                     />
                 </Field>
                 <Button
                     type="submit"
                     variant="ghost"
                     disabled={searching || search.trim() === ''}
-                    className="h-10.5"
                 >
                     {searching ? t('Buscando…') : t('Buscar')}
                 </Button>
@@ -726,7 +747,7 @@ function ShoppingForm({
 
             <form
                 onSubmit={submit}
-                className="grid gap-x-3 gap-y-2.5 sm:grid-cols-2"
+                className="grid gap-x-3 gap-y-3.5 sm:grid-cols-2"
             >
                 <Field
                     label={t('Título')}
@@ -739,7 +760,6 @@ function ShoppingForm({
                             form.setData('title', event.target.value)
                         }
                         placeholder={t('Título do livro')}
-                        className="h-10"
                     />
                 </Field>
                 <Field label={t('Autor')} error={form.errors.author}>
@@ -748,7 +768,6 @@ function ShoppingForm({
                         onChange={(event) =>
                             form.setData('author', event.target.value)
                         }
-                        className="h-10"
                     />
                 </Field>
                 <Field label={t('ISBN (opcional)')} error={form.errors.isbn}>
@@ -758,7 +777,7 @@ function ShoppingForm({
                             form.setData('isbn', event.target.value)
                         }
                         inputMode="numeric"
-                        className="h-10 font-mono"
+                        className="font-mono"
                     />
                 </Field>
                 <Field
@@ -775,11 +794,10 @@ function ShoppingForm({
                             'Sem link, o app abre a busca na Amazon pelo ISBN',
                         )}
                         inputMode="url"
-                        className="h-10"
                     />
                 </Field>
                 <fieldset className="flex min-w-0 flex-col">
-                    <legend className="pb-1.5 text-[13px] text-muted">
+                    <legend className="pb-1.5 text-xs font-bold text-muted">
                         {t('Onde comprar')}
                     </legend>
                     <Segmented
@@ -788,7 +806,7 @@ function ShoppingForm({
                         onChange={(value) => form.setData('store_type', value)}
                     />
                     {form.errors.store_type && (
-                        <span className="text-xs text-red-300">
+                        <span className="text-xs font-semibold text-danger">
                             {form.errors.store_type}
                         </span>
                     )}
@@ -805,18 +823,18 @@ function ShoppingForm({
                         }
                         placeholder={t('34,90')}
                         inputMode="decimal"
-                        className="h-10 font-mono"
+                        className="font-mono"
                     />
                 </Field>
                 <Button
                     type="submit"
                     disabled={form.processing || form.data.title.trim() === ''}
-                    className="sm:col-span-2"
+                    className="sm:col-span-2 sm:justify-self-start"
                 >
                     {t('Adicionar à lista')}
                 </Button>
             </form>
-        </div>
+        </section>
     );
 }
 
@@ -854,8 +872,9 @@ function MatchList({
                             onClick={() => onPick(candidate)}
                             aria-pressed={picked === key}
                             className={cn(
-                                'flex w-full items-center gap-3 rounded-sm border p-2 text-left hover:bg-active',
-                                picked === key && 'border-primary bg-active',
+                                'flex w-full items-center gap-3 rounded-sm bg-bg p-2 text-left inset-ring inset-ring-border hover:bg-active',
+                                picked === key &&
+                                    'bg-active inset-ring-primary',
                             )}
                         >
                             <BookCover
