@@ -49,7 +49,6 @@ export function SuggestionEditions({
     // Without a list to choose from, the suggested edition can still be added.
     const fallback = mode && (
         <Button
-            variant="outline"
             className="h-9 px-3 text-xs"
             disabled={disabled}
             onClick={() =>
@@ -116,10 +115,10 @@ export function SuggestionEditions({
     return (
         <ul
             aria-label={t('Edições')}
-            className="flex max-h-96 basis-full flex-col gap-1.5 overflow-y-auto border-t pt-4"
+            className="flex max-h-96 basis-full flex-col overflow-y-auto border-t"
         >
             {mode && (
-                <li className="flex items-center gap-3 pb-1 text-sm">
+                <li className="flex items-center gap-3 py-2.5 text-sm font-semibold">
                     <span>
                         {mode === 'want'
                             ? t('Escolha a edição para adicionar a Quero ler')
@@ -129,7 +128,7 @@ export function SuggestionEditions({
                         <button
                             type="button"
                             onClick={onCancel}
-                            className="text-xs text-muted hover:text-text"
+                            className="text-xs font-bold text-link hover:underline"
                         >
                             {t('cancelar')}
                         </button>
@@ -147,7 +146,7 @@ export function SuggestionEditions({
                 return (
                     <li
                         key={edition.isbn_13}
-                        className="flex flex-wrap items-center gap-3 rounded-sm border bg-bg px-3 py-2"
+                        className="flex flex-wrap items-center gap-3 border-b py-2.5"
                     >
                         <BookCover
                             src={edition.cover_url}
@@ -169,12 +168,11 @@ export function SuggestionEditions({
                             </span>
                         </span>
                         {edition.library_id ? (
-                            <span className="font-mono text-[11px] text-accent">
+                            <span className="font-mono text-[11px] text-link">
                                 {t('na biblioteca')}
                             </span>
                         ) : mode ? (
                             <Button
-                                variant="outline"
                                 className="h-9 px-3 text-xs"
                                 disabled={disabled}
                                 onClick={() =>
@@ -191,7 +189,6 @@ export function SuggestionEditions({
                         ) : (
                             <>
                                 <Button
-                                    variant="outline"
                                     className="h-9 px-3 text-xs"
                                     disabled={disabled}
                                     onClick={() =>
@@ -222,11 +219,11 @@ export function SuggestionEditions({
                 );
             })}
             {foreign > 0 && (
-                <li>
+                <li className="py-2.5">
                     <button
                         type="button"
                         onClick={() => setShowAll(true)}
-                        className="text-xs text-accent hover:underline"
+                        className="text-xs font-bold text-link hover:underline"
                     >
                         {t('+ Mostrar :editions de outros países', {
                             editions: plural(foreign, 'edição', 'edições'),
@@ -235,11 +232,11 @@ export function SuggestionEditions({
                 </li>
             )}
             {more > 0 && (
-                <li>
+                <li className="py-2.5">
                     <button
                         type="button"
                         onClick={() => setExpanded(true)}
-                        className="text-xs text-accent hover:underline"
+                        className="text-xs font-bold text-link hover:underline"
                     >
                         {t('+ Mostrar mais :count', { count: more })}
                     </button>
