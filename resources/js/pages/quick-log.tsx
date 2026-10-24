@@ -143,8 +143,11 @@ export default function QuickLog({
     const [finishing, setFinishing] = useState(false);
     // Local copy of the summary: rating reloads the page, and the flash does not come back.
     const [done, setDone] = useState<Saved | null>(saved);
+    // Compared against the last summary shown, not `done`: closing must not bring the same one back.
+    const [shownHash, setShownHash] = useState(saved?.hash ?? null);
 
-    if (saved && saved.hash !== done?.hash) {
+    if (saved && saved.hash !== shownHash) {
+        setShownHash(saved.hash);
         setDone(saved);
     }
 
