@@ -35,7 +35,8 @@ export function SessionForm({
     }
 
     function bump(pages: number) {
-        const next = progress.current_page + pages;
+        const next =
+            (Number(form.data.page_to) || progress.current_page) + pages;
         form.setData(
             'page_to',
             String(progress.pages ? Math.min(progress.pages, next) : next),

@@ -665,7 +665,7 @@ function FinishPhase({
                         <Button
                             key={pages}
                             variant="ghost"
-                            onClick={() => moveTo(timer.start_page + pages)}
+                            onClick={() => moveTo(pageTo + pages)}
                             className="h-8 px-3 font-mono text-xs"
                         >
                             +{pages}
