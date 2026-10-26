@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ReadingStatus;
+use App\Enums\TimerState;
 use App\Http\Presenters\ReadingPresenter;
 use App\Http\Requests\QuickLogRequest;
 use App\Models\Book;
@@ -13,6 +14,8 @@ use App\Services\DashboardService;
 use App\Services\ReadingActivity;
 use App\Services\ReadingService;
 use App\Services\ReadingTimer;
+use Carbon\CarbonImmutable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -87,6 +90,29 @@ class QuickLogController extends Controller
         $this->timer->start(Book::query()->whereKey($data['book_id'])->firstOrFail(), (int) $data['start_page']);
 
         return to_route('quick-log');
+    }
+
+    /** Timer for the phone lock screen widget, which counts on its own from `counting_since`. */
+    public function status(): JsonResponse
+    {
+        $timer = $this->timer->current();
+
+        if ($timer === null) {
+            return response()->json([
+                'state' => TimerState::Idle,
+                'reading' => $this->dashboard->sidebarCard(Carbon::today()),
+            ]);
+        }
+
+        $elapsed = $this->timer->elapsedSeconds($timer);
+
+        return response()->json([
+            'state' => $timer['paused_at'] === null ? TimerState::Reading : TimerState::Paused,
+            'title' => Book::query()->whereKey($timer['book_id'])->value('title'),
+            'start_page' => $timer['start_page'],
+            'elapsed' => $elapsed,
+            'counting_since' => CarbonImmutable::now()->subSeconds($elapsed)->toIso8601String(),
+        ]);
     }
 
     public function pause(): RedirectResponse

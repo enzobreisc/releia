@@ -64,6 +64,7 @@ Route::patch('/sessions/{session}', [ReadingSessionController::class, 'update'])
 Route::delete('/sessions/{session}', [ReadingSessionController::class, 'destroy'])->whereNumber('session')->name('sessions.destroy');
 Route::get('/quick-log', [QuickLogController::class, 'show'])->name('quick-log');
 Route::post('/quick-log', [QuickLogController::class, 'store'])->name('quick-log.store');
+Route::get('/quick-log/timer', [QuickLogController::class, 'status'])->name('quick-log.timer.status');
 Route::post('/quick-log/timer', [QuickLogController::class, 'start'])->name('quick-log.timer.start');
 Route::post('/quick-log/timer/pause', [QuickLogController::class, 'pause'])->name('quick-log.timer.pause');
 Route::post('/quick-log/timer/resume', [QuickLogController::class, 'resume'])->name('quick-log.timer.resume');

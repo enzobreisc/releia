@@ -52,6 +52,35 @@ test('timer conta o tempo, desconta as pausas e salva a sessão com os minutos',
         ->and(app(ReadingTimer::class)->current())->toBeNull();
 });
 
+test('estado do timer para o widget desconta as pausas e informa desde quando conta', function () {
+    $this->getJson(route('quick-log.timer.status'))->assertExactJson(['state' => 'idle', 'reading' => null]);
+
+    $book = timerBookAt(32);
+    $this->getJson(route('quick-log.timer.status'))->assertJson([
+        'state' => 'idle',
+        'reading' => ['title' => $book->title, 'current_page' => 32, 'week' => [0, 0, 0, 0, 0, 0, 0], 'streak' => 0],
+    ]);
+
+    $this->post(route('quick-log.timer.start'), ['book_id' => $book->id, 'start_page' => 32]);
+    Carbon::setTestNow('2026-10-14 20:10:00');
+    $this->post(route('quick-log.timer.pause'));
+    Carbon::setTestNow('2026-10-14 20:30:00');
+
+    $this->getJson(route('quick-log.timer.status'))
+        ->assertJson(['state' => 'paused', 'elapsed' => 10 * 60]);
+
+    $this->post(route('quick-log.timer.resume'));
+    Carbon::setTestNow('2026-10-14 20:35:00');
+
+    $this->getJson(route('quick-log.timer.status'))->assertExactJson([
+        'state' => 'reading',
+        'title' => $book->title,
+        'start_page' => 32,
+        'elapsed' => 15 * 60,
+        'counting_since' => Carbon::parse('2026-10-14 20:20:00')->toIso8601String(),
+    ]);
+});
+
 test('começar numa página adiante faz o livro avançar até ela ao salvar', function () {
     $book = timerBookAt(10);
 
