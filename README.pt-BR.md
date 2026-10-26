@@ -26,7 +26,7 @@
 
 - **Adicione livros em segundos** por ISBN ou título: metadados e capas vêm da Open Library, do Google Books e da BrasilAPI, e ficam em cache local.
 - **Registre sessões de leitura** pela janela principal ou por uma janela na barra de menu, aberta com um atalho global (`⌘⇧L`), sem sair do que você está fazendo.
-- **Registre pelo celular**: o mesmo registro rápido é instalado na tela de início como web app e fala com o Mac pelo [Tailscale](https://tailscale.com), usando o mesmo banco ([configuração](docs/mobile-quick-log.md)).
+- **Registre pelo celular**: o mesmo registro rápido é instalado na tela de início como web app e fala com o Mac pelo [Tailscale](https://tailscale.com), usando o mesmo banco, com um widget na tela de bloqueio que conta a sessão em andamento ([configuração](docs/mobile-quick-log.md)).
 - **Biblioteca** em grade de capas ou numa estante tipográfica, com busca, filtros por status e gênero, e ordenação.
 - **Página do livro** com todas as leituras, suas sessões, notas em Markdown e uma resenha por leitura; releituras são registradas separadamente.
 - **Estatísticas**: livros e páginas por mês, ritmo, previsão da meta anual, gêneros e autores mais lidos e um calendário de leitura.

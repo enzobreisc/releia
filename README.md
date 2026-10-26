@@ -26,7 +26,7 @@
 
 - **Add books in seconds** by ISBN or title: metadata and covers come from Open Library, Google Books and BrasilAPI, and are cached locally.
 - **Log reading sessions** from the main window or from a menu bar window opened by a global shortcut (`⌘⇧L`), without leaving what you are doing.
-- **Log from your phone**: the same quick log installs on the home screen as a web app and talks to the Mac over [Tailscale](https://tailscale.com), sharing its database ([setup](docs/mobile-quick-log.md)).
+- **Log from your phone**: the same quick log installs on the home screen as a web app and talks to the Mac over [Tailscale](https://tailscale.com), sharing its database, with a lock screen widget that counts the current session ([setup](docs/mobile-quick-log.md)).
 - **Library** as a cover grid or a typographic bookshelf, with search, filters by status and genre, and sorting.
 - **Book page** with every reading, its sessions, Markdown notes and a review per reading; rereads are tracked separately.
 - **Statistics**: books and pages per month, pace, yearly goal forecast, top genres and authors, and a reading calendar heat map.

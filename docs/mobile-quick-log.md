@@ -11,4 +11,13 @@ The quick log page (`/quick-log`) can be served from the Mac and installed on a 
 
 The server binds to the Tailscale address only, because the app has no login: nothing outside your tailnet can reach it.
 
+## Lock screen widget
+
+[`docs/scriptable/reading-timer.js`](scriptable/reading-timer.js) is a [Scriptable](https://scriptable.app) widget for the lock screen. While a session runs it shows the book and a live counter; when nothing is running it shows the book you last read, the last seven days and the streak. It reads `GET /quick-log/timer`.
+
+1. Install Scriptable on the phone, create a script, paste the file and replace `TAILSCALE_IP`.
+2. Add a rectangular Scriptable widget to the lock screen and pick the script.
+
+The counter ticks on its own, but iOS decides when the widget fetches the timer again, so starting, pausing or ending a session can take a few minutes to show. Running the script inside Scriptable refreshes it at once.
+
 After adding migrations, run `php artisan migrate` against the shared database (`DB_DATABASE="$HOME/Library/Application Support/releia/database/database.sqlite" php artisan migrate`).
