@@ -7,6 +7,7 @@ use App\Http\Presenters\BookPresenter;
 use App\Http\Presenters\ReadingPresenter;
 use App\Models\Reading;
 use App\Models\Setting;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -19,17 +20,13 @@ class DashboardService
     ) {}
 
     /**
-     * Leituras em andamento, uma por livro, mais recente primeiro.
+     * Readings in progress, one per book, the last one read first.
      *
      * @return Collection<int, array<string, mixed>>
      */
     public function readingNow(): Collection
     {
-        return Reading::query()
-            ->current()
-            ->where('status', ReadingStatus::Reading)
-            ->with('book.authors')
-            ->latest('id')
+        return $this->readingsInProgress()
             ->get()
             ->map(fn (Reading $reading) => ReadingPresenter::summary($reading, $this->readings))
             ->values();
@@ -43,12 +40,7 @@ class DashboardService
      */
     public function sidebarCard(Carbon $today): ?array
     {
-        $reading = Reading::query()
-            ->current()
-            ->where('status', ReadingStatus::Reading)
-            ->with('book.authors')
-            ->latest('id')
-            ->first();
+        $reading = $this->readingsInProgress()->first();
 
         if ($reading === null) {
             return null;
@@ -110,5 +102,23 @@ class DashboardService
             ->get()
             ->map(fn (Reading $reading) => BookPresenter::card($reading->book))
             ->all());
+    }
+
+    /**
+     * Ordered by the latest logged session, so a book just added to the shelf
+     * does not take the place of the one actually being read.
+     *
+     * @return Builder<Reading>
+     */
+    private function readingsInProgress(): Builder
+    {
+        return Reading::query()
+            ->current()
+            ->where('status', ReadingStatus::Reading)
+            ->with('book.authors')
+            ->withMax('sessions', 'id')
+            ->orderByRaw('sessions_max_id is null')
+            ->orderByDesc('sessions_max_id')
+            ->latest('id');
     }
 }

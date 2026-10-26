@@ -132,6 +132,22 @@ test('mini cartão da barra lateral mostra a leitura atual e a sequência', func
             ->where('reading_now.week', [0, 0, 0, 0, 0, 1, 1]));
 });
 
+test('leitura com a sessão mais recente vem primeiro, à frente de um livro recém-começado', function () {
+    $older = Book::factory()->onShelf(ReadingStatus::Reading)->create(['title' => 'Lido ontem']);
+    $newer = Book::factory()->onShelf(ReadingStatus::Reading)->create(['title' => 'Lido hoje']);
+    Book::factory()->onShelf(ReadingStatus::Reading)->create(['title' => 'Recém-começado']);
+    sessionOn('2026-10-14', 1, 5, $newer->currentReading);
+    sessionOn('2026-10-13', 1, 5, $older->currentReading);
+    sessionOn('2026-10-14', 6, 9, $newer->currentReading);
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('reading.0.title', 'Lido hoje')
+            ->where('reading.1.title', 'Lido ontem')
+            ->where('reading.2.title', 'Recém-começado')
+            ->where('reading_now.title', 'Lido hoje'));
+});
+
 test('tela do registro rápido lista só leituras em andamento', function () {
     Book::factory()->onShelf(ReadingStatus::Reading)->create(['title' => 'Lendo agora']);
     Book::factory()->onShelf(ReadingStatus::WantToRead)->create(['title' => 'Na fila']);
