@@ -62,6 +62,12 @@
         color-scheme: dark;
     }
 
+    /* The quick log fills the phone screen, so iOS must not scroll or bounce the page behind it. */
+    html:has([data-mobile]) {
+        overflow: hidden;
+        overscroll-behavior: none;
+    }
+
     *,
     ::before,
     ::after {

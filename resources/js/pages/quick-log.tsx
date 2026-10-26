@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { BookCover } from '@/components/book-cover';
@@ -67,7 +67,7 @@ const PAGE_JUMPS = [5, 10, 20];
 const START_PREFIX = 'start-';
 
 const pageInputClass =
-    'w-28 [appearance:textfield] bg-transparent text-center font-extrabold tracking-tighter tabular-nums outline-none [&::-webkit-inner-spin-button]:appearance-none';
+    'w-28 in-data-mobile:w-36 [appearance:textfield] bg-transparent text-center font-extrabold tracking-tighter tabular-nums outline-none [&::-webkit-inner-spin-button]:appearance-none';
 
 /** "CmdOrCtrl+Shift+L" becomes "⇧⌘L", as macOS shows it in menus. */
 function formatShortcut(shortcut: string) {
@@ -136,6 +136,7 @@ export default function QuickLog({
     saved,
 }: QuickLogProps) {
     const { t } = useTranslation();
+    const { native } = usePage().props;
     const [bookId, setBookId] = useState<number | null>(
         timer?.book_id ?? readings[0]?.book_id ?? null,
     );
@@ -197,18 +198,23 @@ export default function QuickLog({
     }
 
     return (
-        <div className="flex h-screen flex-col gap-4.5 overflow-hidden bg-bg p-5 text-text select-none">
+        <div
+            data-mobile={native ? undefined : ''}
+            className="flex h-dvh flex-col gap-4.5 overflow-hidden bg-bg px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] text-text select-none data-mobile:gap-6"
+        >
             <Head title={t('Leitura do dia')} />
 
             <header className="flex items-baseline justify-between">
-                <h1 className="text-lg font-extrabold tracking-tight">
+                <h1 className="text-lg font-extrabold tracking-tight in-data-mobile:text-2xl">
                     {t('Leitura do dia')}
                 </h1>
-                <span className="font-mono text-[11px] text-muted">
-                    {t(':shortcut abre isto', {
-                        shortcut: formatShortcut(shortcut),
-                    })}
-                </span>
+                {native && (
+                    <span className="font-mono text-[11px] text-muted">
+                        {t(':shortcut abre isto', {
+                            shortcut: formatShortcut(shortcut),
+                        })}
+                    </span>
+                )}
             </header>
 
             <WeekCard week={week} streak={streak} />
@@ -256,7 +262,7 @@ function WeekCard({ week, streak }: { week: number[]; streak: number }) {
                             key={index}
                             className={cn(
                                 heatClass(level),
-                                'size-4 rounded-[4px]',
+                                'size-4 rounded-[4px] in-data-mobile:size-5',
                                 index === week.length - 1 &&
                                     (level > 0
                                         ? 'ring-2 ring-heat-3'
@@ -307,14 +313,14 @@ function BookPicker({
             <BookCover
                 src={selected.cover_url}
                 title={selected.title}
-                className="w-13"
+                className="w-13 in-data-mobile:w-16"
             />
             <Field label={t('Livro')} className="flex-1 text-[11px]">
                 <Select
                     value={String(selected.book_id)}
                     disabled={locked}
                     onChange={(event) => choose(event.target.value)}
-                    className="h-10 text-sm font-bold"
+                    className="h-10 text-sm font-bold in-data-mobile:h-12 in-data-mobile:text-base"
                 >
                     {readings.map((item) => (
                         <option key={item.book_id} value={item.book_id}>
@@ -395,6 +401,7 @@ function EmptyPhase({
                 <Select
                     defaultValue=""
                     aria-label={t('Começar a ler')}
+                    className="in-data-mobile:h-12 in-data-mobile:text-base"
                     onChange={(event) =>
                         event.target.value &&
                         router.post(startBook.url(), {
@@ -437,19 +444,19 @@ function IdlePhase({ book }: { book: ReadingSummary }) {
     return (
         <form onSubmit={begin} className="flex flex-1 flex-col gap-3.5">
             <MinuteGrid seconds={0} live={false} />
-            <p className="text-xs font-medium text-muted">
+            <p className="text-xs font-medium text-muted in-data-mobile:text-sm">
                 {t('cada quadrado acende a cada minuto lido')}
             </p>
 
             <div className="mt-auto flex flex-col gap-2">
-                <label className="flex flex-col gap-2 text-xs font-bold text-muted">
+                <label className="flex flex-col gap-2 text-xs font-bold text-muted in-data-mobile:text-sm">
                     {t('começo na página')}
                     <span className="flex items-center gap-2.5">
                         <IconButton
                             label={t('Página anterior')}
                             onClick={() => step(-1)}
                             disabled={page <= book.current_page}
-                            className="size-12 text-xl"
+                            className="size-12 text-xl in-data-mobile:size-14"
                         >
                             −
                         </IconButton>
@@ -461,19 +468,22 @@ function IdlePhase({ book }: { book: ReadingSummary }) {
                             onChange={(event) =>
                                 form.setData('start_page', event.target.value)
                             }
-                            className={cn(pageInputClass, 'text-5xl text-text')}
+                            className={cn(
+                                pageInputClass,
+                                'text-5xl text-text in-data-mobile:text-6xl',
+                            )}
                         />
                         <IconButton
                             label={t('Próxima página')}
                             onClick={() => step(1)}
-                            className="size-12 text-xl"
+                            className="size-12 text-xl in-data-mobile:size-14"
                         >
                             +
                         </IconButton>
                     </span>
                 </label>
                 {form.errors.start_page && (
-                    <p className="text-xs font-semibold text-danger">
+                    <p className="text-xs font-semibold text-danger in-data-mobile:text-sm">
                         {form.errors.start_page}
                     </p>
                 )}
@@ -481,11 +491,11 @@ function IdlePhase({ book }: { book: ReadingSummary }) {
                     type="submit"
                     autoFocus
                     disabled={form.processing}
-                    className="h-12"
+                    className="h-12 in-data-mobile:h-14 in-data-mobile:text-base"
                 >
                     <PlayIcon />
                     {t('Começar a ler')}
-                    <span className="font-mono text-[11px] font-medium opacity-60">
+                    <span className="font-mono text-[11px] font-medium opacity-60 in-data-mobile:hidden">
                         ↵
                     </span>
                 </Button>
@@ -507,7 +517,7 @@ function RunningPhase({ timer, onStop }: { timer: Timer; onStop: () => void }) {
             <div className="flex items-baseline justify-between">
                 <span
                     className={cn(
-                        'flex items-center gap-2 text-xs font-extrabold tracking-widest uppercase',
+                        'flex items-center gap-2 text-xs font-extrabold tracking-widest uppercase in-data-mobile:text-sm',
                         stateColor,
                     )}
                 >
@@ -519,22 +529,22 @@ function RunningPhase({ timer, onStop }: { timer: Timer; onStop: () => void }) {
                     />
                     {timer.paused ? t('pausado') : t('lendo')}
                 </span>
-                <span className="font-mono text-xs text-muted">
+                <span className="font-mono text-xs text-muted in-data-mobile:text-sm">
                     {t('desde a p. :page', { page: timer.start_page })}
                 </span>
             </div>
             <div
                 role="timer"
-                className="text-7xl leading-[0.9] font-extrabold tracking-[-0.05em] tabular-nums"
+                className="text-7xl leading-[0.9] font-extrabold tracking-[-0.05em] tabular-nums in-data-mobile:text-8xl"
             >
                 {Math.floor(seconds / 60)}
-                <span className="text-[22px] font-bold tracking-normal text-faint">
+                <span className="text-[22px] font-bold tracking-normal text-faint in-data-mobile:text-[28px]">
                     {' '}
                     {t('min')}
                 </span>
             </div>
             <MinuteGrid seconds={seconds} live={!timer.paused} />
-            <span className="text-xs font-medium text-muted">
+            <span className="text-xs font-medium text-muted in-data-mobile:text-sm">
                 {t('cada quadrado acende a cada minuto lido')}
             </span>
 
@@ -547,11 +557,15 @@ function RunningPhase({ timer, onStop }: { timer: Timer; onStop: () => void }) {
                                 timer.paused ? resume.url() : pause.url(),
                             )
                         }
-                        className="h-12 flex-1"
+                        className="h-12 flex-1 in-data-mobile:h-14 in-data-mobile:text-base"
                     >
                         {timer.paused ? t('▶ Continuar') : t('❚❚ Pausar')}
                     </Button>
-                    <Button autoFocus onClick={onStop} className="h-12 flex-1">
+                    <Button
+                        autoFocus
+                        onClick={onStop}
+                        className="h-12 flex-1 in-data-mobile:h-14 in-data-mobile:text-base"
+                    >
                         {t('Terminar')}
                     </Button>
                 </div>
@@ -574,7 +588,7 @@ function DiscardButton() {
             }
             onBlur={() => setConfirming(false)}
             className={cn(
-                'h-9 text-[13px] font-bold',
+                'h-9 text-[13px] font-bold in-data-mobile:h-11 in-data-mobile:text-sm',
                 confirming ? 'text-danger' : 'text-muted hover:text-text',
             )}
         >
@@ -621,7 +635,7 @@ function FinishPhase({
                 {t('sessão de :minutes min', { minutes })}
             </SectionTitle>
             <div className="flex flex-col gap-2">
-                <span className="text-xs font-bold text-muted">
+                <span className="text-xs font-bold text-muted in-data-mobile:text-sm">
                     {t('parei na página')}
                 </span>
                 <div className="flex items-center gap-2.5">
@@ -629,7 +643,7 @@ function FinishPhase({
                         label={t('Página anterior')}
                         onClick={() => moveTo(pageTo - 1)}
                         disabled={pageTo <= timer.start_page + 1}
-                        className="size-12 text-xl"
+                        className="size-12 text-xl in-data-mobile:size-14"
                     >
                         −
                     </IconButton>
@@ -646,7 +660,10 @@ function FinishPhase({
                             }
                             onFocus={(event) => event.target.select()}
                             aria-label={t('parei na página')}
-                            className={cn(pageInputClass, 'text-[56px]')}
+                            className={cn(
+                                pageInputClass,
+                                'text-[56px] in-data-mobile:text-[72px]',
+                            )}
                         />
                         {book.pages !== null && (
                             <span className="shrink-0 text-base font-bold text-faint">
@@ -658,7 +675,7 @@ function FinishPhase({
                         label={t('Próxima página')}
                         onClick={() => moveTo(pageTo + 1)}
                         disabled={pageTo >= lastPage}
-                        className="size-12 text-xl"
+                        className="size-12 text-xl in-data-mobile:size-14"
                     >
                         +
                     </IconButton>
@@ -669,7 +686,7 @@ function FinishPhase({
                             key={pages}
                             variant="ghost"
                             onClick={() => moveTo(pageTo + pages)}
-                            className="h-8 px-3 font-mono text-xs"
+                            className="h-8 px-3 font-mono text-xs in-data-mobile:h-10 in-data-mobile:px-4 in-data-mobile:text-sm"
                         >
                             +{pages}
                         </Button>
@@ -678,7 +695,7 @@ function FinishPhase({
             </div>
             <div
                 className={cardClass(
-                    'flex justify-between rounded-sm px-3.5 py-3 font-mono text-xs text-secondary',
+                    'flex justify-between rounded-sm px-3.5 py-3 font-mono text-xs in-data-mobile:text-sm text-secondary',
                 )}
             >
                 <span>{t(':pages págs', { pages: gained })}</span>
@@ -690,7 +707,7 @@ function FinishPhase({
                 </span>
             </div>
             {form.errors.page_to && (
-                <p className="text-center text-xs font-semibold text-danger">
+                <p className="text-center text-xs font-semibold text-danger in-data-mobile:text-sm">
                     {form.errors.page_to}
                 </p>
             )}
@@ -698,10 +715,10 @@ function FinishPhase({
             <Button
                 type="submit"
                 disabled={form.processing || gained === 0}
-                className="mt-auto h-12"
+                className="mt-auto h-12 in-data-mobile:h-14 in-data-mobile:text-base"
             >
                 {form.processing ? t('Salvando…') : t('Salvar sessão')}
-                <span className="font-mono text-[11px] font-medium opacity-60">
+                <span className="font-mono text-[11px] font-medium opacity-60 in-data-mobile:hidden">
                     ↵
                 </span>
             </Button>
@@ -712,7 +729,7 @@ function FinishPhase({
                         router.post(resume.url(), {}, { preserveState: true });
                         onCancel();
                     }}
-                    className="h-9 text-[13px] font-bold text-link hover:underline"
+                    className="h-9 text-[13px] font-bold text-link hover:underline in-data-mobile:h-11 in-data-mobile:text-sm"
                 >
                     {t('voltar a ler')}
                 </button>
@@ -730,13 +747,13 @@ function DonePhase({ saved, onClose }: { saved: Saved; onClose: () => void }) {
             aria-label={t('Sessão salva')}
             className="flex flex-1 flex-col items-start gap-2.5"
         >
-            <span className="text-xs font-extrabold tracking-widest text-link uppercase">
+            <span className="text-xs font-extrabold tracking-widest text-link uppercase in-data-mobile:text-sm">
                 {t('Terminou!')}
             </span>
             <span className="text-[44px] leading-none font-extrabold tracking-tighter">
                 {t(':pages págs hoje', { pages: saved.pages })}
             </span>
-            <span className="font-mono text-[13px] text-secondary">
+            <span className="font-mono text-[13px] text-secondary in-data-mobile:text-sm">
                 {saved.minutes !== null &&
                     `${t('em :minutes min', { minutes: saved.minutes })} · `}
                 {t('agora na p. :page', { page: saved.page_to })}
@@ -744,14 +761,14 @@ function DonePhase({ saved, onClose }: { saved: Saved; onClose: () => void }) {
             <span className="font-mono text-[11px] text-accent">
                 {saved.hash} · {saved.title}
             </span>
-            <span className="text-[13px] font-semibold text-muted">
+            <span className="text-[13px] font-semibold text-muted in-data-mobile:text-sm">
                 {t('a data é hoje; ajuste no app se precisar')}
             </span>
             <Button
                 variant="ghost"
                 autoFocus
                 onClick={onClose}
-                className="mt-auto h-12 self-stretch"
+                className="mt-auto h-12 self-stretch in-data-mobile:h-14 in-data-mobile:text-base"
             >
                 {t('Fechar')}
             </Button>
@@ -775,13 +792,13 @@ function FinishedPhase({
             aria-label={t('Sessão salva')}
             className="flex flex-1 flex-col items-start gap-3"
         >
-            <span className="text-xs font-extrabold tracking-widest text-link uppercase">
+            <span className="text-xs font-extrabold tracking-widest text-link uppercase in-data-mobile:text-sm">
                 {t('Terminou!')}
             </span>
             <span className="text-[28px] leading-tight font-extrabold tracking-tight">
                 {saved.title}
             </span>
-            <span className="font-mono text-[13px] text-secondary">
+            <span className="font-mono text-[13px] text-secondary in-data-mobile:text-sm">
                 {saved.days !== null &&
                     `${plural(saved.days, 'dia', 'dias')} · `}
                 +{t(':pages págs hoje', { pages: saved.pages })}
@@ -798,7 +815,7 @@ function FinishedPhase({
                     );
                 }}
             />
-            <span className="text-[13px] font-semibold text-muted">
+            <span className="text-[13px] font-semibold text-muted in-data-mobile:text-sm">
                 {t('a data é hoje; ajuste no app se precisar')}
             </span>
             <div className="mt-auto flex w-full flex-col gap-2">
@@ -811,7 +828,7 @@ function FinishedPhase({
                             });
                             onClose();
                         }}
-                        className="h-12"
+                        className="h-12 in-data-mobile:h-14 in-data-mobile:text-base"
                     >
                         {t('Começar :title, o próximo', {
                             title: saved.next.title,
@@ -822,7 +839,7 @@ function FinishedPhase({
                     variant="ghost"
                     autoFocus={!saved.next}
                     onClick={onClose}
-                    className="h-12"
+                    className="h-12 in-data-mobile:h-14 in-data-mobile:text-base"
                 >
                     {t('Fechar')}
                 </Button>
