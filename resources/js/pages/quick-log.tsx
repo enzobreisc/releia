@@ -66,6 +66,12 @@ const PAGE_JUMPS = [5, 10, 20];
 /** Option value that starts a book from the "want to read" shelf. */
 const START_PREFIX = 'start-';
 
+/**
+ * Runs the Scriptable script of the lock screen widget (docs/mobile-quick-log.md).
+ * iOS only redraws the widget on its own schedule, unless Scriptable runs it in the foreground.
+ */
+const WIDGET_REFRESH_URL = 'scriptable:///run/releia';
+
 const pageInputClass =
     'w-28 in-data-mobile:w-36 [appearance:textfield] bg-transparent text-center font-extrabold tracking-tighter tabular-nums outline-none [&::-webkit-inner-spin-button]:appearance-none';
 
@@ -208,12 +214,19 @@ export default function QuickLog({
                 <h1 className="text-lg font-extrabold tracking-tight in-data-mobile:text-2xl">
                     {t('Leitura do dia')}
                 </h1>
-                {native && (
+                {native ? (
                     <span className="font-mono text-[11px] text-muted">
                         {t(':shortcut abre isto', {
                             shortcut: formatShortcut(shortcut),
                         })}
                     </span>
+                ) : (
+                    <a
+                        href={WIDGET_REFRESH_URL}
+                        className="py-2 text-sm font-bold text-link"
+                    >
+                        {t('atualizar widget')}
+                    </a>
                 )}
             </header>
 
