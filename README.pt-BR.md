@@ -26,6 +26,7 @@
 
 - **Adicione livros em segundos** por ISBN ou título: metadados e capas vêm da Open Library, do Google Books e da BrasilAPI, e ficam em cache local.
 - **Registre sessões de leitura** pela janela principal ou por uma janela na barra de menu, aberta com um atalho global (`⌘⇧L`), sem sair do que você está fazendo.
+- **Registre pelo celular**: o mesmo registro rápido é instalado na tela de início como web app e fala com o Mac pelo [Tailscale](https://tailscale.com), usando o mesmo banco ([configuração](docs/mobile-quick-log.md)).
 - **Biblioteca** em grade de capas ou numa estante tipográfica, com busca, filtros por status e gênero, e ordenação.
 - **Página do livro** com todas as leituras, suas sessões, notas em Markdown e uma resenha por leitura; releituras são registradas separadamente.
 - **Estatísticas**: livros e páginas por mês, ritmo, previsão da meta anual, gêneros e autores mais lidos e um calendário de leitura.
@@ -54,6 +55,7 @@
 ## Destaques técnicos
 
 - **Um app Laravel entregue como app nativo.** O [NativePHP](https://nativephp.com) empacota o PHP e o app no Electron, então o mesmo código renderiza a interface em Inertia + React e controla a janela, o ícone da barra de menu e o atalho global ([`app/Native/QuickLog.php`](app/Native/QuickLog.php)).
+- **Uma tela, dois invólucros.** A página de registro rápido roda tanto na janela da barra de menu quanto como PWA instalável no celular: um agente `launchd` a serve pela tailnet usando o arquivo SQLite e o storage do app de desktop, e a página troca para controles do tamanho do toque quando não está dentro do app nativo.
 - **Busca de metadados atrás de um único contrato.** Cada fonte implementa [`MetadataProvider`](app/Services/BookLookup/MetadataProvider.php). O [`BookLookupService`](app/Services/BookLookupService.php) consulta a Open Library primeiro e usa a BrasilAPI e o Google Books para completar ou como reserva, com cache dos resultados; uma nova fonte é só uma classe.
 - **Sugestões explicáveis.** O [`RecommendationService`](app/Services/RecommendationService.php) parte dos livros que você avaliou bem, busca outras obras dos mesmos autores e assuntos e ordena os candidatos com um [`CandidateRanker`](app/Services/Recommendation/CandidateRanker.php) plugável. Cada sugestão traz o motivo, e as buscas têm limite de tempo e cache.
 - **Controllers enxutos, serviços ricos.** As regras de negócio ficam nos serviços, e os presenters definem as props que cada página Inertia recebe.
@@ -66,6 +68,7 @@
 | --------- | ---------------------------------------- |
 | Backend   | Laravel 13, PHP 8.4                      |
 | Desktop   | NativePHP Desktop 2 (Electron)           |
+| Celular   | PWA servido pelo Tailscale               |
 | Banco     | SQLite                                   |
 | Front-end | Inertia 3, React 19, TypeScript          |
 | Estilo    | Tailwind CSS 4                           |
@@ -80,6 +83,8 @@ O app não é notarizado pela Apple, então o macOS bloqueia a primeira abertura
 ```bash
 xattr -dr com.apple.quarantine /Applications/releia.app
 ```
+
+Para registrar sessões pelo celular, siga [docs/mobile-quick-log.md](docs/mobile-quick-log.md).
 
 ## Desenvolvimento
 

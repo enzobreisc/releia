@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.releia.quicklog</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>PHP_PATH</string>
+        <string>artisan</string>
+        <string>serve</string>
+        <string>--host=TAILSCALE_IP</string>
+        <string>--port=8000</string>
+        <string>--no-reload</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>PROJECT_PATH</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>DB_DATABASE</key>
+        <string>HOME_PATH/Library/Application Support/releia/database/database.sqlite</string>
+        <key>LARAVEL_STORAGE_PATH</key>
+        <string>HOME_PATH/Library/Application Support/releia/storage</string>
+        <key>PHP_CLI_SERVER_WORKERS</key>
+        <string>2</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+</dict>
+</plist>

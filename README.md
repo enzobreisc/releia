@@ -26,6 +26,7 @@
 
 - **Add books in seconds** by ISBN or title: metadata and covers come from Open Library, Google Books and BrasilAPI, and are cached locally.
 - **Log reading sessions** from the main window or from a menu bar window opened by a global shortcut (`⌘⇧L`), without leaving what you are doing.
+- **Log from your phone**: the same quick log installs on the home screen as a web app and talks to the Mac over [Tailscale](https://tailscale.com), sharing its database ([setup](docs/mobile-quick-log.md)).
 - **Library** as a cover grid or a typographic bookshelf, with search, filters by status and genre, and sorting.
 - **Book page** with every reading, its sessions, Markdown notes and a review per reading; rereads are tracked separately.
 - **Statistics**: books and pages per month, pace, yearly goal forecast, top genres and authors, and a reading calendar heat map.
@@ -54,6 +55,7 @@
 ## Technical highlights
 
 - **A Laravel app shipped as a native desktop app.** [NativePHP](https://nativephp.com) bundles PHP and the app into Electron, so the same codebase renders an Inertia + React UI, owns the window, the menu bar icon and the global shortcut ([`app/Native/QuickLog.php`](app/Native/QuickLog.php)).
+- **One screen, two shells.** The quick log page runs both in the menu bar window and as an installable PWA on the phone: a `launchd` agent serves it over the tailnet against the desktop app's SQLite file and storage, and the page switches to touch-sized controls when it is not inside the native app.
 - **Metadata lookup behind a single contract.** Each source implements [`MetadataProvider`](app/Services/BookLookup/MetadataProvider.php). [`BookLookupService`](app/Services/BookLookupService.php) asks Open Library first and lets BrasilAPI and Google Books fill gaps or act as fallbacks, caching the results, so a new source is one class.
 - **Explainable suggestions.** [`RecommendationService`](app/Services/RecommendationService.php) starts from your highly rated books, looks for other works by the same authors and subjects, and ranks candidates through a pluggable [`CandidateRanker`](app/Services/Recommendation/CandidateRanker.php). Every suggestion carries the reason it was made, and searches are time-boxed and cached.
 - **Thin controllers, rich services.** Business rules live in services, and presenters shape the props each Inertia page receives.
@@ -66,6 +68,7 @@
 | --------- | ---------------------------------------- |
 | Backend   | Laravel 13, PHP 8.4                      |
 | Desktop   | NativePHP Desktop 2 (Electron)           |
+| Mobile    | PWA served over Tailscale                |
 | Database  | SQLite                                   |
 | Front end | Inertia 3, React 19, TypeScript          |
 | Styling   | Tailwind CSS 4                           |
@@ -80,6 +83,8 @@ The app is not notarized by Apple, so macOS blocks the first launch. Open **Syst
 ```bash
 xattr -dr com.apple.quarantine /Applications/releia.app
 ```
+
+To log sessions from your phone, follow [docs/mobile-quick-log.md](docs/mobile-quick-log.md).
 
 ## Development
 
