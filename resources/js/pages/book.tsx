@@ -1,11 +1,12 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { BookCover } from '@/components/book-cover';
 import { BookEditor } from '@/components/book-editor';
 import { BookNotes } from '@/components/book-notes';
 import { cardClass } from '@/components/card';
-import { Button, IconButton, Textarea } from '@/components/form';
+import { Button, Textarea } from '@/components/form';
+import { MenuItem, MenuSeparator, MoreMenu } from '@/components/menu';
 import { DisplayTitle, SectionTitle } from '@/components/page-header';
 import { QueueButton } from '@/components/queue-button';
 import {
@@ -300,7 +301,7 @@ export default function Book({
                                 className="h-12"
                             />
                         )}
-                        <MoreMenu>
+                        <MoreMenu triggerClassName="size-12 text-lg text-text inset-ring inset-ring-strong">
                             {(closeMenu) => (
                                 <>
                                     <MenuItem
@@ -347,7 +348,7 @@ export default function Book({
                                             {t('Desmarcar como lido…')}
                                         </MenuItem>
                                     )}
-                                    <div className="mx-2 my-1 h-px bg-strong" />
+                                    <MenuSeparator />
                                     <MenuItem
                                         danger
                                         onClick={() => {
@@ -687,97 +688,6 @@ function Description({ text }: { text: string }) {
                 {open ? t('− sinopse curta') : t('+ sinopse completa')}
             </button>
         </section>
-    );
-}
-
-function MoreMenu({
-    children,
-}: {
-    children: (close: () => void) => ReactNode;
-}) {
-    const { t } = useTranslation();
-    const [open, setOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (!open) {
-            return;
-        }
-
-        function onMouseDown(event: MouseEvent) {
-            if (!ref.current?.contains(event.target as Node)) {
-                setOpen(false);
-            }
-        }
-
-        function onKeyDown(event: KeyboardEvent) {
-            if (event.key === 'Escape') {
-                setOpen(false);
-            }
-        }
-
-        window.addEventListener('mousedown', onMouseDown);
-        window.addEventListener('keydown', onKeyDown);
-
-        return () => {
-            window.removeEventListener('mousedown', onMouseDown);
-            window.removeEventListener('keydown', onKeyDown);
-        };
-    }, [open]);
-
-    return (
-        <div ref={ref} className="relative">
-            <IconButton
-                label={t('Mais ações')}
-                aria-haspopup="menu"
-                aria-expanded={open}
-                onClick={() => setOpen(!open)}
-                className="size-12 text-lg text-text inset-ring inset-ring-strong"
-            >
-                ⋯
-            </IconButton>
-            {open && (
-                <div
-                    role="menu"
-                    className="absolute top-14.5 right-0 z-30 flex w-67.5 flex-col rounded-[16px] bg-elevated p-1.5 shadow-float inset-ring inset-ring-strong"
-                >
-                    {children(() => setOpen(false))}
-                </div>
-            )}
-        </div>
-    );
-}
-
-function MenuItem({
-    children,
-    onClick,
-    hint,
-    danger = false,
-}: {
-    children: string;
-    onClick: () => void;
-    hint?: string;
-    danger?: boolean;
-}) {
-    return (
-        <button
-            type="button"
-            role="menuitem"
-            onClick={onClick}
-            className={cn(
-                'flex h-11 items-center justify-between rounded-[10px] px-3 text-left text-sm font-semibold',
-                danger
-                    ? 'text-danger hover:bg-danger-fill/15'
-                    : 'text-text hover:bg-active',
-            )}
-        >
-            {children}
-            {hint && (
-                <span className="font-mono text-[11px] font-normal text-muted">
-                    {hint}
-                </span>
-            )}
-        </button>
     );
 }
 
