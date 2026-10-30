@@ -24,6 +24,7 @@ class ShoppingItemFactory extends Factory
             'cover_url' => null,
             'url' => null,
             'store_type' => fake()->randomElement(StoreType::cases()),
+            'is_priority' => false,
             'estimated_price_cents' => fake()->numberBetween(1000, 9000),
             'price_checked_at' => null,
             'bought_at' => null,

@@ -53,6 +53,7 @@ final class QueuePresenter
             'saved_link' => $item->url,
             'store_type' => $item->store_type->value,
             'store_label' => $item->store_type->label(),
+            'is_priority' => $item->is_priority,
             'estimated_price_cents' => $item->estimated_price_cents,
             'price_checked_on' => $item->price_checked_at?->toDateString(),
             // Price noted more than PRICE_STALE_DAYS ago: worth checking again.

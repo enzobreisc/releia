@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $cover_path
  * @property string|null $url
  * @property StoreType $store_type
+ * @property bool $is_priority
  * @property int|null $estimated_price_cents
  * @property Carbon|null $price_checked_at
  * @property Carbon|null $bought_at
@@ -31,7 +32,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read Book|null $book
  */
-#[Fillable(['book_id', 'title', 'author', 'isbn', 'cover_url', 'cover_path', 'url', 'store_type', 'estimated_price_cents', 'price_checked_at', 'bought_at'])]
+#[Fillable(['book_id', 'title', 'author', 'isbn', 'cover_url', 'cover_path', 'url', 'store_type', 'is_priority', 'estimated_price_cents', 'price_checked_at', 'bought_at'])]
 class ShoppingItem extends Model
 {
     /** @use HasFactory<ShoppingItemFactory> */
@@ -44,6 +45,7 @@ class ShoppingItem extends Model
     {
         return [
             'store_type' => StoreType::class,
+            'is_priority' => 'boolean',
             'estimated_price_cents' => 'integer',
             'price_checked_at' => 'datetime',
             'bought_at' => 'datetime',

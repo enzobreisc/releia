@@ -535,14 +535,13 @@ test('preço digitado não é trocado pela busca automática', function () {
     Http::assertNothingSent();
 });
 
-test('a lista filtra por situação e busca, e ordena por preço', function () {
+test('the list searches and sorts by price, keeping bought items last', function () {
     ShoppingItem::factory()->create(['title' => 'Alfa', 'estimated_price_cents' => 3000]);
     ShoppingItem::factory()->create(['title' => 'Beta', 'estimated_price_cents' => 1000]);
-    ShoppingItem::factory()->create(['title' => 'Gama', 'bought_at' => now()]);
+    ShoppingItem::factory()->create(['title' => 'Gama', 'estimated_price_cents' => 500, 'bought_at' => now()]);
 
     $titles = fn (array $query) => collect($this->get(route('shopping.index', $query))->viewData('page')['props']['shopping'])->pluck('title')->all();
 
-    expect($titles(['status' => 'pending', 'sort' => 'price_asc']))->toBe(['Beta', 'Alfa'])
-        ->and($titles(['status' => 'bought']))->toBe(['Gama'])
+    expect($titles(['sort' => 'price_asc']))->toBe(['Beta', 'Alfa', 'Gama'])
         ->and($titles(['q' => 'alf']))->toBe(['Alfa']);
 });

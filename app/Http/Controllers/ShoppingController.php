@@ -7,6 +7,7 @@ use App\Http\Presenters\BookPresenter;
 use App\Http\Presenters\QueuePresenter;
 use App\Http\Requests\ShoppingItemRequest;
 use App\Http\Requests\ShoppingPriceRequest;
+use App\Http\Requests\ShoppingSelectionRequest;
 use App\Models\Book;
 use App\Models\QueueItem;
 use App\Models\ShoppingItem;
@@ -18,6 +19,7 @@ use App\Support\Money;
 use App\Support\Ordinal;
 use App\Support\StoreLinks;
 use App\Support\Toast;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -53,20 +55,17 @@ class ShoppingController extends Controller
     public function index(Request $request, BookLookupService $lookup): Response
     {
         $store = StoreType::tryFrom($request->string('store')->toString());
-
-        $status = $request->string('status')->toString();
         $search = $request->string('q')->trim()->toString();
         $sort = $request->string('sort')->toString();
 
         $shopping = ShoppingItem::query()
             ->when($store, fn ($query, StoreType $store) => $query->where('store_type', $store->value))
-            ->when($status === 'pending', fn ($query) => $query->whereNull('bought_at'))
-            ->when($status === 'bought', fn ($query) => $query->whereNotNull('bought_at'))
             ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
                 $like = '%'.addcslashes($search, '%_\\').'%';
                 $query->where('title', 'like', $like)->orWhere('author', 'like', $like);
             }))
             ->orderByRaw('bought_at IS NOT NULL')
+            ->orderByDesc('is_priority')
             ->when($sort === 'price_asc', fn ($query) => $query->orderByRaw('estimated_price_cents IS NULL')->orderBy('estimated_price_cents'))
             ->when($sort === 'price_desc', fn ($query) => $query->orderByRaw('estimated_price_cents IS NULL')->orderByDesc('estimated_price_cents'))
             ->when($sort === 'title', fn ($query) => $query->orderBy('title'))
@@ -92,7 +91,6 @@ class ShoppingController extends Controller
             ], StoreType::options()),
             'filters' => [
                 'store' => $store?->value,
-                'status' => in_array($status, ['pending', 'bought'], true) ? $status : null,
                 'q' => $search !== '' ? $search : null,
                 'sort' => in_array($sort, ['price_asc', 'price_desc', 'title', 'recent'], true) ? $sort : null,
             ],
@@ -229,6 +227,64 @@ class ShoppingController extends Controller
         return back();
     }
 
+    /** Buys the selected items at once, following the saved queue preference, with a single undo. */
+    public function buyMany(ShoppingSelectionRequest $request, UndoService $undo): RedirectResponse
+    {
+        $items = $request->shoppingItems()->whereNull('bought_at')->values();
+
+        if ($items->isEmpty()) {
+            return back();
+        }
+
+        $queue = ShoppingService::queueOnBuy();
+        $snapshot = $undo->capture([...$this->itemScopes($items), UndoService::scope('queue_items')]);
+
+        $this->shopping->buyMany($items, $queue);
+
+        // Undo restores the items as not bought, but keeps the links to the books already created.
+        foreach ($items as $item) {
+            $snapshot = $undo->override($snapshot, 'shopping_items', ['book_id' => $item->book_id], ['id' => $item->id]);
+        }
+
+        Toast::success(
+            $items->count() === 1 ? __('Comprado') : __(':count livros comprados', ['count' => $items->count()]),
+            $items->pluck('title')->implode(', ').' · '.($queue ? __('em quero ler e na fila') : __('em quero ler')),
+            null,
+            $undo->remember($snapshot),
+        );
+
+        return back();
+    }
+
+    public function destroyMany(ShoppingSelectionRequest $request, UndoService $undo): RedirectResponse
+    {
+        $items = $request->shoppingItems();
+        $snapshot = $undo->capture($this->itemScopes($items));
+
+        $items->each->delete();
+
+        Toast::success(
+            $items->count() === 1 ? __('Item excluído') : __(':count itens excluídos', ['count' => $items->count()]),
+            $items->pluck('title')->implode(', '),
+            null,
+            $undo->remember($snapshot),
+        );
+
+        return back();
+    }
+
+    /** Marks the item as one to buy now, or moves it back to the wishlist. */
+    public function priority(Request $request, ShoppingItem $shoppingItem, UndoService $undo): RedirectResponse
+    {
+        $data = $request->validate(['is_priority' => ['required', 'boolean']]);
+
+        $shoppingItem->update(['is_priority' => (bool) $data['is_priority']]);
+        // No notice here, so the previous undo must end: its snapshot could revert the star.
+        $undo->forget();
+
+        return back();
+    }
+
     /** Unmarks the purchase. */
     public function unbuy(ShoppingItem $shoppingItem, UndoService $undo): RedirectResponse
     {
@@ -259,6 +315,15 @@ class ShoppingController extends Controller
         ShoppingService::setQueueOnBuy((bool) $data['queue_on_buy']);
 
         return back();
+    }
+
+    /**
+     * @param  Collection<int, ShoppingItem>  $items
+     * @return list<array{table: string, where: array<string, mixed>, key: string|null}>
+     */
+    private function itemScopes(Collection $items): array
+    {
+        return array_values($items->map(fn (ShoppingItem $item) => UndoService::scope('shopping_items', ['id' => $item->id]))->all());
     }
 
     private function priceSuffix(ShoppingItem $item): string

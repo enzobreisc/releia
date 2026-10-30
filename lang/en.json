@@ -828,5 +828,9 @@
     "deixado de lado": "set aside",
     "até hoje": "up to today",
     "quando tudo começou": "when it all began",
-    "parou em :month": "stopped in :month"
+    "parou em :month": "stopped in :month",
+    ":count livros comprados": ":count books bought",
+    "em quero ler e na fila": "in want to read and in the queue",
+    "em quero ler": "in want to read",
+    ":count itens excluídos": ":count items deleted"
 }

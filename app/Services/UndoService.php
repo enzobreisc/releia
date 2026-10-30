@@ -63,17 +63,19 @@ class UndoService
     }
 
     /**
-     * Adjusts columns of a table's rows in the snapshot. Used when undo must keep
-     * something the action created (e.g. the link between a shopping item and its book).
+     * Adjusts columns of a table's rows in the snapshot, optionally only in the scope
+     * captured with `where`. Used when undo must keep something the action created
+     * (e.g. the link between a shopping item and its book).
      *
      * @param  Snapshot  $snapshot
      * @param  array<string, mixed>  $values
+     * @param  array<string, mixed>  $where
      * @return Snapshot
      */
-    public function override(array $snapshot, string $table, array $values): array
+    public function override(array $snapshot, string $table, array $values, array $where = []): array
     {
         foreach ($snapshot as $index => $part) {
-            if ($part['table'] === $table) {
+            if ($part['table'] === $table && ($where === [] || $part['where'] === $where)) {
                 $snapshot[$index]['rows'] = array_map(fn (array $row): array => [...$row, ...$values], $part['rows']);
             }
         }

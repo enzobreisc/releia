@@ -134,6 +134,16 @@ class ShoppingService
     }
 
     /**
+     * @param  iterable<ShoppingItem>  $items
+     */
+    public function buyMany(iterable $items, bool $addToQueue): void
+    {
+        foreach ($items as $item) {
+            $this->buy($item, $addToQueue);
+        }
+    }
+
+    /**
      * Unmarks the purchase. The book stays in the library (and on the item, so a new
      * purchase reuses it); if it entered the queue because of the purchase and has not
      * been started, it leaves the queue.

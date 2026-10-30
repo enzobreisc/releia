@@ -94,6 +94,8 @@ Route::delete('/queue/{queueItem}', [QueueController::class, 'destroy'])->whereN
 Route::delete('/queue/books/{book}', [QueueController::class, 'destroyBook'])->whereNumber('book')->name('queue.books.destroy');
 Route::get('/shopping', [ShoppingController::class, 'index'])->name('shopping.index');
 Route::post('/shopping', [ShoppingController::class, 'store'])->name('shopping.store');
+Route::post('/shopping/buy', [ShoppingController::class, 'buyMany'])->name('shopping.buy-many');
+Route::delete('/shopping', [ShoppingController::class, 'destroyMany'])->name('shopping.destroy-many');
 Route::patch('/shopping/{shoppingItem}', [ShoppingController::class, 'update'])->whereNumber('shoppingItem')->name('shopping.update');
 Route::get('/shopping/{shoppingItem}/cover', ShoppingCoverController::class)->whereNumber('shoppingItem')->name('shopping.cover');
 Route::post('/shopping/{shoppingItem}/price', [ShoppingController::class, 'lookupPrice'])->whereNumber('shoppingItem')->name('shopping.price');
@@ -102,6 +104,7 @@ Route::delete('/shopping/{shoppingItem}', [ShoppingController::class, 'destroy']
 Route::post('/library/{book}/shopping', [ShoppingController::class, 'fromBook'])->whereNumber('book')->name('books.shopping');
 Route::post('/shopping/{shoppingItem}/buy', [ShoppingController::class, 'buy'])->whereNumber('shoppingItem')->name('shopping.buy');
 Route::post('/shopping/{shoppingItem}/unbuy', [ShoppingController::class, 'unbuy'])->whereNumber('shoppingItem')->name('shopping.unbuy');
+Route::patch('/shopping/{shoppingItem}/priority', [ShoppingController::class, 'priority'])->whereNumber('shoppingItem')->name('shopping.priority');
 Route::put('/shopping/preference', [ShoppingController::class, 'preference'])->name('shopping.preference');
 
 // Fase 5
