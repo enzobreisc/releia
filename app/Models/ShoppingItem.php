@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Livro que você pretende comprar. Ao comprar, vira um livro na biblioteca.
+ * A book you plan to buy. Once bought, it becomes a book in the library.
  *
  * @property int $id
  * @property int|null $book_id
@@ -59,8 +59,8 @@ class ShoppingItem extends Model
     }
 
     /**
-     * Onde comprar: a loja pedida; sem pedido, o link colado ou, sem ele,
-     * a busca na Amazon pelo ISBN ou título.
+     * Where to buy: the requested store; otherwise the pasted link or, without one,
+     * the Amazon search by ISBN or title.
      */
     public function shopUrl(?string $store = null): string
     {

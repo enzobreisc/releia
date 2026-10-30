@@ -32,7 +32,7 @@ final class QueuePresenter
     }
 
     /**
-     * @param  Collection<int, int>  $queuedBookIds  livros que estão na fila agora
+     * @param  Collection<int, int>  $queuedBookIds  books currently in the queue
      * @return array<string, mixed>
      */
     public static function shoppingItem(ShoppingItem $item, Collection $queuedBookIds): array

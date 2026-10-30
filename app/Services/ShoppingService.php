@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-/** Lista de compras. Comprar um item cria o livro na biblioteca, na estante "quero ler". */
+/** Shopping list. Buying an item creates the book in the library, on the "want to read" shelf. */
 class ShoppingService
 {
     private const QUEUE_ON_BUY = 'shopping_queue_on_buy';
@@ -36,8 +36,8 @@ class ShoppingService
     {
         $item = ShoppingItem::create($data);
 
-        // Sem preço digitado, tenta um preço de referência (menor da Estante Virtual).
-        // É só um ponto de partida: pode ser de usado, e o campo continua editável.
+        // Without a typed price, tries a reference price (the lowest on Estante Virtual).
+        // It is only a starting point: it may be a used copy, and the field stays editable.
         if (! isset($data['estimated_price_cents'])) {
             $this->lookupPrice($item);
         }
@@ -46,9 +46,9 @@ class ShoppingService
     }
 
     /**
-     * Tira um livro de "quero ler" e põe na lista de compras. O livro sai da biblioteca
-     * (a capa guardada vai junto); ao comprar, volta a ser cadastrado pelo ISBN.
-     * Só vale para quem ainda não começou: com sessões, notas ou outra leitura, devolve null.
+     * Takes a book off "want to read" and puts it on the shopping list. The book leaves the
+     * library (its stored cover goes along); once bought, it is added again by ISBN.
+     * Only for books not started yet: with sessions, notes or another reading, returns null.
      */
     public function fromWishlist(Book $book): ?ShoppingItem
     {
@@ -83,7 +83,7 @@ class ShoppingService
         });
     }
 
-    /** Preço anotado de novo: guarda o valor e a data em que você conferiu. */
+    /** Price noted again: keeps the amount and the date it was checked. */
     public function updatePrice(ShoppingItem $item, ?int $cents): void
     {
         $item->forceFill([
@@ -93,8 +93,8 @@ class ShoppingService
     }
 
     /**
-     * Busca o menor preço da edição (pelo ISBN) e guarda como preço do item.
-     * Devolve o valor em centavos, ou null se não achou (o preço anotado fica como está).
+     * Looks up the edition's lowest price (by ISBN) and keeps it as the item's price.
+     * Returns the amount in cents, or null if not found (the noted price stays as is).
      */
     public function lookupPrice(ShoppingItem $item): ?int
     {
@@ -112,8 +112,8 @@ class ShoppingService
     }
 
     /**
-     * Marca como comprado. Se o item ainda não tem livro, cria (ou reaproveita, se o
-     * ISBN já está na biblioteca). Só o item fica marcado; o livro entra na fila se pedido.
+     * Marks as bought. If the item has no book yet, creates one (or reuses it, if the
+     * ISBN is already in the library). The book enters the queue when asked to.
      */
     public function buy(ShoppingItem $item, bool $addToQueue): void
     {
@@ -134,9 +134,9 @@ class ShoppingService
     }
 
     /**
-     * Desmarca a compra. O livro continua na biblioteca (e no item, para uma nova
-     * compra reaproveitá-lo); se ele entrou na fila por causa da compra e ainda não
-     * começou, sai da fila.
+     * Unmarks the purchase. The book stays in the library (and on the item, so a new
+     * purchase reuses it); if it entered the queue because of the purchase and has not
+     * been started, it leaves the queue.
      */
     public function unbuy(ShoppingItem $item): void
     {
@@ -164,7 +164,7 @@ class ShoppingService
         });
     }
 
-    /** Preferência "ao comprar, pôr na fila". Padrão: sim. */
+    /** "On buy, add to the queue" preference. Default: yes. */
     public static function queueOnBuy(): bool
     {
         return (bool) Setting::get(self::QUEUE_ON_BUY, true);
@@ -175,7 +175,7 @@ class ShoppingService
         Setting::put(self::QUEUE_ON_BUY, $value);
     }
 
-    /** Devolve ao livro a capa guardada no item, se o livro ainda não tem uma. */
+    /** Gives the book the cover stored on the item, if the book has none yet. */
     private function restoreCover(ShoppingItem $item, Book $book): void
     {
         if ($item->cover_path === null) {
@@ -195,8 +195,8 @@ class ShoppingService
     }
 
     /**
-     * Com ISBN, tenta os metadados completos antes de cadastrar. O ISBN é único
-     * na biblioteca, então um livro já cadastrado é reaproveitado.
+     * With an ISBN, tries the full metadata before adding. The ISBN is unique in
+     * the library, so a book already added is reused.
      */
     private function bookFor(ShoppingItem $item): Book
     {
@@ -210,7 +210,7 @@ class ShoppingService
             $candidate = $this->lookup->findByIsbn($item->isbn);
 
             if ($candidate instanceof BookCandidate) {
-                // Os metadados podem trazer outro ISBN-13 do mesmo livro; checa de novo para não duplicar.
+                // The metadata may bring another ISBN-13 of the same book; check again to avoid duplicates.
                 $existing = $candidate->isbn13 === null
                     ? null
                     : Book::query()->where('isbn_13', $candidate->isbn13)->first();

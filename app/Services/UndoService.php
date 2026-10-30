@@ -7,16 +7,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Desfazer da última ação, por até um minuto.
+ * Undo of the last action, for up to a minute.
  *
- * Antes de mudar algo, a ação tira uma foto das linhas que vai tocar (capture).
- * Desfazer devolve essas linhas exatamente como estavam: as que sumiram voltam
- * com o mesmo id, as alteradas voltam aos valores antigos e as criadas depois
- * da foto são apagadas. A foto fica na sessão, que é local ao app.
+ * Before changing anything, the action takes a snapshot of the rows it will touch (capture).
+ * Undoing puts those rows back exactly as they were: deleted ones return with the same
+ * id, changed ones get their old values back and rows created after the snapshot are
+ * deleted. The snapshot lives in the session, which is local to the app.
  *
- * Só a última ação se desfaz: como a foto cobre tabelas inteiras (a fila), voltar
- * uma foto antiga desfaria em silêncio o que veio depois. Cada ação nova substitui
- * a anterior, e um token velho recebe "não dá mais para desfazer".
+ * Only the last action can be undone: since a snapshot covers whole tables (the queue),
+ * restoring an old one would silently undo what came after. Each new action replaces the
+ * previous one, and a stale token gets "can no longer undo".
  *
  * @phpstan-type Scope array{table: string, where: array<string, mixed>, key: string|null}
  * @phpstan-type Snapshot list<array{table: string, where: array<string, mixed>, key: string|null, rows: list<array<string, mixed>>}>
@@ -28,8 +28,8 @@ class UndoService
     public const SESSION_KEY = 'undo';
 
     /**
-     * Linhas de uma tabela que a ação pode mudar. Sem `where`, a tabela inteira
-     * (só para tabelas pequenas, como a fila). Tabelas sem id (pivôs) usam key null.
+     * Rows of a table the action may change. Without `where`, the whole table
+     * (only for small tables, like the queue). Tables without an id (pivots) use a null key.
      *
      * @param  array<string, mixed>  $where
      * @return Scope
@@ -63,8 +63,8 @@ class UndoService
     }
 
     /**
-     * Ajusta colunas das linhas de uma tabela na foto. Usado quando o desfazer deve
-     * manter algo que a ação criou (ex.: o vínculo do item de compra com o livro).
+     * Adjusts columns of a table's rows in the snapshot. Used when undo must keep
+     * something the action created (e.g. the link between a shopping item and its book).
      *
      * @param  Snapshot  $snapshot
      * @param  array<string, mixed>  $values
@@ -82,7 +82,7 @@ class UndoService
     }
 
     /**
-     * Guarda a foto e devolve o token que o aviso usa para desfazer.
+     * Stores the snapshot and returns the token the notice uses to undo.
      *
      * @param  Snapshot  $snapshot
      */
@@ -99,14 +99,14 @@ class UndoService
         return $token;
     }
 
-    /** Uma ação nova sem desfazer também encerra o desfazer da anterior. */
+    /** A new action without undo also ends the undo of the previous one. */
     public function forget(): void
     {
         session()->forget(self::SESSION_KEY);
     }
 
     /**
-     * Devolve as linhas da foto. False se o token não é o da última ação ou passou do prazo.
+     * Restores the snapshot's rows. False if the token is not the last action's or has expired.
      */
     public function undo(string $token): bool
     {
@@ -141,7 +141,7 @@ class UndoService
     {
         $query = fn () => DB::table($part['table'])->where($part['where']);
 
-        // Pivô: apaga o que existe agora e põe de volta as linhas da foto.
+        // Pivot: deletes what exists now and puts the snapshot's rows back.
         if ($part['key'] === null) {
             $query()->delete();
 
@@ -155,7 +155,7 @@ class UndoService
         $key = $part['key'];
         $kept = array_map(fn (array $row) => $row[$key], $part['rows']);
 
-        // Linhas criadas depois da foto. Apagar só essas evita que o cascade leve junto as filhas das outras.
+        // Rows created after the snapshot. Deleting only those keeps the cascade from taking the others' children.
         $query()->whereNotIn($key, $kept)->delete();
 
         foreach ($part['rows'] as $row) {

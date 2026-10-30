@@ -21,7 +21,7 @@ beforeEach(function () {
     Carbon::setTestNow('2026-10-14 22:30:00');
 });
 
-/** Livro na estante "quero ler", como o cadastro faz. */
+/** Book on the "want to read" shelf, as adding one does. */
 function wantToRead(array $attributes = []): Book
 {
     $book = Book::factory()->create($attributes);
@@ -30,7 +30,7 @@ function wantToRead(array $attributes = []): Book
     return $book;
 }
 
-/** Fakes das fontes externas para a compra de um livro com ISBN. */
+/** Fakes the external sources for buying a book with an ISBN. */
 function fakeMetadataSources(): void
 {
     Http::fake([
@@ -89,10 +89,10 @@ test('o ritmo usa a média dos dias lidos nos últimos 30 dias, ou o padrão sem
     ReadingSession::factory()->for($reading)->create(['read_on' => '2026-10-10', 'page_from' => 1, 'page_to' => 30]);
     ReadingSession::factory()->for($reading)->create(['read_on' => '2026-10-10', 'page_from' => 31, 'page_to' => 40]);
     ReadingSession::factory()->for($reading)->create(['read_on' => '2026-10-12', 'page_from' => 41, 'page_to' => 50]);
-    // Fora da janela de 30 dias: não entra no ritmo.
+    // Outside the 30-day window: does not count toward the pace.
     ReadingSession::factory()->for($reading)->create(['read_on' => '2026-08-01', 'page_from' => 1, 'page_to' => 500]);
 
-    // Dois dias lidos: 40 páginas no dia 10 e 10 no dia 12, média 25.
+    // Two reading days: 40 pages on the 10th and 10 on the 12th, average 25.
     expect($queue->pace(Carbon::today()))->toBe(['pages_per_day' => 25.0, 'from_sessions' => true]);
 });
 
@@ -162,7 +162,7 @@ test('comprar um item sem ISBN cria o livro na estante quero ler e põe na fila'
         ->and($item->bought_at)->not->toBeNull()
         ->and(QueueItem::query()->where('book_id', $book->id)->exists())->toBeTrue();
 
-    // Comprar de novo não duplica nada.
+    // Buying again duplicates nothing.
     $this->post(route('shopping.buy', $item), ['queue' => true]);
 
     expect(Book::count())->toBe(1)
@@ -391,7 +391,7 @@ test('cada livro da fila tem a data prevista de término, somando os anteriores'
     $queue->add(wantToRead(['pages' => 200]));
     $queue->add(wantToRead(['pages' => 100]));
 
-    // Ritmo padrão de 20 págs/dia: 10 dias e depois mais 5.
+    // Default pace of 20 pages/day: 10 days, then 5 more.
     $this->get(route('queue.index'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('queue.0.finishes_on', '2026-10-24')
@@ -442,7 +442,7 @@ test('começar a ler um livro tira ele da fila e reordena o resto', function () 
         ->and(QueueItem::sole()->position)->toBe(1);
 });
 
-/** Página de busca da Estante Virtual com o estado embutido, como no site real. */
+/** Estante Virtual search page with the embedded state, as on the real site. */
 function estanteVirtualPage(array $products): string
 {
     $state = json_encode(['Newsletter' => [], 'SearchPage' => ['parentSkus' => $products]]);

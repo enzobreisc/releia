@@ -9,7 +9,7 @@ export type QueueEntry = {
     position: number;
     pages: number | null;
     estimated_days: number | null;
-    /** Previsão de término lendo na ordem da fila. */
+    /** Expected finish date, reading in queue order. */
     finishes_on: string | null;
 };
 
@@ -19,12 +19,12 @@ export type ShoppingEntry = {
     author: string;
     isbn: string | null;
     cover_url: string | null;
-    /** Link colado ou a busca na Amazon pelo ISBN/título. */
+    /** Pasted link, or the Amazon search by ISBN/title. */
     link: string;
     link_label: string;
-    /** Busca pronta em cada loja (pelo ISBN, ou título e autor). */
+    /** Ready-made search in each store (by ISBN, or title and author). */
     stores: { key: string; label: string; url: string }[];
-    /** Link colado à mão, se houver. */
+    /** Link pasted by hand, if any. */
     saved_link: string | null;
     store_type: string;
     store_label: string;
@@ -37,7 +37,7 @@ export type ShoppingEntry = {
     queued: boolean;
 };
 
-/** Busca de correspondência da lista de compras (recarga parcial). */
+/** Shopping list match search (partial reload). */
 export type ShoppingMatches = {
     query: string;
     isbn_from_url: string | null;
@@ -47,11 +47,11 @@ export type ShoppingMatches = {
 export type Pace = {
     pages_per_day: number;
     from_sessions: boolean;
-    /** Dias para ler a fila inteira; null se algum livro não tem páginas. */
+    /** Days to read the whole queue; null if any book has no page count. */
     queue_days: number | null;
 };
 
-/** Loja da lista de compras, com quantos itens faltam comprar nela. */
+/** Shopping list store, with how many items are left to buy there. */
 export type StoreOption = {
     value: string;
     label: string;
