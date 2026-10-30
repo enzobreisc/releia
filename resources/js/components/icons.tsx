@@ -231,3 +231,12 @@ export function TimelineIcon(props: IconProps) {
         </LineIcon>
     );
 }
+
+/** Five-point star; pass `fill="currentColor"` for the filled state. */
+export function StarIcon(props: IconProps) {
+    return (
+        <LineIcon {...props}>
+            <path d="m8 1.8 1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6z" />
+        </LineIcon>
+    );
+}

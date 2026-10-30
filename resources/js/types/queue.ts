@@ -28,6 +28,8 @@ export type ShoppingEntry = {
     saved_link: string | null;
     store_type: string;
     store_label: string;
+    /** Marked to buy now, as opposed to "someday" on the wishlist. */
+    is_priority: boolean;
     estimated_price_cents: number | null;
     price_checked_on: string | null;
     price_stale: boolean;
