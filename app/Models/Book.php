@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BookSource;
+use App\Support\BookIdentity;
 use Database\Factories\BookFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -78,7 +79,7 @@ class Book extends Model
     }
 
     /**
-     * A leitura mais recente define a estante do livro.
+     * The most recent reading decides the book's shelf.
      *
      * @return HasOne<Reading, $this>
      */
@@ -88,23 +89,28 @@ class Book extends Model
     }
 
     /**
-     * Troca os autores mantendo a ordem informada.
+     * Replaces the authors keeping the given order. A name that differs from an existing
+     * author only by accents or case reuses that author ("Dostoievski" is "Dostoiévski").
      *
      * @param  list<string>  $names
      */
     public function syncAuthors(array $names): void
     {
+        $authorsByKey = Author::query()->get()->keyBy(fn (Author $author) => BookIdentity::normalize($author->name));
         $ids = [];
 
         foreach (array_values(array_unique(array_filter(array_map('trim', $names)))) as $position => $name) {
-            $ids[Author::firstOrCreate(['name' => $name])->id] = ['position' => $position];
+            $key = BookIdentity::normalize($name);
+            $author = $authorsByKey->get($key) ?? Author::create(['name' => $name]);
+            $authorsByKey->put($key, $author);
+            $ids[$author->id] = ['position' => $position];
         }
 
         $this->authors()->sync($ids);
         $this->unsetRelation('authors');
     }
 
-    /** Recalcula o texto de busca a partir do título, dos autores e dos ISBNs. */
+    /** Rebuilds the search text from the title, authors and ISBNs. */
     public function refreshSearchText(): void
     {
         $this->search_text = self::normalizeSearch(implode(' ', array_filter([

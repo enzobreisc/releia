@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ReadingStatus;
+use App\Models\Author;
 use App\Models\Book;
 use App\Models\Bookshelf;
 use App\Models\Reading;
@@ -292,6 +293,16 @@ test('a biblioteca envia as prateleiras e os dados da lombada', function () {
         ->where('books.0.author', 'Clarice Lispector')
         ->where('books.0.pages', 120)
         ->where('books.0.bookshelf_id', $shelf->id));
+});
+
+test('autor escrito com outro acento ou caixa reaproveita o autor existente', function () {
+    $existing = Book::factory()->withAuthors(['Fiódor Dostoiévski'])->create()->authors->sole();
+
+    $this->post(route('books.store'), bookPayload(['title' => 'Noites Brancas', 'isbn_13' => null, 'authors' => 'fiodor dostoievski']))
+        ->assertRedirect();
+
+    expect(Author::query()->count())->toBe(1)
+        ->and(Book::query()->where('title', 'Noites Brancas')->sole()->authors->sole()->id)->toBe($existing->id);
 });
 
 test('editar tirando um autor remove só ele', function () {
