@@ -18,13 +18,12 @@ import {
 } from '@/routes/queue';
 import { start as startBook } from '@/routes/books';
 import { index as shoppingIndex } from '@/routes/shopping';
-import type { NoteBook } from '@/types/notes';
-import type { Pace, QueueEntry } from '@/types/queue';
+import type { Pace, QueueCandidate, QueueEntry } from '@/types/queue';
 
 type QueueProps = {
     queue: QueueEntry[];
     pace: Pace;
-    available: NoteBook[];
+    available: QueueCandidate[];
     shopping_pending: number;
 };
 
@@ -149,13 +148,17 @@ function QueueList({
     onCommit,
 }: {
     items: QueueEntry[];
-    available: NoteBook[];
+    available: QueueCandidate[];
     onCommit: (next: QueueEntry[]) => void;
 }) {
     const translator = useTranslation();
     const { t, ordinal } = translator;
     const [dragging, setDragging] = useState<number | null>(null);
-    const [addId, setAddId] = useState(String(available[0]?.id ?? ''));
+    const wantToRead = available.filter((book) => !book.is_reread);
+    const rereads = available.filter((book) => book.is_reread);
+    const [addId, setAddId] = useState(
+        String((wantToRead[0] ?? rereads[0])?.id ?? ''),
+    );
     const upcoming = items.slice(1);
 
     function move(index: number, delta: number) {
@@ -285,16 +288,19 @@ function QueueList({
                     }}
                 >
                     <label className="flex min-w-0 flex-[1_1_320px] flex-col gap-1.5 text-xs font-bold text-muted">
-                        {t('Adicionar da biblioteca (quero ler)')}
+                        {t('Adicionar da biblioteca')}
                         <Select
                             value={addId}
                             onChange={(event) => setAddId(event.target.value)}
                         >
-                            {available.map((book) => (
-                                <option key={book.id} value={book.id}>
-                                    {book.title}
-                                </option>
-                            ))}
+                            <CandidateGroup
+                                label={t('Quero ler')}
+                                books={wantToRead}
+                            />
+                            <CandidateGroup
+                                label={t('Quero reler')}
+                                books={rereads}
+                            />
                         </Select>
                     </label>
                     <Button type="submit" variant="ghost">
@@ -303,6 +309,28 @@ function QueueList({
                 </form>
             )}
         </section>
+    );
+}
+
+function CandidateGroup({
+    label,
+    books,
+}: {
+    label: string;
+    books: QueueCandidate[];
+}) {
+    if (books.length === 0) {
+        return null;
+    }
+
+    return (
+        <optgroup label={label}>
+            {books.map((book) => (
+                <option key={book.id} value={book.id}>
+                    {book.title}
+                </option>
+            ))}
+        </optgroup>
     );
 }
 

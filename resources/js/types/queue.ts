@@ -13,6 +13,13 @@ export type QueueEntry = {
     finishes_on: string | null;
 };
 
+export type QueueCandidate = {
+    id: number;
+    title: string;
+    /** Already finished: joining the queue starts a reread. */
+    is_reread: boolean;
+};
+
 export type ShoppingEntry = {
     id: number;
     title: string;

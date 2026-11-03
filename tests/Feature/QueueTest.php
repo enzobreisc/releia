@@ -240,14 +240,41 @@ test('a fila traz itens e estimativas; as compras, a lista e o total só dos pen
         ->assertInertia(fn (Assert $page) => $page->has('shopping', 1)->where('filters.store', 'online'));
 });
 
-test('a fila não oferece livro que já está nela nem livro que não é quero ler', function () {
+test('a fila oferece quero ler e lidos para reler, mas não o que já está nela nem o que está em leitura', function () {
     $queued = wantToRead();
     app(QueueService::class)->add($queued);
-    wantToRead();
+    $wanted = wantToRead(['title' => 'A']);
+    $finished = Book::factory()->create(['title' => 'B']);
+    Reading::factory()->for($finished)->create(['status' => ReadingStatus::Read]);
+    $inProgress = Book::factory()->create();
+    Reading::factory()->for($inProgress)->create(['status' => ReadingStatus::Reading]);
     Book::factory()->create();
 
     $this->get(route('queue.index'))
-        ->assertInertia(fn (Assert $page) => $page->has('available', 1));
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('available', 2)
+            ->where('available.0', ['id' => $wanted->id, 'title' => 'A', 'is_reread' => false])
+            ->where('available.1', ['id' => $finished->id, 'title' => 'B', 'is_reread' => true]));
+});
+
+test('pôr um livro lido na fila começa uma releitura e desfazer volta ao lido', function () {
+    $book = Book::factory()->create();
+    $finished = Reading::factory()->for($book)->create(['status' => ReadingStatus::Read, 'rating' => 3]);
+
+    $this->post(route('queue.store'), ['book_id' => $book->id])->assertRedirect();
+
+    $book->unsetRelation('currentReading');
+
+    expect($book->readings()->count())->toBe(2)
+        ->and($book->currentReading->status)->toBe(ReadingStatus::WantToRead)
+        ->and($finished->fresh()->rating)->toBe(3)
+        ->and(QueueItem::query()->pluck('book_id')->all())->toBe([$book->id]);
+
+    $this->post(route('undo', lastToast()['undo']))->assertRedirect();
+
+    expect($book->readings()->count())->toBe(1)
+        ->and($book->refresh()->currentReading->status)->toBe(ReadingStatus::Read)
+        ->and(QueueItem::query()->exists())->toBeFalse();
 });
 
 test('money parsing aceita formatos brasileiros e recusa o que não é valor', function () {

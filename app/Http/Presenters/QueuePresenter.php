@@ -2,6 +2,8 @@
 
 namespace App\Http\Presenters;
 
+use App\Enums\ReadingStatus;
+use App\Models\Book;
 use App\Models\QueueItem;
 use App\Models\ShoppingItem;
 use App\Support\AmazonLink;
@@ -28,6 +30,20 @@ final class QueuePresenter
             'pages' => $item->book->pages,
             'estimated_days' => $days,
             'finishes_on' => $finishesOn?->toDateString(),
+        ];
+    }
+
+    /**
+     * Book offered by the "add to queue" picker.
+     *
+     * @return array{id: int, title: string, is_reread: bool}
+     */
+    public static function candidate(Book $book): array
+    {
+        return [
+            'id' => $book->id,
+            'title' => $book->title,
+            'is_reread' => $book->currentReading?->status === ReadingStatus::Read,
         ];
     }
 

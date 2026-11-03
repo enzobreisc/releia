@@ -9,18 +9,23 @@ use App\Models\Book;
 use App\Models\QueueItem;
 use App\Models\ShoppingItem;
 use App\Services\QueueService;
+use App\Services\ReadingService;
 use App\Services\UndoService;
 use App\Support\Ordinal;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class QueueController extends Controller
 {
-    public function __construct(private readonly QueueService $queue) {}
+    public function __construct(
+        private readonly QueueService $queue,
+        private readonly ReadingService $readings,
+    ) {}
 
     /** Up next, with each book's finish forecast reading in queue order. */
     public function index(): Response
@@ -46,14 +51,7 @@ class QueueController extends Controller
         return Inertia::render('queue', [
             'queue' => $queue,
             'pace' => [...$pace, 'queue_days' => $elapsed],
-            'available' => Book::query()
-                ->with('currentReading')
-                ->whereNotIn('id', $queuedBookIds)
-                ->whereHas('currentReading', fn ($query) => $query->where('status', ReadingStatus::WantToRead->value))
-                ->orderBy('title')
-                ->get(['id', 'title', 'pages'])
-                ->map(fn (Book $book) => ['id' => $book->id, 'title' => $book->title])
-                ->values(),
+            'available' => $this->findQueueCandidates($queuedBookIds),
             'shopping_pending' => ShoppingItem::query()->whereNull('bought_at')->count(),
         ]);
     }
@@ -66,8 +64,11 @@ class QueueController extends Controller
         ]);
 
         $book = Book::query()->whereKey($validated['book_id'])->firstOrFail();
-        $snapshot = $undo->capture([UndoService::scope('queue_items')]);
-        $item = $this->queue->add($book);
+        $snapshot = $undo->capture([
+            UndoService::scope('readings', ['book_id' => $book->id]),
+            UndoService::scope('queue_items'),
+        ]);
+        $item = $this->enqueue($book);
 
         Toast::success(
             __('Adicionado à fila'),
@@ -106,5 +107,36 @@ class QueueController extends Controller
         Toast::success(__('Tirado da fila'), $title.' · '.__('era o :position', ['position' => Ordinal::masculine($position)]), null, $undo->remember($snapshot));
 
         return back();
+    }
+
+    /** A finished book enters the queue as a reread, with a new want-to-read reading. */
+    private function enqueue(Book $book): QueueItem
+    {
+        if ($book->currentReading?->status === ReadingStatus::Read) {
+            $this->readings->startReread($book, ReadingStatus::WantToRead);
+        }
+
+        return $this->queue->add($book);
+    }
+
+    /**
+     * Books that can join the queue: on the want-to-read shelf or finished, to reread.
+     *
+     * @param  Collection<int, int>  $queuedBookIds
+     * @return Collection<int, array{id: int, title: string, is_reread: bool}>
+     */
+    private function findQueueCandidates(Collection $queuedBookIds): Collection
+    {
+        return Book::query()
+            ->with('currentReading')
+            ->whereNotIn('id', $queuedBookIds)
+            ->whereHas('currentReading', fn ($query) => $query->whereIn('status', [
+                ReadingStatus::WantToRead->value,
+                ReadingStatus::Read->value,
+            ]))
+            ->orderBy('title')
+            ->get(['id', 'title'])
+            ->map(fn (Book $book) => QueuePresenter::candidate($book))
+            ->values();
     }
 }
