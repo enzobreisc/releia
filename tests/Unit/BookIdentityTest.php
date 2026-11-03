@@ -23,6 +23,18 @@ test('parênteses no título não atrapalham a comparação', function () {
         ->toBe('memorial de aires');
 });
 
+test('artigos no começo ou invertidos no fim do título não atrapalham a comparação', function (string $title) {
+    expect(BookIdentity::normalizeTitle($title))->toBe('morte de ivan ilitch');
+})->with([
+    'Morte De Ivan Ilitch, A',
+    'A Morte de Ivan Ilitch',
+    'Morte de Ivan Ilitch',
+]);
+
+test('um título que é só o artigo continua valendo', function () {
+    expect(BookIdentity::normalizeTitle('O'))->toBe('o');
+});
+
 test('assuntos genéricos não servem para aproximar livros', function (?string $subject, bool $useful) {
     expect(GenericSubjects::isUseful($subject))->toBe($useful);
 })->with([

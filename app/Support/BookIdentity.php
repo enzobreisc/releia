@@ -5,11 +5,14 @@ namespace App\Support;
 use Illuminate\Support\Str;
 
 /**
- * Chaves que identificam um livro entre fontes diferentes. A busca devolve obras
- * com várias edições, então ISBN sozinho não basta: também comparamos título e autor.
+ * Keys that identify a book across sources. Searches return works with many
+ * editions, so the ISBN alone is not enough: title and author are compared too.
  */
 final class BookIdentity
 {
+    /** Articles ignored when comparing titles ("A Metamorfose" is "Metamorfose"). */
+    private const ARTICLES = 'a|o|as|os|um|uma|uns|umas|the|an';
+
     /**
      * @param  list<string>  $authors
      * @return list<string>
@@ -20,12 +23,11 @@ final class BookIdentity
 
         foreach ([$isbn13, $isbn10] as $isbn) {
             if ($isbn !== null && $isbn !== '') {
-                // ISBN-10 e ISBN-13 do mesmo livro viram a mesma chave.
                 $keys[] = 'isbn:'.(Isbn::toIsbn13($isbn) ?? $isbn);
             }
         }
 
-        // Sem autor a chave só vale para o título; ainda assim evita duplicatas óbvias.
+        // Without an author the key only covers the title, which still catches obvious duplicates.
         $author = self::normalize($authors[0] ?? '');
         $keys[] = 'title-author:'.self::normalizeTitle($title).'|'.$author;
 
@@ -33,14 +35,18 @@ final class BookIdentity
     }
 
     /**
-     * Título sem subtítulo e sem parênteses: "Memorial de Aires (Clássicos...)" vira "memorial de aires".
+     * Title without subtitle, parentheses or articles, including the catalog style that moves
+     * the article to the end: "Morte De Ivan Ilitch, A" becomes "morte de ivan ilitch".
      */
     public static function normalizeTitle(string $title): string
     {
-        return self::normalize((string) preg_replace('/\(.*?\)|:.*$/', '', $title));
+        $withoutSubtitle = (string) preg_replace('/\(.*?\)|:.*$/', '', $title);
+        $withoutTrailingArticle = (string) preg_replace('/,\s*('.self::ARTICLES.')\s*$/i', '', $withoutSubtitle);
+
+        return (string) preg_replace('/^('.self::ARTICLES.')\s+(?=\S)/', '', self::normalize($withoutTrailingArticle));
     }
 
-    /** Minúsculas, sem acento e sem pontuação. */
+    /** Lowercase, without accents or punctuation. */
     public static function normalize(string $value): string
     {
         return Str::of($value)->ascii()->lower()->replaceMatches('/[^a-z0-9 ]+/', ' ')->squish()->toString();
