@@ -2,6 +2,10 @@ import { Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { BookCover } from '@/components/book-cover';
+import { LiveSessionPill } from '@/components/live-session-pill';
+import { NextInQueueCard } from '@/components/next-in-queue-card';
+import { TodayProgress } from '@/components/today-progress';
+import { WeekSquares } from '@/components/week-squares';
 import { cardClass } from '@/components/card';
 import { Button, Field, Input, buttonClass } from '@/components/form';
 import { SuggestionEditions } from '@/components/suggestion-editions';
@@ -20,14 +24,24 @@ import {
     dismiss,
     index as suggestionsIndex,
 } from '@/routes/suggestions';
-import type { BookCard, ReadingSummary, Suggestion, YearGoal } from '@/types';
+import type {
+    HomeLiveSession,
+    HomeToday,
+    NextInQueue,
+    ReadingSummary,
+    RecentBook,
+    Suggestion,
+    YearGoal,
+} from '@/types';
 
 type HomeProps = {
     reader_name: string | null;
     reading: ReadingSummary[];
     goal: YearGoal;
-    daily_goal: number | null;
-    recent: BookCard[];
+    today: HomeToday;
+    live_session: HomeLiveSession | null;
+    next_in_queue: NextInQueue | null;
+    recent: RecentBook[];
     suggestion: Suggestion | null;
 };
 
@@ -43,13 +57,15 @@ export default function Home({
     reader_name,
     reading,
     goal,
-    daily_goal: dailyGoal,
+    today,
+    live_session: liveSession,
+    next_in_queue: nextInQueue,
     recent,
     suggestion,
 }: HomeProps) {
     const { t } = useTranslation();
     const hello = t(greeting(new Date().getHours()));
-    const [current, ...others] = reading;
+    const [current] = reading;
 
     return (
         <div className="flex flex-col gap-10">
@@ -57,10 +73,16 @@ export default function Home({
                 title={reader_name ? `${hello}, ${reader_name}` : hello}
                 headTitle={t('Início')}
                 description={t('Um resumo rápido da sua leitura')}
+                actions={
+                    liveSession && <LiveSessionPill session={liveSession} />
+                }
             />
 
             {current ? (
-                <ReadingHero item={current} />
+                <ReadingHero
+                    item={current}
+                    hasLiveSession={liveSession !== null}
+                />
             ) : (
                 <section className="flex flex-col gap-3">
                     <SectionTitle>{t('lendo agora')}</SectionTitle>
@@ -77,17 +99,28 @@ export default function Home({
             )}
 
             <div className="flex flex-wrap gap-4">
-                {others.length > 0 && <AlsoReading items={others} />}
-                <GoalCard goal={goal} dailyGoal={dailyGoal} />
-                {suggestion && <TodaySuggestion suggestion={suggestion} />}
+                <TodayCard today={today} />
+                <NextInQueueCard
+                    next={nextInQueue}
+                    pagesPerDay={today.average}
+                />
+                <GoalCard goal={goal} dailyGoal={today.goal} />
             </div>
+
+            {suggestion && <TodaySuggestion suggestion={suggestion} />}
 
             <RecentlyFinished books={recent} />
         </div>
     );
 }
 
-function ReadingHero({ item }: { item: ReadingSummary }) {
+function ReadingHero({
+    item,
+    hasLiveSession,
+}: {
+    item: ReadingSummary;
+    hasLiveSession: boolean;
+}) {
     const { t } = useTranslation();
 
     return (
@@ -136,7 +169,7 @@ function ReadingHero({ item }: { item: ReadingSummary }) {
                     >
                         {t('Registrar leitura')}
                     </Link>
-                    {!item.finish_suggested && (
+                    {!item.finish_suggested && !hasLiveSession && (
                         <Button
                             variant="ghost"
                             onClick={() =>
@@ -153,46 +186,38 @@ function ReadingHero({ item }: { item: ReadingSummary }) {
     );
 }
 
-function AlsoReading({ items }: { items: ReadingSummary[] }) {
-    const { t } = useTranslation();
+function TodayCard({ today }: { today: HomeToday }) {
+    const { t, plural } = useTranslation();
 
     return (
         <section
-            aria-label={t('Também lendo')}
+            aria-labelledby="today-title"
             className={cardClass(
-                'flex min-w-0 flex-[1_1_240px] flex-col gap-3 p-4.5',
+                'flex min-w-0 flex-[1_1_260px] flex-col gap-3 p-4.5',
             )}
         >
-            <h2 className="text-xs font-bold text-muted">
-                {t('Também lendo')}
-            </h2>
-            {items.map((item) => (
-                <Link
-                    key={item.reading_id}
-                    href={showBook(item.book_id).url}
-                    className="flex items-center gap-3.5"
-                >
-                    <BookCover
-                        src={item.cover_url}
-                        title={item.title}
-                        className="w-11"
-                    />
-                    <span className="flex min-w-0 flex-col gap-1">
-                        <span className="truncate text-[15px] font-bold">
-                            {item.title}
-                        </span>
-                        <span className="font-mono text-xs text-muted">
-                            {item.pages === null
-                                ? t('pág. :page', { page: item.current_page })
-                                : t('pág. :page de :pages', {
-                                      page: item.current_page,
-                                      pages: item.pages,
-                                  })}
-                            {item.percent !== null && ` · ${item.percent}%`}
-                        </span>
-                    </span>
-                </Link>
-            ))}
+            <div className="flex items-baseline justify-between gap-3">
+                <h2 id="today-title" className="text-xs font-bold text-muted">
+                    {t('Hoje')}
+                </h2>
+                <span className="font-mono text-xs text-muted">
+                    {t('sequência')} {plural(today.streak, 'dia', 'dias')}
+                </span>
+            </div>
+            <p className="flex items-baseline gap-1.5">
+                <span className="text-4xl leading-none font-extrabold tracking-tight">
+                    {today.pages}
+                </span>
+                <span className="text-[15px] font-semibold text-muted">
+                    {t('págs')}
+                </span>
+            </p>
+            <TodayProgress
+                pagesToday={today.pages}
+                averagePages={today.average}
+                dailyGoal={today.goal}
+            />
+            <WeekSquares week={today.week} />
         </section>
     );
 }
@@ -374,26 +399,31 @@ function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
         <section
             aria-labelledby="suggestion-title"
             className={cardClass(
-                'flex min-w-0 flex-[1.4_1_340px] flex-wrap items-center gap-3.5 p-4.5',
+                'flex min-w-0 flex-wrap items-center gap-5 px-5.5 py-5',
             )}
         >
             <BookCover
                 src={suggestion.cover_url}
                 title={suggestion.title}
-                className="w-11"
+                className="w-16.5"
             />
-            <div className="flex min-w-0 flex-[1_1_180px] flex-col gap-1">
+            <div className="flex min-w-0 flex-[1_1_180px] flex-col gap-1.5">
                 <h2
                     id="suggestion-title"
                     className="text-xs font-bold text-muted"
                 >
                     {t('Sugestão de hoje')}
                 </h2>
-                <p className="text-[15px] font-bold">
+                <p className="text-xl font-extrabold tracking-tight">
                     {suggestion.title}
-                    {suggestion.authors && ` · ${suggestion.authors}`}
+                    {suggestion.authors && (
+                        <span className="font-semibold text-secondary">
+                            {' '}
+                            · {suggestion.authors}
+                        </span>
+                    )}
                 </p>
-                <p className="text-xs font-medium text-muted">
+                <p className="text-[13px] font-medium text-muted">
                     {t('Por quê: :reason · parecido com :book', {
                         reason: suggestion.reason,
                         book: suggestion.based_on,
@@ -420,9 +450,9 @@ function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
                     )}
                 </div>
             </div>
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
                 <Button
-                    className="h-9 px-3.5 text-[13px]"
+                    className="h-10 px-4 text-[13px]"
                     onClick={() =>
                         suggestion.has_editions
                             ? setChoosing('want')
@@ -433,7 +463,7 @@ function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
                 </Button>
                 <Button
                     variant="ghost"
-                    className="h-9 px-3.5 text-[13px]"
+                    className="h-10 px-4 text-[13px]"
                     onClick={() =>
                         router.visit(dismiss(suggestion.id), options)
                     }
@@ -458,8 +488,8 @@ function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
     );
 }
 
-function RecentlyFinished({ books }: { books: BookCard[] }) {
-    const { t } = useTranslation();
+function RecentlyFinished({ books }: { books: RecentBook[] }) {
+    const { t, plural, shortDate } = useTranslation();
 
     return (
         <section
@@ -504,6 +534,13 @@ function RecentlyFinished({ books }: { books: BookCard[] }) {
                                 <span className="truncate text-xs font-medium text-muted">
                                     {book.authors}
                                 </span>
+                                {book.finished_at && (
+                                    <span className="mt-0.5 font-mono text-[11px] text-secondary">
+                                        {shortDate(book.finished_at)}
+                                        {book.days !== null &&
+                                            ` · ${plural(book.days, 'dia', 'dias')}`}
+                                    </span>
+                                )}
                             </span>
                         </Link>
                     ))}

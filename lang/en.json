@@ -888,5 +888,10 @@
     "parou em :date": "stopped on :date",
     "Agenda": "Agenda",
     "Por ano": "By year",
-    "Por mês": "By month"
+    "Por mês": "By month",
+    "Próximo da fila": "Next in queue",
+    ":position de :total": ":position of :total",
+    "A fila está vazia": "The queue is empty",
+    "pausada": "paused",
+    "Abrir a sessão em andamento": "Open the running session"
 }

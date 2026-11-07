@@ -1,4 +1,5 @@
 export type * from './authors';
+export type * from './home';
 export type * from './library';
 export type * from './live-session';
 export type * from './navigation';

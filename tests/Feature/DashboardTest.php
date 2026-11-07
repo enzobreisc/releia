@@ -3,6 +3,7 @@
 use App\Enums\ReadingStatus;
 use App\Events\QuickLogShortcutPressed;
 use App\Models\Book;
+use App\Models\QueueItem;
 use App\Models\Reading;
 use App\Models\ReadingSession;
 use App\Models\Setting;
@@ -120,6 +121,37 @@ test('início lista leituras em andamento, meta e últimos terminados', function
             ->where('reading.0.title', 'Em curso')
             ->where('goal.goal', null)
             ->where('recent.0.title', 'Terminado'));
+});
+
+test('início mostra o dia, a sessão em andamento, o próximo da fila e as datas dos terminados', function () {
+    Setting::put('daily_goal', 30);
+    $reading = Book::factory()->onShelf(ReadingStatus::Reading)->create(['title' => 'Em curso', 'pages' => 200]);
+    Book::factory()->onShelf(ReadingStatus::Read)->create(['title' => 'Terminado'])
+        ->currentReading->update(['started_at' => '2026-09-10', 'finished_at' => '2026-09-27']);
+    $next = Book::factory()->create(['title' => 'Próximo', 'pages' => 176]);
+    QueueItem::create(['book_id' => $next->id, 'position' => 1, 'added_at' => now()]);
+    $this->post(route('live-session.start', $reading))->assertRedirect();
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('today.goal', 30)
+            ->where('today.pages', 0)
+            ->has('today.week', 7)
+            ->where('live_session.title', 'Em curso')
+            ->where('live_session.timer.paused', false)
+            ->where('next_in_queue.title', 'Próximo')
+            ->where('next_in_queue.pages', 176)
+            ->where('next_in_queue.position', 1)
+            ->where('next_in_queue.total', 1)
+            ->where('recent.0.finished_at', '2026-09-27')
+            ->where('recent.0.days', 18));
+});
+
+test('início sem sessão nem fila não quebra', function () {
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('live_session', null)
+            ->where('next_in_queue', null));
 });
 
 test('início sem dados não quebra', function () {
