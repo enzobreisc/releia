@@ -6,23 +6,16 @@ import {
     YearLabel,
 } from '@/components/timeline-parts';
 import { useTranslation } from '@/hooks/use-translation';
-import { isOngoing, monthOf } from '@/lib/timeline';
+import { isOngoing } from '@/lib/timeline';
 import { cn } from '@/lib/utils';
 import { show } from '@/routes/books';
 import type { TimelineReading } from '@/types';
 
-function Book({
-    reading,
-    monthNames,
-}: {
-    reading: TimelineReading;
-    monthNames: string[];
-}) {
-    const { t } = useTranslation();
+function Book({ reading }: { reading: TimelineReading }) {
+    const { t, shortDate } = useTranslation();
     const tooltip = useReadingTooltip();
     const isLive = isOngoing(reading);
-    const endMonth =
-        monthNames[monthOf(reading.finished_at ?? reading.started_at) - 1];
+    const endDate = shortDate(reading.finished_at ?? reading.started_at);
 
     function whenLabel(): string {
         if (isLive) {
@@ -30,8 +23,8 @@ function Book({
         }
 
         return reading.status === 'abandoned'
-            ? t('parou em :month', { month: endMonth })
-            : endMonth;
+            ? t('parou em :date', { date: endDate })
+            : endDate;
     }
 
     return (
@@ -65,10 +58,8 @@ function Book({
 
 export function TimelineCovers({
     groups,
-    monthNames,
 }: {
     groups: { year: number; readings: TimelineReading[] }[];
-    monthNames: string[];
 }) {
     return (
         <div className="flex flex-col gap-11">
@@ -84,11 +75,7 @@ export function TimelineCovers({
                     </div>
                     <div className="flex flex-wrap items-end gap-x-[18px] gap-y-[26px]">
                         {readings.map((reading) => (
-                            <Book
-                                key={reading.id}
-                                reading={reading}
-                                monthNames={monthNames}
-                            />
+                            <Book key={reading.id} reading={reading} />
                         ))}
                     </div>
                 </section>

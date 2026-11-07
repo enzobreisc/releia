@@ -4,6 +4,7 @@ export type TimelineReading = {
     id: number;
     book_id: number;
     title: string;
+    authors: string;
     cover_url: string | null;
     status: TimelineStatus;
     is_reread: boolean;

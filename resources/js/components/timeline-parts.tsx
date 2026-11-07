@@ -5,6 +5,8 @@ import type { TimelineReading, TimelineStatus } from '@/types';
 
 export const MONTH_COUNT = 12;
 
+export const MONTH_GRID = `repeating-linear-gradient(90deg, var(--color-surface) 0, var(--color-surface) calc(100% / ${MONTH_COUNT} - 1px), var(--color-active) calc(100% / ${MONTH_COUNT} - 1px), var(--color-active) calc(100% / ${MONTH_COUNT}))`;
+
 export function barClass(status: TimelineStatus): string {
     switch (status) {
         case 'abandoned':
@@ -58,16 +60,16 @@ export function RereadMark({ className }: { className?: string }) {
 }
 
 export function useReadingTooltip() {
-    const { t, monthYear } = useTranslation();
+    const { t, shortDate } = useTranslation();
 
     return (reading: TimelineReading) => {
         const end = isOngoing(reading)
             ? t('hoje')
-            : monthYear(reading.finished_at ?? reading.started_at);
+            : shortDate(reading.finished_at ?? reading.started_at);
         const abandoned =
             reading.status === 'abandoned' ? ` · ${t('deixado de lado')}` : '';
 
-        return `${reading.title} · ${monthYear(reading.started_at)} → ${end}${abandoned}`;
+        return `${reading.title} · ${shortDate(reading.started_at)} → ${end}${abandoned}`;
     };
 }
 
@@ -95,4 +97,39 @@ export function Legend() {
             </span>
         </div>
     );
+}
+
+export function DateRange({ reading }: { reading: TimelineReading }) {
+    const { t, shortDate } = useTranslation();
+    const isLive = isOngoing(reading);
+
+    return (
+        <span className="flex items-baseline gap-2 font-mono text-[13px] font-medium">
+            <span>{shortDate(reading.started_at)}</span>
+            <span className="text-accent">→</span>
+            <span className={cn(isLive && 'text-link')}>
+                {isLive || !reading.finished_at
+                    ? t('hoje')
+                    : shortDate(reading.finished_at)}
+            </span>
+        </span>
+    );
+}
+
+export function ReadingTag({ reading }: { reading: TimelineReading }) {
+    const { t } = useTranslation();
+
+    if (reading.status === 'abandoned') {
+        return (
+            <span className="text-[11px] font-bold text-warn">
+                {t('deixado de lado')}
+            </span>
+        );
+    }
+
+    return reading.is_reread ? (
+        <span className="text-[11px] font-bold text-link">
+            ↻ {t('releitura')}
+        </span>
+    ) : null;
 }

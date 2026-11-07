@@ -47,7 +47,7 @@ class TimelineService
         $seenBooks = [];
 
         return Reading::query()
-            ->with('book')
+            ->with('book.authors')
             ->whereNotNull('started_at')
             ->whereIn('status', [ReadingStatus::Reading, ReadingStatus::Read, ReadingStatus::Abandoned])
             ->orderBy('started_at')

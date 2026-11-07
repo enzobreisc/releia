@@ -1,19 +1,9 @@
 import type { TimelineReading, TimelineYear } from '@/types';
 
-/** Bars closer than this share a lane (fraction of the year). */
-const LANE_GAP = 0.004;
-
 export type Segment = {
     reading: TimelineReading;
     from: number;
     to: number;
-    lane: number;
-};
-
-export type YearLane = {
-    year: number;
-    segments: Segment[];
-    laneCount: number;
 };
 
 export function isOngoing(reading: TimelineReading): boolean {
@@ -36,11 +26,11 @@ export function endYear(reading: TimelineReading, today: string): number {
     return Number((reading.finished_at ?? today).slice(0, 4));
 }
 
-function toSegment(
+export function toSegment(
     reading: TimelineReading,
     year: number,
     today: string,
-): Omit<Segment, 'lane'> {
+): Segment {
     const end = reading.finished_at ?? today;
     const startsThisYear = Number(reading.started_at.slice(0, 4)) === year;
     const endsThisYear = Number(end.slice(0, 4)) === year;
@@ -52,41 +42,13 @@ function toSegment(
     };
 }
 
-function assignLanes(segments: Omit<Segment, 'lane'>[]): Segment[] {
-    const laneEnds: number[] = [];
-
-    return [...segments]
-        .sort((a, b) => a.from - b.from)
-        .map((segment) => {
-            let lane = laneEnds.findIndex(
-                (end) => end <= segment.from - LANE_GAP,
-            );
-
-            if (lane === -1) {
-                lane = laneEnds.length;
-            }
-
-            laneEnds[lane] = segment.to;
-
-            return { ...segment, lane };
-        });
-}
-
-export function buildYearLanes(
-    years: TimelineYear[],
+/** Each reading's bar within a year; readings crossing a year edge are cut at it. */
+export function buildYearSegments(
+    readings: TimelineReading[],
+    year: number,
     today: string,
-): YearLane[] {
-    return years.map(({ year, readings }) => {
-        const segments = assignLanes(
-            readings.map((reading) => toSegment(reading, year, today)),
-        );
-
-        return {
-            year,
-            segments,
-            laneCount: Math.max(1, ...segments.map(({ lane }) => lane + 1)),
-        };
-    });
+): Segment[] {
+    return readings.map((reading) => toSegment(reading, year, today));
 }
 
 /** Readings shown under the year they ended (or today's year while ongoing). */
@@ -104,4 +66,57 @@ export function readingsEndingIn(
 
 export function monthOf(date: string): number {
     return Number(date.slice(5, 7));
+}
+
+function utcDay(date: string): number {
+    const [year, month, day] = date.split('-').map(Number);
+
+    return Date.UTC(year, month - 1, day);
+}
+
+/** Days from the first to the last one, both counted. */
+export function readingDays(reading: TimelineReading, today: string): number {
+    const end = reading.finished_at ?? today;
+
+    return (utcDay(end) - utcDay(reading.started_at)) / DAY_MS + 1;
+}
+
+export function dayOf(date: string): number {
+    return Number(date.slice(8, 10));
+}
+
+export function daysInMonth(year: number, month: number): number {
+    return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+function monthStart(year: number, month: number): string {
+    return `${year}-${String(month).padStart(2, '0')}-01`;
+}
+
+function monthEnd(year: number, month: number): string {
+    return `${year}-${String(month).padStart(2, '0')}-${String(daysInMonth(year, month)).padStart(2, '0')}`;
+}
+
+/** Readings with at least one day in the month, oldest start first. */
+export function readingsInMonth(
+    years: TimelineYear[],
+    year: number,
+    month: number,
+    today: string,
+): TimelineReading[] {
+    const first = monthStart(year, month);
+    const last = monthEnd(year, month);
+    const seen = new Map<number, TimelineReading>();
+
+    years.forEach(({ readings }) =>
+        readings.forEach((reading) => seen.set(reading.id, reading)),
+    );
+
+    return [...seen.values()]
+        .filter(
+            (reading) =>
+                reading.started_at <= last &&
+                (reading.finished_at ?? today) >= first,
+        )
+        .sort((a, b) => a.started_at.localeCompare(b.started_at));
 }

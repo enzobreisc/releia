@@ -1,14 +1,18 @@
 import { Segmented } from '@/components/form';
 import { PageHeader } from '@/components/page-header';
 import { TimelineCovers } from '@/components/timeline-covers';
-import { TimelineLanes } from '@/components/timeline-lanes';
+import { TimelineAgenda } from '@/components/timeline-agenda';
+import { TimelineGantt } from '@/components/timeline-gantt';
+import { TimelineMonths } from '@/components/timeline-months';
 import { Legend } from '@/components/timeline-parts';
 import { useStored } from '@/hooks/use-stored';
 import { useTranslation } from '@/hooks/use-translation';
-import { buildYearLanes, readingsEndingIn } from '@/lib/timeline';
+import { readingsEndingIn } from '@/lib/timeline';
 import type { TimelineYear } from '@/types';
 
-type TimelineView = 'lanes' | 'covers';
+type TimelineView = 'agenda' | 'year' | 'month' | 'covers';
+
+const VIEWS: TimelineView[] = ['agenda', 'year', 'month', 'covers'];
 
 export default function Timeline({
     today,
@@ -18,7 +22,8 @@ export default function Timeline({
     years: TimelineYear[];
 }) {
     const { t, monthNames } = useTranslation();
-    const [view, setView] = useStored<TimelineView>('timeline.view', 'lanes');
+    const [view, setView] = useStored<TimelineView>('timeline.view', 'agenda');
+    const activeView = VIEWS.includes(view) ? view : 'agenda';
     const coverGroups = years
         .map(({ year }) => ({
             year,
@@ -33,26 +38,41 @@ export default function Timeline({
                 description={t('Os livros por onde você passou')}
                 actions={
                     <Segmented
-                        className="w-72"
-                        value={view}
+                        className="w-md"
+                        value={activeView}
                         onChange={(next) => setView(next as TimelineView)}
                         options={[
-                            { value: 'lanes', label: t('Faixas por mês') },
+                            { value: 'agenda', label: t('Agenda') },
+                            { value: 'year', label: t('Por ano') },
+                            { value: 'month', label: t('Por mês') },
                             { value: 'covers', label: t('Capas') },
                         ]}
                     />
                 }
             />
             <Legend />
-            {view === 'lanes' ? (
-                <TimelineLanes
-                    lanes={buildYearLanes(years, today)}
+            {activeView === 'agenda' && (
+                <TimelineAgenda
+                    groups={[...coverGroups].reverse()}
                     today={today}
                     monthNames={monthNames}
                 />
-            ) : (
-                <TimelineCovers groups={coverGroups} monthNames={monthNames} />
             )}
+            {activeView === 'year' && (
+                <TimelineGantt
+                    years={years}
+                    today={today}
+                    monthNames={monthNames}
+                />
+            )}
+            {activeView === 'month' && (
+                <TimelineMonths
+                    years={years}
+                    today={today}
+                    monthNames={monthNames}
+                />
+            )}
+            {activeView === 'covers' && <TimelineCovers groups={coverGroups} />}
         </div>
     );
 }

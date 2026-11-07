@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ReadingStatus;
+use App\Models\Author;
 use App\Models\Book;
 use App\Models\Reading;
 use Illuminate\Support\Carbon;
@@ -12,6 +13,7 @@ beforeEach(function () {
 
 test('a linha do tempo agrupa as leituras por ano, do mais recente ao mais antigo', function () {
     $old = Book::factory()->create(['title' => 'Livro Antigo']);
+    $old->authors()->attach(Author::create(['name' => 'Autora Antiga']));
     $new = Book::factory()->create(['title' => 'Livro Novo']);
     Reading::factory()->for($old)->create(['status' => ReadingStatus::Read, 'started_at' => '2024-03-04', 'finished_at' => '2024-03-12']);
     Reading::factory()->for($new)->create(['status' => ReadingStatus::Read, 'started_at' => '2026-01-05', 'finished_at' => '2026-02-14']);
@@ -25,10 +27,12 @@ test('a linha do tempo agrupa as leituras por ano, do mais recente ao mais antig
             ->where('years.0.year', 2026)
             ->where('years.0.readings.0.title', 'Livro Novo')
             ->where('years.0.readings.0.book_id', $new->id)
+            ->where('years.0.readings.0.authors', '')
             ->where('years.0.readings.0.started_at', '2026-01-05')
             ->where('years.0.readings.0.finished_at', '2026-02-14')
             ->where('years.1.year', 2024)
-            ->where('years.1.readings.0.title', 'Livro Antigo'));
+            ->where('years.1.readings.0.title', 'Livro Antigo')
+            ->where('years.1.readings.0.authors', 'Autora Antiga'));
 });
 
 test('uma leitura que atravessa a virada de ano aparece nos dois anos', function () {
