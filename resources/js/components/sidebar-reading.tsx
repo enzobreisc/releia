@@ -1,17 +1,33 @@
+import { Link } from '@inertiajs/react';
 import { heatClass } from '@/components/heat-map';
 import { ProgressBar } from '@/components/reading-progress';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
+import { show as showLiveSession } from '@/routes/live-session';
 import type { SidebarReading } from '@/types';
 
-/** Mini "reading now" card in the sidebar: title, bar, week map and streak. */
-export function SidebarReadingCard({ reading }: { reading: SidebarReading }) {
+/**
+ * Mini "reading now" card in the sidebar: title, bar, week map and streak.
+ * While a session is running it links back to the session screen.
+ */
+export function SidebarReadingCard({
+    reading,
+    hasLiveSession,
+}: {
+    reading: SidebarReading;
+    hasLiveSession: boolean;
+}) {
     const { t, plural } = useTranslation();
 
-    return (
+    const card = (
         <div className="mb-2 flex flex-col gap-2 rounded-sm bg-surface p-3 inset-ring inset-ring-border">
-            <span className="text-[11px] font-extrabold tracking-widest text-faint uppercase">
-                {t('lendo agora')}
+            <span
+                className={cn(
+                    'text-[11px] font-extrabold tracking-widest uppercase',
+                    hasLiveSession ? 'text-accent' : 'text-faint',
+                )}
+            >
+                {hasLiveSession ? t('sessão em andamento') : t('lendo agora')}
             </span>
             <span className="truncate text-[13px] font-bold">
                 {reading.title}
@@ -30,5 +46,13 @@ export function SidebarReadingCard({ reading }: { reading: SidebarReading }) {
                 </span>
             </div>
         </div>
+    );
+
+    return hasLiveSession ? (
+        <Link href={showLiveSession.url()} className="block">
+            {card}
+        </Link>
+    ) : (
+        card
     );
 }

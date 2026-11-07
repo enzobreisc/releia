@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import {
+    clockTime,
     formatBRL,
     fullDate,
     longDate,
@@ -10,6 +11,7 @@ import {
     shortDate,
     translate,
     translateText,
+    weekdayInitial,
 } from '@/lib/i18n';
 import type { Replacements, TranslationKey } from '@/lib/i18n';
 
@@ -31,6 +33,8 @@ export function useTranslation() {
         monthYear: (date: string) => monthYear(locale, date),
         fullDate: (date: string) => fullDate(locale, date),
         longDate: (date: string) => longDate(locale, date),
+        clockTime: (date: Date) => clockTime(languageTag, date),
+        weekdayInitial: (date: Date) => weekdayInitial(languageTag, date),
         formatBRL: (cents: number) => formatBRL(languageTag, cents),
     };
 }

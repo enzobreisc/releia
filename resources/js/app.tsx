@@ -1,6 +1,8 @@
 import { createInertiaApp, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 
+const SIDEBARLESS_PAGES = ['quick-log', 'live-session'];
+
 const appName = import.meta.env.VITE_APP_NAME || 'releia';
 
 router.on('navigate', (event) => {
@@ -9,8 +11,8 @@ router.on('navigate', (event) => {
 
 void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
-    // The menu bar window (quick-log) has no sidebar.
-    layout: (name) => (name === 'quick-log' ? null : AppLayout),
+    // The menu bar window (quick-log) and the live session screen have no sidebar.
+    layout: (name) => (SIDEBARLESS_PAGES.includes(name) ? null : AppLayout),
     progress: {
         color: '#2F6FE4',
     },

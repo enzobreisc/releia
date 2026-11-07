@@ -27,6 +27,25 @@ class ReadingActivity
             ->all();
     }
 
+    /** Pages read on one day, across all readings. */
+    public function pagesOn(Carbon $day): int
+    {
+        return $this->pagesByDay($day, $day)[$day->toDateString()] ?? 0;
+    }
+
+    /** Average pages on the days that had reading; null before the first session. */
+    public function averagePagesPerReadingDay(): ?float
+    {
+        $totals = ReadingSession::query()
+            ->toBase()
+            ->selectRaw('count(distinct date(read_on)) as days, sum(page_to - page_from + 1) as pages')
+            ->first();
+
+        $days = (int) ($totals->days ?? 0);
+
+        return $days > 0 ? round((int) $totals->pages / $days, 1) : null;
+    }
+
     /**
      * Dias com pelo menos uma sessão, em ordem crescente (Y-m-d).
      *

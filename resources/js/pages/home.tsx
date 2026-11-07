@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { index as libraryIndex } from '@/routes/library';
 import { update as updateGoal } from '@/routes/goal';
 import { show as showBook } from '@/routes/books';
+import { start as startLiveSession } from '@/routes/live-session';
 import {
     accept,
     dismiss,
@@ -123,15 +124,28 @@ function ReadingHero({ item }: { item: ReadingSummary }) {
                         {item.percent !== null && <span>{item.percent}%</span>}
                     </div>
                 </div>
-                <Link
-                    href={showBook(item.book_id).url}
-                    className={buttonClass(
-                        'primary',
-                        'mt-1.5 h-12 self-start px-6.5 text-[15px]',
+                <div className="mt-1.5 flex flex-wrap gap-3">
+                    <Link
+                        href={showBook(item.book_id).url}
+                        className={buttonClass(
+                            'primary',
+                            'h-12 px-6.5 text-[15px]',
+                        )}
+                    >
+                        {t('Registrar leitura')}
+                    </Link>
+                    {!item.finish_suggested && (
+                        <Button
+                            variant="ghost"
+                            onClick={() =>
+                                router.post(startLiveSession.url(item.book_id))
+                            }
+                            className="h-12 px-6.5 text-[15px]"
+                        >
+                            {t('Iniciar sessão')}
+                        </Button>
                     )}
-                >
-                    {t('Registrar leitura')}
-                </Link>
+                </div>
             </div>
         </section>
     );

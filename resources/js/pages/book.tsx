@@ -33,6 +33,7 @@ import {
     shopping as shoppingRoute,
 } from '@/routes/books';
 import { index as libraryIndex } from '@/routes/library';
+import { start as startLiveSession } from '@/routes/live-session';
 import { show as authorShow } from '@/routes/authors';
 import type {
     BookDetail,
@@ -809,7 +810,20 @@ function ProgressCard({
 
             <div id="log" className="border-t border-border pt-5.5">
                 {canLog ? (
-                    <SessionForm bookId={bookId} progress={progress} />
+                    <div className="flex flex-col gap-4">
+                        <SessionForm bookId={bookId} progress={progress} />
+                        {!progress.finish_suggested && (
+                            <Button
+                                variant="ghost"
+                                onClick={() =>
+                                    router.post(startLiveSession.url(bookId))
+                                }
+                                className="self-start"
+                            >
+                                {t('Iniciar sessão')}
+                            </Button>
+                        )}
+                    </div>
                 ) : (
                     <p className="text-sm font-medium text-muted">
                         {t(

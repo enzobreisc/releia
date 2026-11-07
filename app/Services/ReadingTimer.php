@@ -16,7 +16,7 @@ use Illuminate\Validation\ValidationException;
  * window, so it keeps counting with the window closed or the app reopened.
  * There is only one timer at a time.
  *
- * @phpstan-type TimerState array{book_id: int, start_page: int, started_at: string, paused_at: string|null, paused_seconds: int}
+ * @phpstan-type TimerState array{book_id: int, start_page: int, page: int, started_at: string, paused_at: string|null, paused_seconds: int}
  */
 class ReadingTimer
 {
@@ -34,6 +34,9 @@ class ReadingTimer
         if (! is_array($timer) || ! isset($timer['book_id'], $timer['started_at'])) {
             return null;
         }
+
+        // Timers saved before the live page existed are still at their starting page.
+        $timer['page'] ??= $timer['start_page'];
 
         /** @var TimerState $timer */
         return $timer;
@@ -67,10 +70,29 @@ class ReadingTimer
         Setting::put(self::SETTING, [
             'book_id' => $book->id,
             'start_page' => $startPage,
+            'page' => $startPage,
             'started_at' => CarbonImmutable::now()->toIso8601String(),
             'paused_at' => null,
             'paused_seconds' => 0,
         ]);
+    }
+
+    /**
+     * Remembers the page the reader is on while the session runs, kept within the
+     * starting page and the last page of the book.
+     */
+    public function movePage(int $page): void
+    {
+        $timer = $this->current();
+
+        if ($timer === null) {
+            return;
+        }
+
+        $lastPage = Book::query()->whereKey($timer['book_id'])->value('pages');
+        $upperBound = $lastPage === null ? $page : (int) $lastPage;
+
+        Setting::put(self::SETTING, [...$timer, 'page' => max($timer['start_page'], min($upperBound, $page))]);
     }
 
     public function pause(): void

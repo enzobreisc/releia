@@ -406,6 +406,20 @@ class ReadingService
         ];
     }
 
+    /** Pages per hour over the reading's timed sessions; null while none has minutes. */
+    public function pagesPerHour(Reading $reading): ?float
+    {
+        $totals = $reading->sessions()
+            ->toBase()
+            ->whereNotNull('minutes')
+            ->selectRaw('sum(page_to - page_from + 1) as pages, sum(minutes) as minutes')
+            ->first();
+
+        $minutes = (int) ($totals->minutes ?? 0);
+
+        return $minutes > 0 ? round((int) $totals->pages / $minutes * 60, 1) : null;
+    }
+
     /**
      * Valid end date: not after today, not before the start nor the last session.
      */

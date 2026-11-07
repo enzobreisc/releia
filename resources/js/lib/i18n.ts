@@ -136,6 +136,21 @@ export function longDate(locale: Locale, date: string): string {
         : `${day}/${month}/${year}`;
 }
 
+/** "20:06" (pt-BR, 24 hours) or "8:06 PM" (en). */
+export function clockTime(languageTag: string, date: Date): string {
+    return new Intl.DateTimeFormat(languageTag, {
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(date);
+}
+
+/** Single-letter weekday: "S", "T", "Q"... (pt-BR) or "M", "T", "W"... (en). */
+export function weekdayInitial(languageTag: string, date: Date): string {
+    return new Intl.DateTimeFormat(languageTag, { weekday: 'narrow' }).format(
+        date,
+    );
+}
+
 /** Whole cents to reais for display: "R$ 34,90" (pt-BR) or "R$ 34.90" (en). */
 export function formatBRL(languageTag: string, cents: number): string {
     return new Intl.NumberFormat(languageTag, {

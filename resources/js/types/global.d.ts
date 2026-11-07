@@ -15,6 +15,7 @@ declare module '@inertiajs/core' {
                 shopping: number;
             };
             reading_now: SidebarReading | null;
+            has_live_session: boolean;
             toast: Toast | null;
             [key: string]: unknown;
         };

@@ -240,3 +240,45 @@ export function StarIcon(props: IconProps) {
         </LineIcon>
     );
 }
+
+export function ArrowLeftIcon(props: IconProps) {
+    return (
+        <LineIcon {...props}>
+            <path d="M10 3 5 8l5 5" />
+        </LineIcon>
+    );
+}
+
+/** Two filled bars, sized by the caller (the session screen draws it large). */
+export function PauseIcon(props: IconProps) {
+    return (
+        <svg
+            aria-hidden="true"
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="shrink-0"
+            {...props}
+        >
+            <rect x="6" y="5" width="4" height="14" rx="1.2" />
+            <rect x="14" y="5" width="4" height="14" rx="1.2" />
+        </svg>
+    );
+}
+
+export function PlayIcon(props: IconProps) {
+    return (
+        <svg
+            aria-hidden="true"
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="shrink-0"
+            {...props}
+        >
+            <path d="M8 5.2v13.6a1 1 0 0 0 1.5.86l11-6.8a1 1 0 0 0 0-1.72l-11-6.8A1 1 0 0 0 8 5.2z" />
+        </svg>
+    );
+}

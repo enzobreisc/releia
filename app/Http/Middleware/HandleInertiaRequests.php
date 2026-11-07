@@ -7,6 +7,7 @@ use App\Models\Book;
 use App\Models\QueueItem;
 use App\Models\ShoppingItem;
 use App\Services\DashboardService;
+use App\Services\ReadingTimer;
 use App\Support\Toast;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -58,6 +59,8 @@ class HandleInertiaRequests extends Middleware
             'toast' => fn () => $request->session()->get(Toast::SESSION_KEY),
             // Mini "reading now" card in the sidebar; null when nothing is in progress.
             'reading_now' => fn () => app(DashboardService::class)->sidebarCard(Carbon::today()),
+            // The sidebar card links back to the session screen while a timer is running.
+            'has_live_session' => fn () => app(ReadingTimer::class)->current() !== null,
         ];
     }
 }

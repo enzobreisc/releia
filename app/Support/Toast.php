@@ -31,9 +31,12 @@ final class Toast
         self::flash('success', $title, $sub, $action, $undo);
     }
 
-    public static function error(string $title, ?string $sub = null): void
+    /**
+     * @param  ToastAction|null  $action
+     */
+    public static function error(string $title, ?string $sub = null, ?array $action = null): void
     {
-        self::flash('error', $title, $sub, null, null);
+        self::flash('error', $title, $sub, $action, null);
     }
 
     /**

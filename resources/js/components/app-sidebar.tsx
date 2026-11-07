@@ -108,7 +108,10 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
             <div className="min-h-4 flex-1" />
 
             {!collapsed && props.reading_now && (
-                <SidebarReadingCard reading={props.reading_now} />
+                <SidebarReadingCard
+                    reading={props.reading_now}
+                    hasLiveSession={props.has_live_session}
+                />
             )}
 
             <Link
