@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Presenters\LiveSessionPresenter;
 use App\Http\Presenters\ReadingPresenter;
 use App\Http\Requests\FinishLiveSessionRequest;
 use App\Http\Requests\MoveSessionPageRequest;
@@ -43,13 +44,7 @@ class LiveSessionController extends Controller
 
         return Inertia::render('live-session', [
             'reading' => ReadingPresenter::summary($reading, $this->readings),
-            'timer' => [
-                'start_page' => $timer['start_page'],
-                'page' => $timer['page'],
-                'started_at' => $timer['started_at'],
-                'elapsed' => $this->timer->elapsedSeconds($timer),
-                'paused' => $timer['paused_at'] !== null,
-            ],
+            'timer' => LiveSessionPresenter::timer($timer, $this->timer),
             'pages_per_hour' => $this->readings->pagesPerHour($reading),
             'today' => [
                 'pages' => $this->activity->pagesOn($today),

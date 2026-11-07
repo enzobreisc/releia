@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import { heatClass } from '@/components/heat-map';
 import { cardClass } from '@/components/card';
+import { TodayProgress } from '@/components/today-progress';
+import { WeekSquares } from '@/components/week-squares';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 
@@ -18,9 +19,6 @@ type SessionStatsProps = {
     finishTime: string | null;
 };
 
-/** Room above the larger of today's pages and the average, so the bar never fills up. */
-const BAR_HEADROOM = 1.25;
-
 const MINUTES_PER_HOUR = 60;
 
 /** The day's numbers: pages today against the average, streak and what is left to finish. */
@@ -35,40 +33,7 @@ export function SessionStats({
     daysLeft,
     finishTime,
 }: SessionStatsProps) {
-    const { t, plural, weekdayInitial } = useTranslation();
-
-    const today = new Date();
-    const referencePages = dailyGoal ?? averagePages;
-    const isGoalReached = dailyGoal !== null && pagesToday >= dailyGoal;
-    const barScale = Math.max(pagesToday, referencePages ?? 0) * BAR_HEADROOM;
-
-    function percentOfBar(pages: number) {
-        return barScale === 0 ? 0 : (pages / barScale) * 100;
-    }
-
-    function averageComparison(average: number) {
-        const difference = pagesToday - Math.round(average);
-
-        if (difference === 0) {
-            return t('na média');
-        }
-
-        return difference > 0
-            ? t(':pages acima da média', { pages: difference })
-            : t(':pages abaixo da média', { pages: -difference });
-    }
-
-    function goalComparison(goal: number) {
-        if (pagesToday < goal) {
-            return t('faltam :pages págs para a meta', {
-                pages: goal - pagesToday,
-            });
-        }
-
-        return pagesToday === goal
-            ? t('meta batida')
-            : t('meta batida, :pages acima', { pages: pagesToday - goal });
-    }
+    const { t, plural } = useTranslation();
 
     function duration(minutes: number) {
         const hours = Math.floor(minutes / MINUTES_PER_HOUR);
@@ -101,77 +66,15 @@ export function SessionStats({
                 label={t('Hoje')}
                 value={t(':pages págs', { pages: pagesToday })}
             >
-                {referencePages !== null && (
-                    <>
-                        <div className="relative mt-1 h-1.5 rounded-full bg-border">
-                            <span
-                                className={cn(
-                                    'absolute inset-y-0 left-0 rounded-full',
-                                    isGoalReached ? 'bg-link' : 'bg-accent',
-                                )}
-                                style={{
-                                    width: `${percentOfBar(pagesToday)}%`,
-                                }}
-                            />
-                            <span
-                                aria-hidden="true"
-                                className="absolute -inset-y-1 w-0.5 bg-text"
-                                style={{
-                                    left: `${percentOfBar(referencePages)}%`,
-                                }}
-                            />
-                        </div>
-                        <div className="flex justify-between gap-3">
-                            <Detail
-                                className={cn(isGoalReached && 'text-link')}
-                            >
-                                {dailyGoal === null
-                                    ? averageComparison(referencePages)
-                                    : goalComparison(dailyGoal)}
-                            </Detail>
-                            <span className="font-mono text-xs text-muted">
-                                {dailyGoal === null
-                                    ? t('média :average', {
-                                          average: Math.round(referencePages),
-                                      })
-                                    : t('meta :goal', { goal: dailyGoal })}
-                            </span>
-                        </div>
-                    </>
-                )}
+                <TodayProgress
+                    pagesToday={pagesToday}
+                    averagePages={averagePages}
+                    dailyGoal={dailyGoal}
+                />
             </Stat>
 
             <Stat label={t('Sequência')} value={plural(streak, 'dia', 'dias')}>
-                <span
-                    role="img"
-                    aria-label={t('Últimos 7 dias, hoje é o último')}
-                    className="flex gap-1"
-                >
-                    {week.map((level, index) => {
-                        const daysAgo = week.length - 1 - index;
-                        const day = new Date(today);
-                        day.setDate(today.getDate() - daysAgo);
-
-                        return (
-                            <span
-                                key={index}
-                                className="flex flex-col items-center gap-1.5"
-                            >
-                                <span
-                                    className={cn(
-                                        'size-5.5 rounded-[5px]',
-                                        heatClass(level),
-                                        daysAgo === 0 &&
-                                            'outline outline-[1.5px] outline-offset-2 outline-link',
-                                    )}
-                                />
-                                <span className="font-mono text-[10px] text-muted">
-                                    {weekdayInitial(day)}
-                                </span>
-                            </span>
-                        );
-                    })}
-                </span>
+                <WeekSquares week={week} />
             </Stat>
 
             {pagesLeft !== null && (
