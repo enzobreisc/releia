@@ -12,4 +12,6 @@ export type LiveSessionDay = {
     pages: number;
     /** Average pages on the days with reading. */
     average: number | null;
+    /** Pages the reader wants to read each day, if a goal is set. */
+    goal: number | null;
 };

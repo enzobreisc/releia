@@ -232,6 +232,7 @@ export default function LiveSession({
                 <SessionStats
                     pagesToday={today.pages + Math.max(0, gained)}
                     averagePages={today.average}
+                    dailyGoal={today.goal}
                     streak={streak}
                     week={week}
                     pagesLeft={pagesLeft}

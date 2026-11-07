@@ -95,6 +95,19 @@ test('a meta é salva em settings e valida o intervalo', function () {
     $this->put(route('goal.update'), ['yearly_goal' => 0])->assertSessionHasErrors('yearly_goal');
 });
 
+test('a meta diária é opcional, validada e limpa quando o campo fica vazio', function () {
+    $this->put(route('goal.update'), ['yearly_goal' => 30, 'daily_goal' => 25])->assertRedirect();
+
+    expect(Setting::get('daily_goal'))->toBe(25)
+        ->and(app(DashboardService::class)->dailyGoal())->toBe(25);
+
+    $this->put(route('goal.update'), ['yearly_goal' => 30, 'daily_goal' => 0])->assertSessionHasErrors('daily_goal');
+
+    $this->put(route('goal.update'), ['yearly_goal' => 30, 'daily_goal' => ''])->assertRedirect();
+
+    expect(app(DashboardService::class)->dailyGoal())->toBeNull();
+});
+
 test('início lista leituras em andamento, meta e últimos terminados', function () {
     Book::factory()->onShelf(ReadingStatus::Reading)->create(['title' => 'Em curso', 'pages' => 200]);
     Book::factory()->onShelf(ReadingStatus::Read)->create(['title' => 'Terminado'])

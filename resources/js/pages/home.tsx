@@ -26,6 +26,7 @@ type HomeProps = {
     reader_name: string | null;
     reading: ReadingSummary[];
     goal: YearGoal;
+    daily_goal: number | null;
     recent: BookCard[];
     suggestion: Suggestion | null;
 };
@@ -42,6 +43,7 @@ export default function Home({
     reader_name,
     reading,
     goal,
+    daily_goal: dailyGoal,
     recent,
     suggestion,
 }: HomeProps) {
@@ -76,7 +78,7 @@ export default function Home({
 
             <div className="flex flex-wrap gap-4">
                 {others.length > 0 && <AlsoReading items={others} />}
-                <GoalCard goal={goal} />
+                <GoalCard goal={goal} dailyGoal={dailyGoal} />
                 {suggestion && <TodaySuggestion suggestion={suggestion} />}
             </div>
 
@@ -195,7 +197,13 @@ function AlsoReading({ items }: { items: ReadingSummary[] }) {
     );
 }
 
-function GoalCard({ goal }: { goal: YearGoal }) {
+function GoalCard({
+    goal,
+    dailyGoal,
+}: {
+    goal: YearGoal;
+    dailyGoal: number | null;
+}) {
     const { t } = useTranslation();
     const [editing, setEditing] = useState(false);
     const percent = goal.goal
@@ -247,9 +255,21 @@ function GoalCard({ goal }: { goal: YearGoal }) {
                     count: goal.projected,
                 })}
             </p>
+            {dailyGoal !== null && (
+                <p className="flex items-baseline justify-between gap-3 border-t border-border pt-3 text-[13px] font-semibold text-secondary">
+                    <span>{t('Meta diária')}</span>
+                    <span>
+                        <strong className="font-extrabold text-text">
+                            {t(':pages págs', { pages: dailyGoal })}
+                        </strong>{' '}
+                        {t('por dia')}
+                    </span>
+                </p>
+            )}
             {editing && (
                 <GoalForm
                     current={goal.goal}
+                    currentDaily={dailyGoal}
                     onSaved={() => setEditing(false)}
                 />
             )}
@@ -284,13 +304,18 @@ function GoalTallies({ goal, finished }: { goal: number; finished: number }) {
 
 function GoalForm({
     current,
+    currentDaily,
     onSaved,
 }: {
     current: number | null;
+    currentDaily: number | null;
     onSaved: () => void;
 }) {
     const { t } = useTranslation();
-    const form = useForm({ yearly_goal: String(current ?? 12) });
+    const form = useForm({
+        yearly_goal: String(current ?? 12),
+        daily_goal: currentDaily === null ? '' : String(currentDaily),
+    });
 
     function save(event: FormEvent) {
         event.preventDefault();
@@ -310,6 +335,20 @@ function GoalForm({
                     value={form.data.yearly_goal}
                     onChange={(event) =>
                         form.setData('yearly_goal', event.target.value)
+                    }
+                />
+            </Field>
+            <Field
+                label={t('Meta diária (páginas)')}
+                error={form.errors.daily_goal}
+            >
+                <Input
+                    type="number"
+                    min={1}
+                    max={2000}
+                    value={form.data.daily_goal}
+                    onChange={(event) =>
+                        form.setData('daily_goal', event.target.value)
                     }
                 />
             </Field>

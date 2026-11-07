@@ -3,6 +3,7 @@
 use App\Enums\ReadingStatus;
 use App\Models\Book;
 use App\Models\ReadingSession;
+use App\Models\Setting;
 use App\Services\ReadingTimer;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -144,6 +145,16 @@ test('the screen reports pace per hour, today and the daily average', function (
             ->where('pages_per_hour', 32)
             ->where('today.pages', 34)
             ->where('today.average', 32));
+});
+
+test('the screen carries the daily goal when there is one', function () {
+    startLiveSession(liveSessionBook(64));
+
+    $this->get(route('live-session.show'))->assertInertia(fn (Assert $page) => $page->where('today.goal', null));
+
+    Setting::put('daily_goal', 30);
+
+    $this->get(route('live-session.show'))->assertInertia(fn (Assert $page) => $page->where('today.goal', 30));
 });
 
 test('the pace per hour is missing while no session has minutes', function () {

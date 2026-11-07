@@ -21,6 +21,7 @@ class HomeController extends Controller
             'reader_name' => $profile->reader()['name'],
             'reading' => $dashboard->readingNow(),
             'goal' => $dashboard->yearGoal($today),
+            'daily_goal' => $dashboard->dailyGoal(),
             'recent' => $dashboard->recentlyFinished(),
             // Escolhida uma vez por dia entre as sugestões novas; não chama a rede.
             'suggestion' => function () use ($suggestions) {

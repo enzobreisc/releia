@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/** The year's book goal. */
+/** The year's book goal and the optional daily page goal. */
 class UpdateGoalRequest extends FormRequest
 {
     /**
@@ -14,6 +14,7 @@ class UpdateGoalRequest extends FormRequest
     {
         return [
             'yearly_goal' => ['required', 'integer', 'between:1,999'],
+            'daily_goal' => ['nullable', 'integer', 'between:1,2000'],
         ];
     }
 
@@ -24,6 +25,7 @@ class UpdateGoalRequest extends FormRequest
     {
         return [
             'yearly_goal.between' => __('A meta vai de 1 a 999 livros.'),
+            'daily_goal.between' => __('A meta diária vai de 1 a 2000 páginas.'),
         ];
     }
 }

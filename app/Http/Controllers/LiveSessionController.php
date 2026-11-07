@@ -53,6 +53,7 @@ class LiveSessionController extends Controller
             'today' => [
                 'pages' => $this->activity->pagesOn($today),
                 'average' => $this->activity->averagePagesPerReadingDay(),
+                'goal' => $this->dashboard->dailyGoal(),
             ],
             'week' => $this->activity->lastWeekLevels($today),
             'streak' => $this->dashboard->streak($today),

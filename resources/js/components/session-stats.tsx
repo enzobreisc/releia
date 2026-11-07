@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 type SessionStatsProps = {
     pagesToday: number;
     averagePages: number | null;
+    dailyGoal: number | null;
     streak: number;
     week: number[];
     /** Null when the book has no page count. */
@@ -26,6 +27,7 @@ const MINUTES_PER_HOUR = 60;
 export function SessionStats({
     pagesToday,
     averagePages,
+    dailyGoal,
     streak,
     week,
     pagesLeft,
@@ -36,7 +38,9 @@ export function SessionStats({
     const { t, plural, weekdayInitial } = useTranslation();
 
     const today = new Date();
-    const barScale = Math.max(pagesToday, averagePages ?? 0) * BAR_HEADROOM;
+    const referencePages = dailyGoal ?? averagePages;
+    const isGoalReached = dailyGoal !== null && pagesToday >= dailyGoal;
+    const barScale = Math.max(pagesToday, referencePages ?? 0) * BAR_HEADROOM;
 
     function percentOfBar(pages: number) {
         return barScale === 0 ? 0 : (pages / barScale) * 100;
@@ -52,6 +56,18 @@ export function SessionStats({
         return difference > 0
             ? t(':pages acima da média', { pages: difference })
             : t(':pages abaixo da média', { pages: -difference });
+    }
+
+    function goalComparison(goal: number) {
+        if (pagesToday < goal) {
+            return t('faltam :pages págs para a meta', {
+                pages: goal - pagesToday,
+            });
+        }
+
+        return pagesToday === goal
+            ? t('meta batida')
+            : t('meta batida, :pages acima', { pages: pagesToday - goal });
     }
 
     function duration(minutes: number) {
@@ -85,11 +101,14 @@ export function SessionStats({
                 label={t('Hoje')}
                 value={t(':pages págs', { pages: pagesToday })}
             >
-                {averagePages !== null && (
+                {referencePages !== null && (
                     <>
                         <div className="relative mt-1 h-1.5 rounded-full bg-border">
                             <span
-                                className="absolute inset-y-0 left-0 rounded-full bg-accent"
+                                className={cn(
+                                    'absolute inset-y-0 left-0 rounded-full',
+                                    isGoalReached ? 'bg-link' : 'bg-accent',
+                                )}
                                 style={{
                                     width: `${percentOfBar(pagesToday)}%`,
                                 }}
@@ -98,16 +117,24 @@ export function SessionStats({
                                 aria-hidden="true"
                                 className="absolute -inset-y-1 w-0.5 bg-text"
                                 style={{
-                                    left: `${percentOfBar(averagePages)}%`,
+                                    left: `${percentOfBar(referencePages)}%`,
                                 }}
                             />
                         </div>
                         <div className="flex justify-between gap-3">
-                            <Detail>{averageComparison(averagePages)}</Detail>
+                            <Detail
+                                className={cn(isGoalReached && 'text-link')}
+                            >
+                                {dailyGoal === null
+                                    ? averageComparison(referencePages)
+                                    : goalComparison(dailyGoal)}
+                            </Detail>
                             <span className="font-mono text-xs text-muted">
-                                {t('média :average', {
-                                    average: Math.round(averagePages),
-                                })}
+                                {dailyGoal === null
+                                    ? t('média :average', {
+                                          average: Math.round(referencePages),
+                                      })
+                                    : t('meta :goal', { goal: dailyGoal })}
                             </span>
                         </div>
                     </>
@@ -206,9 +233,20 @@ function Stat({
     );
 }
 
-function Detail({ children }: { children: ReactNode }) {
+function Detail({
+    className,
+    children,
+}: {
+    className?: string;
+    children: ReactNode;
+}) {
     return (
-        <span className="text-[13px] font-semibold text-secondary">
+        <span
+            className={cn(
+                'text-[13px] font-semibold text-secondary',
+                className,
+            )}
+        >
             {children}
         </span>
     );

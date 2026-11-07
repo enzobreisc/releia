@@ -86,6 +86,14 @@ class DashboardService
         ];
     }
 
+    /** Pages the reader wants to read each day; null while no goal is set. */
+    public function dailyGoal(): ?int
+    {
+        $goal = Setting::get('daily_goal');
+
+        return is_int($goal) ? $goal : null;
+    }
+
     /**
      * Últimos livros terminados, mais recente primeiro.
      *

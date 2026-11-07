@@ -874,5 +874,13 @@
     "na média": "right at average",
     "média :average": "average :average",
     "termina às": "finishes at",
-    "cerca de :duration no seu ritmo": "about :duration at your pace"
+    "cerca de :duration no seu ritmo": "about :duration at your pace",
+    "faltam :pages págs para a meta": ":pages pages to go for the goal",
+    "meta batida": "goal reached",
+    "meta batida, :pages acima": "goal reached, :pages over",
+    "meta :goal": "goal :goal",
+    "Meta diária": "Daily goal",
+    "Meta diária (páginas)": "Daily goal (pages)",
+    "por dia": "a day",
+    "A meta diária vai de 1 a 2000 páginas.": "The daily goal goes from 1 to 2000 pages."
 }
