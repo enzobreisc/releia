@@ -1,6 +1,6 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import type { FormEvent } from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { BookCover } from '@/components/book-cover';
 import { cardClass } from '@/components/card';
 import { Button, Field, IconButton, Select } from '@/components/form';
@@ -8,6 +8,7 @@ import { heatClass } from '@/components/heat-map';
 import { SectionTitle } from '@/components/page-header';
 import { StarRating } from '@/components/star-rating';
 import { Toaster } from '@/components/toaster';
+import { useElapsed } from '@/hooks/use-elapsed';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { reading as readingRoute } from '@/routes/books';
@@ -95,37 +96,6 @@ function formatShortcut(shortcut: string) {
         .sort((a, b) => order.indexOf(a) - order.indexOf(b));
 
     return `${mods.join('')}${key.toUpperCase()}`;
-}
-
-/** Timer seconds, counted in the browser from what the server sent. */
-function useElapsed(timer: Timer | null) {
-    const [now, setNow] = useState(() => Date.now());
-    // Moment this timer state arrived: pausing or resuming sends a new one.
-    const [received, setReceived] = useState({ timer, at: Date.now() });
-
-    if (received.timer !== timer) {
-        setReceived({ timer, at: Date.now() });
-    }
-
-    const loadedAt = received.at;
-
-    useEffect(() => {
-        if (!timer || timer.paused) {
-            return;
-        }
-
-        const id = window.setInterval(() => setNow(Date.now()), 1000);
-
-        return () => window.clearInterval(id);
-    }, [timer]);
-
-    if (!timer) {
-        return 0;
-    }
-
-    return timer.paused
-        ? timer.elapsed
-        : timer.elapsed + Math.max(0, Math.floor((now - loadedAt) / 1000));
 }
 
 /**
