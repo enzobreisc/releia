@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Presenters\ReadingPresenter;
+use App\Http\Requests\FinishLiveSessionRequest;
 use App\Http\Requests\MoveSessionPageRequest;
 use App\Models\Book;
 use App\Services\DashboardService;
@@ -103,8 +104,8 @@ class LiveSessionController extends Controller
         return back();
     }
 
-    /** Saves the session up to the page on screen; reaching the last page is left to the book's "finish" prompt. */
-    public function finish(): RedirectResponse
+    /** Saves the session up to the page on screen; on the last page the reader may also finish the book. */
+    public function finish(FinishLiveSessionRequest $request): RedirectResponse
     {
         $timer = $this->timer->current();
 
@@ -118,8 +119,17 @@ class LiveSessionController extends Controller
             return to_route('home');
         }
 
+        $reading = $session->reading;
+        $shouldFinishBook = $request->boolean('finish_book')
+            && $reading->book->pages !== null
+            && $session->page_to >= $reading->book->pages;
+
+        if ($shouldFinishBook) {
+            $this->readings->finish($reading, Carbon::today());
+        }
+
         $data = ReadingPresenter::session($session);
-        Toast::success(__('Sessão registrada'), "{$data['hash']} · ".__('p. :page', ['page' => "{$session->page_from} → {$session->page_to}"]).' · '.__('+:pages págs', ['pages' => $data['pages']]));
+        Toast::success($shouldFinishBook ? __(':title marcado como lido', ['title' => $reading->book->title]) : __('Sessão registrada'), "{$data['hash']} · ".__('p. :page', ['page' => "{$session->page_from} → {$session->page_to}"]).' · '.__('+:pages págs', ['pages' => $data['pages']]));
 
         return to_route('books.show', $session->reading->book_id);
     }

@@ -882,5 +882,11 @@
     "Meta diária": "Daily goal",
     "Meta diária (páginas)": "Daily goal (pages)",
     "por dia": "a day",
-    "A meta diária vai de 1 a 2000 páginas.": "The daily goal goes from 1 to 2000 pages."
+    "A meta diária vai de 1 a 2000 páginas.": "The daily goal goes from 1 to 2000 pages.",
+    "Terminar o livro": "Finish the book",
+    "Você chegou à última página de :title.": "You reached the last page of :title.",
+    ":pages págs em :time nesta sessão. Quer marcar o livro como terminado?": ":pages pages in :time this session. Mark the book as finished?",
+    "Terminar sessão e o livro": "Finish session and book",
+    "Só a sessão": "Session only",
+    "voltar": "back"
 }

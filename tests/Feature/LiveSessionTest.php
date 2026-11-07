@@ -104,6 +104,39 @@ test('finishing saves the session up to the live page and goes back to the book'
         ->and(app(ReadingTimer::class)->current())->toBeNull();
 });
 
+test('finishing on the last page with the book option marks the book as read', function () {
+    $book = liveSessionBook(64);
+    startLiveSession($book);
+    $this->patch(route('live-session.page'), ['page' => 96]);
+
+    $this->post(route('live-session.finish'), ['finish_book' => true])->assertRedirect(route('books.show', $book));
+
+    $reading = $book->currentReading->refresh();
+
+    expect($reading->status)->toBe(ReadingStatus::Read)
+        ->and($reading->finished_at?->toDateString())->toBe('2026-10-14');
+});
+
+test('finishing on the last page without the book option keeps the book in reading', function () {
+    $book = liveSessionBook(64);
+    startLiveSession($book);
+    $this->patch(route('live-session.page'), ['page' => 96]);
+
+    $this->post(route('live-session.finish'));
+
+    expect($book->currentReading->refresh()->status)->toBe(ReadingStatus::Reading);
+});
+
+test('the book option is ignored before the last page', function () {
+    $book = liveSessionBook(64);
+    startLiveSession($book);
+    $this->patch(route('live-session.page'), ['page' => 76]);
+
+    $this->post(route('live-session.finish'), ['finish_book' => true]);
+
+    expect($book->currentReading->refresh()->status)->toBe(ReadingStatus::Reading);
+});
+
 test('finishing without moving forward is refused and the timer keeps running', function () {
     startLiveSession(liveSessionBook(64));
 

@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { BookCover } from '@/components/book-cover';
+import { cardClass } from '@/components/card';
 import { DiscardSessionButton } from '@/components/discard-session-button';
 import { Button, IconButton } from '@/components/form';
 import { ArrowLeftIcon, PauseIcon, PlayIcon } from '@/components/icons';
@@ -42,8 +43,11 @@ export default function LiveSession({
     const seconds = useElapsed(timer);
     const now = useNow();
     const [isFinishing, setFinishing] = useState(false);
+    const [isAskingToFinishBook, setAskingToFinishBook] = useState(false);
 
     const gained = timer.page - timer.start_page;
+    const isOnLastPage = reading.pages !== null && timer.page >= reading.pages;
+    const shouldAskToFinishBook = isAskingToFinishBook && isOnLastPage;
     const pagesLeft =
         reading.pages === null ? null : reading.pages - timer.page;
     const minutesLeft =
@@ -71,10 +75,10 @@ export default function LiveSession({
         router.patch(movePage.url(), { page }, { preserveScroll: true });
     }
 
-    function finishSession() {
+    function finishSession(shouldFinishBook = false) {
         router.post(
             finish.url(),
-            {},
+            { finish_book: shouldFinishBook },
             {
                 onStart: () => setFinishing(true),
                 onFinish: () => setFinishing(false),
@@ -167,57 +171,73 @@ export default function LiveSession({
                         />
                     )}
 
-                    <div className="flex flex-wrap items-center gap-3.5">
-                        <button
-                            type="button"
-                            aria-label={
-                                timer.paused ? t('Continuar') : t('Pausar')
-                            }
-                            onClick={() =>
-                                router.post(
-                                    (timer.paused ? resume : pause).url(),
-                                )
-                            }
-                            className="inline-flex size-18 items-center justify-center rounded-full bg-text text-bg hover:bg-white"
-                        >
-                            {timer.paused ? <PlayIcon /> : <PauseIcon />}
-                        </button>
-                        <div className="flex h-13 items-center rounded-full bg-elevated inset-ring inset-ring-strong">
-                            <IconButton
-                                label={t('Voltar uma página')}
-                                variant="plain"
-                                disabled={timer.page <= timer.start_page}
-                                onClick={() => moveTo(timer.page - 1)}
-                                className="size-13 text-[22px]"
-                            >
-                                −
-                            </IconButton>
-                            <span className="min-w-16 text-center font-mono text-sm font-medium">
-                                {t('p. :page', { page: timer.page })}
-                            </span>
-                            <IconButton
-                                label={t('Avançar uma página')}
-                                variant="plain"
-                                disabled={
-                                    reading.pages !== null &&
-                                    timer.page >= reading.pages
+                    {shouldAskToFinishBook ? (
+                        <FinishBookPrompt
+                            title={reading.title}
+                            pages={gained}
+                            seconds={seconds}
+                            disabled={isFinishing}
+                            onFinishBook={() => finishSession(true)}
+                            onFinishSessionOnly={() => finishSession()}
+                            onBack={() => setAskingToFinishBook(false)}
+                        />
+                    ) : (
+                        <div className="flex flex-wrap items-center gap-3.5">
+                            <button
+                                type="button"
+                                aria-label={
+                                    timer.paused ? t('Continuar') : t('Pausar')
                                 }
-                                onClick={() => moveTo(timer.page + 1)}
-                                className="size-13 text-[22px]"
+                                onClick={() =>
+                                    router.post(
+                                        (timer.paused ? resume : pause).url(),
+                                    )
+                                }
+                                className="inline-flex size-18 items-center justify-center rounded-full bg-text text-bg hover:bg-white"
                             >
-                                +
-                            </IconButton>
+                                {timer.paused ? <PlayIcon /> : <PauseIcon />}
+                            </button>
+                            <div className="flex h-13 items-center rounded-full bg-elevated inset-ring inset-ring-strong">
+                                <IconButton
+                                    label={t('Voltar uma página')}
+                                    variant="plain"
+                                    disabled={timer.page <= timer.start_page}
+                                    onClick={() => moveTo(timer.page - 1)}
+                                    className="size-13 text-[22px]"
+                                >
+                                    −
+                                </IconButton>
+                                <span className="min-w-16 text-center font-mono text-sm font-medium">
+                                    {t('p. :page', { page: timer.page })}
+                                </span>
+                                <IconButton
+                                    label={t('Avançar uma página')}
+                                    variant="plain"
+                                    disabled={
+                                        reading.pages !== null &&
+                                        timer.page >= reading.pages
+                                    }
+                                    onClick={() => moveTo(timer.page + 1)}
+                                    className="size-13 text-[22px]"
+                                >
+                                    +
+                                </IconButton>
+                            </div>
+                            <span className="flex-1" />
+                            <Button
+                                variant="ghost"
+                                disabled={gained <= 0 || isFinishing}
+                                onClick={() =>
+                                    isOnLastPage
+                                        ? setAskingToFinishBook(true)
+                                        : finishSession()
+                                }
+                                className="h-13 px-6 font-extrabold"
+                            >
+                                {t('Terminar sessão')}
+                            </Button>
                         </div>
-                        <span className="flex-1" />
-                        <Button
-                            variant="ghost"
-                            disabled={gained <= 0 || isFinishing}
-                            onClick={finishSession}
-                            className="h-13 px-6 font-extrabold"
-                        >
-                            {t('Terminar sessão')}
-                        </Button>
-                    </div>
+                    )}
                     <div className="flex items-center justify-between gap-4">
                         <span className="text-[13px] font-semibold text-muted">
                             {gained <= 0 &&
@@ -241,6 +261,74 @@ export default function LiveSession({
                     finishTime={finishTime}
                 />
             </footer>
+        </div>
+    );
+}
+
+type FinishBookPromptProps = {
+    title: string;
+    pages: number;
+    seconds: number;
+    disabled: boolean;
+    onFinishBook: () => void;
+    onFinishSessionOnly: () => void;
+    onBack: () => void;
+};
+
+/** Shown on the last page: the reader decides whether the book is finished too. */
+function FinishBookPrompt({
+    title,
+    pages,
+    seconds,
+    disabled,
+    onFinishBook,
+    onFinishSessionOnly,
+    onBack,
+}: FinishBookPromptProps) {
+    const { t } = useTranslation();
+
+    return (
+        <div
+            role="group"
+            aria-label={t('Terminar o livro')}
+            className={cardClass('flex flex-col gap-4 px-6 py-5.5')}
+        >
+            <div className="flex flex-col gap-1">
+                <p className="text-xl font-extrabold tracking-tight">
+                    {t('Você chegou à última página de :title.', { title })}
+                </p>
+                <p className="text-sm font-semibold text-secondary">
+                    {t(
+                        ':pages págs em :time nesta sessão. Quer marcar o livro como terminado?',
+                        { pages, time: formatStopwatch(seconds) },
+                    )}
+                </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+                <Button
+                    disabled={disabled}
+                    onClick={onFinishBook}
+                    className="h-13 px-6"
+                >
+                    {t('Terminar sessão e o livro')}
+                </Button>
+                <Button
+                    variant="ghost"
+                    disabled={disabled}
+                    onClick={onFinishSessionOnly}
+                    className="h-13 px-6 font-extrabold"
+                >
+                    {t('Só a sessão')}
+                </Button>
+                <span className="flex-1" />
+                <button
+                    type="button"
+                    onClick={onBack}
+                    className="h-13 px-3 text-[13px] font-bold text-link hover:underline"
+                >
+                    {t('voltar')}
+                </button>
+            </div>
         </div>
     );
 }
