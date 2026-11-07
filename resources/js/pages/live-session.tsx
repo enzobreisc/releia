@@ -137,7 +137,7 @@ export default function LiveSession({
                         <span
                             className={cn(
                                 'flex items-center gap-2 text-xs font-extrabold tracking-widest uppercase',
-                                timer.paused ? 'text-warn' : 'text-accent',
+                                timer.paused ? 'text-secondary' : 'text-accent',
                             )}
                         >
                             <span
