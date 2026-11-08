@@ -31,7 +31,7 @@
 - **Book page** with every reading, its sessions, Markdown notes and a review per reading; rereads are tracked separately.
 - **Statistics**: books and pages per month, pace, yearly goal forecast, top genres and authors, and a reading calendar heat map.
 - **Wrapped**: a yearly summary that can be exported as an image.
-- **Queue, shopping list and suggestions**: plan what to read next, track the lowest price of a wanted edition, and get suggestions explained by the books you rated highly.
+- **Queue, shopping list and suggestions**: plan what to read next, track the lowest price of a wanted edition, and get suggestions explained by the books you rated highly, or search any author, title or subject.
 - **Authors and timeline**: per-author reading stats with photos from Open Library or Wikipedia, and a timeline of readings by year.
 - **Bilingual interface** in Portuguese and English, including dates, numbers and money.
 - **Offline first**: everything lives in a local SQLite database and covers are downloaded to disk, so the app keeps working without a connection.
@@ -59,6 +59,7 @@
 - **Metadata lookup behind a single contract.** Each source implements [`MetadataProvider`](app/Services/BookLookup/MetadataProvider.php). [`BookLookupService`](app/Services/BookLookupService.php) asks Open Library first and lets BrasilAPI and Google Books fill gaps or act as fallbacks, caching the results, so a new source is one class.
 - **Explainable suggestions.** [`RecommendationService`](app/Services/RecommendationService.php) starts from your highly rated books, looks for other works by the same authors and subjects, and ranks candidates through a pluggable [`CandidateRanker`](app/Services/Recommendation/CandidateRanker.php). Every suggestion carries the reason it was made, and searches are time-boxed and cached.
 - **Thin controllers, rich services.** Business rules live in services, and presenters shape the props each Inertia page receives.
+- **Thin pages, small components.** Each React page only composes components that live in a folder named after it; state sits in `use-*` hooks and pure helpers in `lib/`, so no page is a thousand-line file.
 - **i18n where the key is the source text.** Strings are written in Portuguese and translated in [`lang/en.json`](lang/en.json); the type check fails on a missing React key and a feature test fails on a missing PHP key.
 - **Quality gates in CI.** Pest feature tests, PHPStan, Pint, Vite+ lint and format, and `tsc` run on every push.
 
@@ -124,9 +125,10 @@ app/
     BookLookup/         metadata providers (Open Library, Google Books, BrasilAPI)
     Recommendation/     suggestion ranking
 resources/js/
-  pages/                one Inertia page per screen
-  components/           shared UI
-  hooks/                extracted component logic
+  pages/                one Inertia page per screen, kept thin
+  components/           shared UI, plus one folder per page (book/, stats/…)
+  hooks/                state and side effects extracted from components
+  lib/                  pure helpers: formatting, dates, routes, i18n
 lang/en.json            English translations
 tests/Feature/          behavior tests per feature
 ```

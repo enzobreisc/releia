@@ -31,7 +31,7 @@
 - **Página do livro** com todas as leituras, suas sessões, notas em Markdown e uma resenha por leitura; releituras são registradas separadamente.
 - **Estatísticas**: livros e páginas por mês, ritmo, previsão da meta anual, gêneros e autores mais lidos e um calendário de leitura.
 - **Wrapped**: um resumo do ano que pode ser exportado como imagem.
-- **Fila, lista de compras e sugestões**: planeje a próxima leitura, acompanhe o menor preço de uma edição desejada e receba sugestões explicadas pelos livros que você avaliou bem.
+- **Fila, lista de compras e sugestões**: planeje a próxima leitura, acompanhe o menor preço de uma edição desejada e receba sugestões explicadas pelos livros que você avaliou bem, ou busque qualquer autor, título ou assunto.
 - **Autores e linha do tempo**: estatísticas de leitura por autor, com fotos da Open Library ou da Wikipedia, e uma linha do tempo das leituras por ano.
 - **Interface bilíngue** em português e inglês, incluindo datas, números e valores.
 - **Offline primeiro**: tudo fica num banco SQLite local e as capas são baixadas para o disco, então o app continua funcionando sem conexão.
@@ -59,6 +59,7 @@
 - **Busca de metadados atrás de um único contrato.** Cada fonte implementa [`MetadataProvider`](app/Services/BookLookup/MetadataProvider.php). O [`BookLookupService`](app/Services/BookLookupService.php) consulta a Open Library primeiro e usa a BrasilAPI e o Google Books para completar ou como reserva, com cache dos resultados; uma nova fonte é só uma classe.
 - **Sugestões explicáveis.** O [`RecommendationService`](app/Services/RecommendationService.php) parte dos livros que você avaliou bem, busca outras obras dos mesmos autores e assuntos e ordena os candidatos com um [`CandidateRanker`](app/Services/Recommendation/CandidateRanker.php) plugável. Cada sugestão traz o motivo, e as buscas têm limite de tempo e cache.
 - **Controllers enxutos, serviços ricos.** As regras de negócio ficam nos serviços, e os presenters definem as props que cada página Inertia recebe.
+- **Páginas enxutas, componentes pequenos.** Cada página React só compõe componentes que ficam numa pasta com o nome dela; o estado fica em hooks `use-*` e os helpers puros em `lib/`, então nenhuma página vira um arquivo de mil linhas.
 - **i18n com o texto original como chave.** Os textos são escritos em português e traduzidos em [`lang/en.json`](lang/en.json); o type check falha se faltar uma chave no React, e um teste falha se faltar uma chave no PHP.
 - **Qualidade garantida no CI.** Testes de feature com Pest, PHPStan, Pint, lint e formatação com Vite+ e `tsc` rodam a cada push.
 
@@ -124,9 +125,10 @@ app/
     BookLookup/         fontes de metadados (Open Library, Google Books, BrasilAPI)
     Recommendation/     ordenação das sugestões
 resources/js/
-  pages/                uma página Inertia por tela
-  components/           componentes compartilhados
-  hooks/                lógica extraída dos componentes
+  pages/                uma página Inertia por tela, enxuta
+  components/           UI compartilhada, mais uma pasta por página (book/, stats/…)
+  hooks/                estado e efeitos extraídos dos componentes
+  lib/                  helpers puros: formatação, datas, rotas, i18n
 lang/en.json            traduções para inglês
 tests/Feature/          testes de comportamento por funcionalidade
 ```
