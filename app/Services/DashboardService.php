@@ -101,7 +101,7 @@ class DashboardService
      *
      * @return list<array<string, mixed>>
      */
-    public function recentlyFinished(int $limit = 5): array
+    public function recentlyFinished(int $limit = 8): array
     {
         return array_values(Reading::query()
             ->current()

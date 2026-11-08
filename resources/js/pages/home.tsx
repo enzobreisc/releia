@@ -515,12 +515,12 @@ function RecentlyFinished({ books }: { books: RecentBook[] }) {
                     {t('Os livros que você terminar aparecem aqui.')}
                 </p>
             ) : (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(116px,1fr))] gap-5">
+                <div className="flex gap-4 overflow-x-auto pb-2">
                     {books.map((book) => (
                         <Link
                             key={book.id}
                             href={showBook(book.id).url}
-                            className="flex min-w-0 flex-col gap-2.5"
+                            className="flex max-w-32 min-w-24 flex-1 basis-24 flex-col gap-2.5"
                         >
                             <BookCover
                                 src={book.cover_url}
