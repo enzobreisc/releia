@@ -500,3 +500,42 @@ test('sugestão antiga, sem a obra guardada, acha a obra pelo ISBN ao listar as 
 
     expect($recommendation->refresh()->work_key)->toBe('OL1003040W');
 });
+
+it('searches books by author, subject or title in any language', function () {
+    Http::fake([
+        'openlibrary.org/search.json*' => Http::response(apiFixture('open-library/search-author-machado-de-assis.json')),
+        '*' => Http::response([], 404),
+    ]);
+
+    $this->get('/suggestions?q=machado')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('query', 'machado')
+            ->has('results', fn (Assert $results) => $results->has('0.title')->has('0.isbn_13')->etc()));
+
+    Http::assertSent(fn (Request $request) => str_contains(urldecode($request->url()), 'author:(machado) OR subject:(machado)')
+        && ! str_contains($request->url(), 'language=')
+        && ! str_contains($request->url(), 'sort='));
+    Http::assertSent(fn (Request $request) => str_contains($request->url(), 'language=por'));
+});
+
+it('returns no results and makes no request without a search text', function () {
+    Http::fake();
+
+    $this->get('/suggestions')->assertInertia(fn (Assert $page) => $page->where('query', '')->where('results', []));
+
+    Http::assertNothingSent();
+});
+
+it('flags search results already in the library', function () {
+    $doc = apiFixture('open-library/search-author-machado-de-assis.json')['docs'][0];
+    Http::fake([
+        'openlibrary.org/search.json*' => Http::response(['docs' => [$doc]]),
+        '*' => Http::response([], 404),
+    ]);
+
+    $isbn = collect($doc['isbn'])->first(fn (string $isbn) => strlen($isbn) === 13);
+    $book = Book::factory()->create(['isbn_13' => $isbn]);
+
+    $this->get('/suggestions?q=machado')
+        ->assertInertia(fn (Assert $page) => $page->where('results.0.library_id', $book->id));
+});

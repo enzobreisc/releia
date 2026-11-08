@@ -893,5 +893,11 @@
     ":position de :total": ":position of :total",
     "A fila está vazia": "The queue is empty",
     "pausada": "paused",
-    "Abrir a sessão em andamento": "Open the running session"
+    "Abrir a sessão em andamento": "Open the running session",
+    "Ex.: Gogol, Tolstói, literatura russa": "E.g.: Gogol, Tolstoy, Russian literature",
+    "Buscar autor, título ou assunto": "Search by author, title or subject",
+    "Limpar busca": "Clear search",
+    "Resultados para “:query” · :count": "Results for “:query” · :count",
+    "Nenhum livro encontrado para essa busca.": "No books found for this search.",
+    "Já está na biblioteca": "Already in the library"
 }

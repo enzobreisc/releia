@@ -11,14 +11,20 @@ import {
 } from '@/components/page-header';
 import { SuggestionEditions } from '@/components/suggestion-editions';
 import type { Choosing } from '@/components/suggestion-editions';
+import {
+    SuggestionSearchForm,
+    SuggestionSearchResults,
+} from '@/components/suggestion-search';
 import { useTranslation } from '@/hooks/use-translation';
 import { index as libraryIndex } from '@/routes/library';
 import { accept, alreadyRead, dismiss, generate } from '@/routes/suggestions';
-import type { Suggestion } from '@/types';
+import type { Candidate, Suggestion } from '@/types';
 
 type SuggestionsProps = {
     suggestions: Suggestion[];
     hasSources: boolean;
+    query: string;
+    results: Candidate[];
 };
 
 type RequestOptions = {
@@ -30,10 +36,11 @@ type RequestOptions = {
 export default function Suggestions({
     suggestions,
     hasSources,
+    query,
+    results,
 }: SuggestionsProps) {
     const { t } = useTranslation();
     const [busy, setBusy] = useState(false);
-    const [lead, ...rest] = suggestions;
 
     const options: RequestOptions = {
         preserveScroll: true,
@@ -57,6 +64,38 @@ export default function Suggestions({
                 }
             />
 
+            <SuggestionSearchForm key={query} query={query} />
+
+            {query !== '' ? (
+                <SuggestionSearchResults query={query} results={results} />
+            ) : (
+                <SuggestionList
+                    suggestions={suggestions}
+                    hasSources={hasSources}
+                    busy={busy}
+                    options={options}
+                />
+            )}
+        </div>
+    );
+}
+
+function SuggestionList({
+    suggestions,
+    hasSources,
+    busy,
+    options,
+}: {
+    suggestions: Suggestion[];
+    hasSources: boolean;
+    busy: boolean;
+    options: RequestOptions;
+}) {
+    const { t } = useTranslation();
+    const [lead, ...rest] = suggestions;
+
+    return (
+        <>
             {!hasSources && (
                 <EmptyState>
                     {t(
@@ -128,7 +167,7 @@ export default function Suggestions({
                     </span>
                 </div>
             )}
-        </div>
+        </>
     );
 }
 

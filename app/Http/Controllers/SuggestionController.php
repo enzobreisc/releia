@@ -20,9 +20,13 @@ class SuggestionController extends Controller
 {
     public function __construct(private readonly RecommendationService $suggestions) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $query = trim((string) $request->string('q'));
+
         return Inertia::render('suggestions', [
+            'query' => $query,
+            'results' => fn () => BookPresenter::candidates($this->suggestions->search($query)),
             'suggestions' => fn () => Recommendation::query()
                 ->with('basedOn')
                 ->where('status', RecommendationStatus::New)

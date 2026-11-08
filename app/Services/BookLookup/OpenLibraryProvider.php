@@ -23,6 +23,8 @@ class OpenLibraryProvider implements MetadataProvider
     /** As sugestões só valem para obras com edição em português; `sort` traz as mais queridas primeiro. */
     private const SUGGESTION_LANGUAGE = 'por';
 
+    private const SEARCH_RESULTS_LIMIT = 40;
+
     /** Obras populares têm dezenas de edições; 200 cobre quase todas numa chamada. */
     private const EDITIONS_LIMIT = 200;
 
@@ -226,6 +228,26 @@ class OpenLibraryProvider implements MetadataProvider
     public function searchByAuthor(string $author, int $page = 1): array
     {
         return $this->searchDocs(['author' => $author, 'language' => self::SUGGESTION_LANGUAGE, 'sort' => 'want_to_read', 'page' => $page], 20);
+    }
+
+    /**
+     * Obras de um autor, de um assunto ("Russian literature") ou de um título, as mais relevantes primeiro,
+     * em qualquer idioma, ou só as com edição no idioma dado. O título pesa menos, para o autor e o assunto virem antes.
+     *
+     * @return list<BookCandidate>
+     */
+    public function searchWorks(string $text, ?string $language = null): array
+    {
+        $term = trim(preg_replace('/[^\p{L}\p{N}\s\'-]+/u', ' ', $text) ?? '');
+
+        if ($term === '') {
+            return [];
+        }
+
+        return $this->searchDocs(array_filter([
+            'q' => "author:({$term}) OR subject:({$term}) OR title:({$term})^0.3",
+            'language' => $language,
+        ]), self::SEARCH_RESULTS_LIMIT);
     }
 
     /**
@@ -510,6 +532,7 @@ class OpenLibraryProvider implements MetadataProvider
                 pages: BookCandidate::positiveInt($doc['number_of_pages_median'] ?? null),
                 genre: Genres::fromSubjects(is_array($doc['subject'] ?? null) ? $doc['subject'] : []),
                 coverUrl: $coverId ? "https://covers.openlibrary.org/b/id/{$coverId}-L.jpg" : null,
+                workKey: self::workKey($doc['key'] ?? null),
                 editionCount: BookCandidate::positiveInt($doc['edition_count'] ?? null),
                 popularity: (int) ($doc['want_to_read_count'] ?? 0) + 5 * (int) ($doc['ratings_count'] ?? 0),
             );
