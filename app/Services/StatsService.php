@@ -15,15 +15,12 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * Métricas da seção 6 do escopo.
- *
- * Livros são contados por leitura concluída (status lido com data de fim no período),
- * então uma releitura conta de novo. Datas são colunas `date`, que o Eloquent pode
- * gravar com hora: por isso os filtros usam intervalo semiaberto (>= início, < dia seguinte).
+ * Books are counted by completed reading (read status with an end date in the period),
+ * so a reread counts again. Dates are `date` columns that Eloquent may save with a time,
+ * which is why the filters use a half-open range (>= start, < next day).
  */
 class StatsService
 {
-    /** Escolhe o período: um ano, ou o histórico inteiro quando $year é null. */
     public function period(?int $year): StatsPeriod
     {
         if ($year !== null) {
@@ -34,8 +31,6 @@ class StatsService
     }
 
     /**
-     * Anos com atividade, do mais recente ao mais antigo, incluindo o ano atual.
-     *
      * @return list<int>
      */
     public function years(): array
@@ -47,8 +42,8 @@ class StatsService
     }
 
     /**
-     * Indicadores do período. Páginas por dia usam os dias decorridos; a média
-     * "com leitura" usa só os dias com sessão.
+     * Period indicators. Pages per day use the elapsed days; the average per reading day
+     * uses only days with a session.
      *
      * @return array{books_read: int, rereads: int, pages_read: int, pages_per_day: float|null, pages_per_reading_day: float|null, reading_days: int, days_per_book: float|null}
      */
@@ -61,7 +56,7 @@ class StatsService
 
         return [
             'books_read' => $this->concluded($period)->count(),
-            // Releituras já estão em books_read; o número aparece como nota ao lado.
+            // Rereads are already counted in books_read; this number is shown as a note beside it.
             'rereads' => $this->rereads($period)->count(),
             'pages_read' => $pages,
             'pages_per_day' => $this->ratio($pages, $period->elapsedDays()),
@@ -72,8 +67,6 @@ class StatsService
     }
 
     /**
-     * Livros concluídos por mês (ano) ou por ano (histórico), zeros incluídos.
-     *
      * @return list<array{key: string, count: int}>
      */
     public function booksPerBucket(StatsPeriod $period): array
@@ -97,7 +90,7 @@ class StatsService
     }
 
     /**
-     * Gêneros mais lidos pela contagem de livros concluídos. Empate: ordem alfabética.
+     * Most read genres by finished-book count. Ties are sorted alphabetically.
      *
      * @return list<array{label: string, count: int}>
      */
@@ -118,7 +111,7 @@ class StatsService
     }
 
     /**
-     * Autores mais lidos. Um livro com dois autores conta para os dois.
+     * Most read authors. A book with two authors counts for both of them.
      *
      * @return list<array{label: string, count: int}>
      */
@@ -140,8 +133,6 @@ class StatsService
     }
 
     /**
-     * Leitura mais rápida (menor intervalo entre início e fim) e mais longa (mais páginas).
-     *
      * @return array{fastest: Reading|null, longest: Reading|null}
      */
     public function extremes(StatsPeriod $period): array
@@ -166,7 +157,7 @@ class StatsService
     }
 
     /**
-     * Mês com mais livros concluídos. Empate: o mês mais antigo.
+     * Month with the most finished books. Ties go to the earlier month.
      *
      * @return array{month: string, count: int}|null
      */
@@ -184,10 +175,9 @@ class StatsService
     }
 
     /**
-     * Sequência de dias seguidos com pelo menos uma sessão.
-     *
-     * "Atual" termina no último dia do período que já aconteceu. Se hoje ainda não
-     * teve leitura, a sequência continua valendo até ontem.
+     * Streak of consecutive days with at least one session. The current streak ends on the
+     * last day of the period that has already happened; if today has no reading yet, it still
+     * counts until yesterday.
      *
      * @return array{current: int, longest: int}
      */
@@ -230,9 +220,9 @@ class StatsService
     }
 
     /**
-     * Páginas por dia de cada dia do período, com o nível de cor (0 = sem leitura).
+     * Pages per day for each day of the period, with its color level (0 = no reading).
      *
-     * Só sessões têm data: páginas de livros sem sessão não entram no calendário.
+     * Only sessions have a date, so pages of books without sessions stay out of the calendar.
      *
      * @return list<array{date: string, pages: int, level: int}>
      */
@@ -260,9 +250,9 @@ class StatsService
     }
 
     /**
-     * Nível do mapa de calor para um dia. Limiares em páginas por dia:
-     * 1 a 20 (nível 1), 21 a 40 (2), 41 a 70 (3), 71 ou mais (4). Um dia comum de
-     * leitura fica entre 20 e 40 páginas; 71 ou mais é sessão longa.
+     * Heatmap level for a day, by pages read. Thresholds: 1-20 (level 1), 21-40 (2),
+     * 41-70 (3), 71 or more (4). A typical reading day falls between 20 and 40 pages;
+     * 71 or more is a long session.
      */
     public static function heatLevel(int $pages): int
     {
@@ -276,8 +266,8 @@ class StatsService
     }
 
     /**
-     * Projeção linear do ano: livros concluídos ÷ dias decorridos × dias do ano.
-     * Só existe para o ano atual; outros anos e o histórico retornam null.
+     * Linear projection for the year: finished books ÷ elapsed days × days in the year.
+     * Only available for the current year; other years and the history return null.
      *
      * @return array{projection: int, goal: int|null, books: int}|null
      */
@@ -298,7 +288,7 @@ class StatsService
     }
 
     /**
-     * Melhores leituras do período pela nota. Empate: mais páginas, depois a mais recente.
+     * Best readings of the period by rating. Ties go to more pages, then the most recent.
      *
      * @return Collection<int, Reading>
      */
@@ -317,8 +307,6 @@ class StatsService
     }
 
     /**
-     * Tudo o que o Wrapped mostra para um ano.
-     *
      * @return array{indicators: array<string, mixed>, genre: array{label: string, count: int}|null, author: array{label: string, count: int}|null, extremes: array{fastest: Reading|null, longest: Reading|null}, best_month: array{month: string, count: int}|null, streak: array{current: int, longest: int}, top: Collection<int, Reading>, rereads: list<string>}
      */
     public function wrapped(int $year): array
@@ -339,7 +327,7 @@ class StatsService
     }
 
     /**
-     * Releituras concluídas no período: leituras com outra mais antiga do mesmo livro.
+     * Rereads finished in the period: readings that have an older reading of the same book.
      *
      * @return Builder<Reading>
      */
@@ -353,8 +341,6 @@ class StatsService
     }
 
     /**
-     * Leituras concluídas no período: status lido com data de fim dentro dele.
-     *
      * @return Builder<Reading>
      */
     public function concluded(StatsPeriod $period): Builder
@@ -366,7 +352,6 @@ class StatsService
         );
     }
 
-    /** Soma das páginas das sessões no período: página final − inicial + 1. */
     private function sessionPages(StatsPeriod $period): int
     {
         return (int) $this->inPeriod(ReadingSession::query(), 'read_on', $period)
@@ -376,8 +361,8 @@ class StatsService
     }
 
     /**
-     * Livros concluídos no período que não têm nenhuma sessão: sem registro de
-     * progresso, o total de páginas do livro entra na conta.
+     * Books finished in the period with no session have no progress record, so their
+     * total page count is used instead.
      */
     private function fallbackPages(StatsPeriod $period): int
     {
@@ -395,7 +380,6 @@ class StatsService
             ->value('total');
     }
 
-    /** Média de dias entre início e fim, contando o primeiro dia (mesmo dia = 1). */
     private function averageDaysPerBook(StatsPeriod $period): ?float
     {
         $average = $this->concluded($period)
@@ -419,8 +403,6 @@ class StatsService
     }
 
     /**
-     * Aplica o período a uma coluna date, com intervalo semiaberto.
-     *
      * @template TModel of Model
      *
      * @param  Builder<TModel>  $query
@@ -438,7 +420,6 @@ class StatsService
         return $days > 0 ? round($total / $days, 1) : null;
     }
 
-    /** Primeira data registrada (início de leitura, fim ou sessão). Hoje, sem dados. */
     private function firstActivityDate(): CarbonImmutable
     {
         $dates = array_filter([

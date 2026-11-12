@@ -13,15 +13,13 @@ use Illuminate\Support\Str;
 /**
  * @phpstan-import-type CandidateArray from BookCandidate
  *
- * Busca e normaliza metadados: Open Library primeiro; BrasilAPI (ISBN brasileiro)
- * e Google Books completam ou servem de reserva. Resultados ficam em cache para
- * não repetir chamadas.
+ * Looks up and normalizes metadata: Open Library first; BrasilAPI (Brazilian ISBNs)
+ * and Google Books complement it or serve as a fallback. Results are cached to avoid repeated calls.
  */
 class BookLookupService
 {
     private const CACHE_DAYS = 30;
 
-    /** Com menos resultados que isso na Open Library, a busca é complementada. */
     private const SUPPLEMENT_BELOW = 5;
 
     public function __construct(
@@ -32,7 +30,7 @@ class BookLookupService
     ) {}
 
     /**
-     * ISBN busca uma edição exata; qualquer outro texto busca por título.
+     * An ISBN looks up one exact edition; any other text is searched by title.
      *
      * @return list<BookCandidate>
      */
@@ -57,13 +55,13 @@ class BookLookupService
         $cached = $this->remember('search:v3:'.mb_strtolower($query).'|'.$publisher, function () use ($query, $publisher) {
             $results = $this->openLibrary->search($query, $publisher);
 
-            // A editora é uma dica: a Open Library tem pouca informação de editora,
-            // então sem resultado com ela busca só pelo título.
+            // The publisher is only a hint: Open Library has little publisher data, so without
+            // results it searches by title alone.
             if ($results === [] && $publisher !== null) {
                 $results = $this->openLibrary->search($query);
             }
 
-            // Poucos resultados costumam ser livros que a Open Library mal conhece.
+            // Few results usually mean books that Open Library barely knows, so Google Books tops them up.
             if (count($results) < self::SUPPLEMENT_BELOW) {
                 $results = $this->merge($results, $this->googleBooks->search($query, $publisher));
             }
@@ -75,11 +73,11 @@ class BookLookupService
     }
 
     /**
-     * Edições de uma obra com ISBN, sem repetidas, na ordem em que interessam:
-     * brasileiras primeiro, depois com capa, depois as mais recentes.
+     * Editions of a work with ISBN, without repeats, in the order they matter:
+     * Brazilian first, then with a cover, then the most recent.
      *
-     * @param  list<string>  $authors  autores da obra (as edições não trazem)
-     * @param  string|null  $publisher  filtra pelo nome da editora, sem acento
+     * @param  list<string>  $authors  work authors (editions do not carry them)
+     * @param  string|null  $publisher  filters by publisher name, ignoring accents
      * @return list<BookCandidate>
      */
     public function editions(string $workKey, array $authors = [], ?string $publisher = null): array
@@ -125,8 +123,7 @@ class BookLookupService
     }
 
     /**
-     * Acrescenta ao final os resultados extras que ainda não estão na lista
-     * (mesmo ISBN, ou mesmo título e primeiro autor).
+     * Appends the extra results not yet in the list (same ISBN, or same title and first author).
      *
      * @param  list<BookCandidate>  $results
      * @param  list<BookCandidate>  $extra
@@ -173,7 +170,7 @@ class BookLookupService
                 }
             }
 
-            // Os dados vêm certos e a capa não: tenta achar uma pelo ISBN.
+            // The metadata is complete but the cover is missing: look one up by ISBN.
             if ($book !== null && $book->coverUrl === null && ($cover = $this->covers->findByIsbn($isbn13)) !== null) {
                 $book = $book->fillFrom(new BookCandidate(title: $book->title, source: $book->source, coverUrl: $cover));
             }
@@ -185,7 +182,7 @@ class BookLookupService
     }
 
     /**
-     * Guarda só respostas com resultado: uma falha de rede não deve ficar em cache.
+     * Only caches responses with results: a network failure must not stay cached.
      */
     private function remember(string $key, callable $callback): mixed
     {

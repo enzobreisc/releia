@@ -17,7 +17,6 @@ class ReadingSessionController extends Controller
 {
     public function __construct(private readonly ReadingService $readings) {}
 
-    /** Logs today's progress on the book. */
     public function store(StoreSessionRequest $request, Book $book): RedirectResponse
     {
         $session = $this->readings->registerSession(

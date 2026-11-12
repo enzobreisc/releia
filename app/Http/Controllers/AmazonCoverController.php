@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 
 class AmazonCoverController extends Controller
 {
-    /** Finds the cover from an Amazon product link, so the form can show it before saving. */
     public function __invoke(Request $request, CoverStore $covers): JsonResponse
     {
         $link = trim((string) $request->string('url'));

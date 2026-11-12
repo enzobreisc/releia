@@ -27,7 +27,6 @@ class QueueController extends Controller
         private readonly ReadingService $readings,
     ) {}
 
-    /** Up next, with each book's finish forecast reading in queue order. */
     public function index(): Response
     {
         $pace = $this->queue->pace(Carbon::today());
@@ -39,7 +38,6 @@ class QueueController extends Controller
 
         $queuedBookIds = $queueItems->pluck('book_id');
 
-        // Finish forecast for each book, reading in queue order starting today.
         $elapsed = 0;
         $queue = $queueItems->map(function (QueueItem $item) use ($pace, &$elapsed) {
             $days = $this->queue->estimateDays($item->book, $pace['pages_per_day']);
@@ -56,7 +54,6 @@ class QueueController extends Controller
         ]);
     }
 
-    /** Puts a book at the end of the queue. */
     public function store(Request $request, UndoService $undo): RedirectResponse
     {
         $validated = $request->validate([
@@ -90,7 +87,6 @@ class QueueController extends Controller
         return back();
     }
 
-    /** Removes from the queue by book (the "in queue · 2nd" button on the detail page and Library). */
     public function destroyBook(Book $book, UndoService $undo): RedirectResponse
     {
         return $this->destroy(QueueItem::query()->where('book_id', $book->id)->firstOrFail(), $undo);
@@ -120,8 +116,6 @@ class QueueController extends Controller
     }
 
     /**
-     * Books that can join the queue: on the want-to-read shelf or finished, to reread.
-     *
      * @param  Collection<int, int>  $queuedBookIds
      * @return Collection<int, array{id: int, title: string, is_reread: bool}>
      */

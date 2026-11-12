@@ -2,7 +2,6 @@
 
 namespace App\Enums;
 
-/** Where the book's metadata came from. */
 enum BookSource: string
 {
     case OpenLibrary = 'open_library';

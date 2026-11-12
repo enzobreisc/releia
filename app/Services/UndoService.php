@@ -84,8 +84,6 @@ class UndoService
     }
 
     /**
-     * Stores the snapshot and returns the token the notice uses to undo.
-     *
      * @param  Snapshot  $snapshot
      */
     public function remember(array $snapshot): string
@@ -143,7 +141,6 @@ class UndoService
     {
         $query = fn () => DB::table($part['table'])->where($part['where']);
 
-        // Pivot: deletes what exists now and puts the snapshot's rows back.
         if ($part['key'] === null) {
             $query()->delete();
 

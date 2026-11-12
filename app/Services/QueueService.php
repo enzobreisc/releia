@@ -9,13 +9,11 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-/** Queue of upcoming readings: order, days estimate and pace. */
 class QueueService
 {
     /** Pace used when no sessions have been logged yet. */
     public const DEFAULT_PAGES_PER_DAY = 20;
 
-    /** Window, in days, to compute the pace from sessions. */
     private const PACE_WINDOW_DAYS = 30;
 
     /** A book already in the queue does not enter again: the call is idempotent. */
@@ -79,7 +77,6 @@ class QueueService
         });
     }
 
-    /** Renumbers positions as 1..n, with no gaps after a removal. */
     private function compact(): void
     {
         QueueItem::query()

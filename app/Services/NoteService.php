@@ -6,7 +6,6 @@ use App\Models\Note;
 use App\Models\Tag;
 use Illuminate\Support\Facades\DB;
 
-/** Creates and edits notes, keeping their tags in step with the text. */
 class NoteService
 {
     /**
@@ -41,7 +40,6 @@ class NoteService
     }
 
     /**
-     * Rebuilds the tags from the text.
      * Public for the note factory, which creates records without going through the service.
      */
     public function syncTags(Note $note): void

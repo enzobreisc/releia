@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Reading;
 use Carbon\CarbonInterface;
 
-/** One reading placed on the timeline. */
 final readonly class TimelineEntry
 {
     public function __construct(

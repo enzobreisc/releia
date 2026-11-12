@@ -2,7 +2,6 @@
 
 namespace App\Enums;
 
-/** Kind of note: a copied excerpt, the reader's own reflection or a quote. */
 enum NoteKind: string
 {
     case Excerpt = 'excerpt';
@@ -18,7 +17,6 @@ enum NoteKind: string
         };
     }
 
-    /** Filter tab label, in the plural. */
     public function pluralLabel(): string
     {
         return match ($this) {

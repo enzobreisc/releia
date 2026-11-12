@@ -6,8 +6,6 @@ use App\Enums\BookSource;
 use Illuminate\Support\Str;
 
 /**
- * Metadados de um livro como vieram de uma fonte, já normalizados.
- *
  * @phpstan-type CandidateArray array{isbn_13: string|null, isbn_10: string|null, title: string, subtitle: string|null, authors: list<string>, publisher: string|null, published_year: int|null, pages: int|null, genre: string|null, description: string|null, cover_url: string|null, source: string, work_key?: string|null, edition_count?: int|null, language?: string|null, popularity?: int|null}
  */
 final readonly class BookCandidate
@@ -28,16 +26,16 @@ final readonly class BookCandidate
         public ?string $genre = null,
         public ?string $description = null,
         public ?string $coverUrl = null,
-        // Obra da Open Library: a busca devolve obras, cada uma com várias edições.
+        // Open Library work: searches return works, each with several editions.
         public ?string $workKey = null,
         public ?int $editionCount = null,
-        // Código MARC do idioma da edição (por, eng…), quando a fonte informa.
+        // MARC language code of the edition (por, eng…), when the source provides one.
         public ?string $language = null,
-        // Quanta gente quer ler ou avaliou a obra (Open Library); serve para ordenar sugestões.
+        // How many people want to read or have rated the work (Open Library); used to rank suggestions.
         public ?int $popularity = null,
     ) {}
 
-    /** Completa os campos vazios com os de outra fonte, sem sobrescrever nada. */
+    /** Fills the empty fields from another source, never overwriting a value already set. */
     public function fillFrom(self $other): self
     {
         return new self(
@@ -116,8 +114,8 @@ final readonly class BookCandidate
     }
 
     /**
-     * Remove autores repetidos que só diferem em acento ou caixa
-     * ("Itamar Vieira Junior" e "Itamar Vieira Júnior").
+     * Removes repeated authors that differ only in accent or case
+     * ("Itamar Vieira Junior" and "Itamar Vieira Júnior").
      *
      * @param  array<mixed>  $names
      * @return list<string>
@@ -138,7 +136,7 @@ final readonly class BookCandidate
         return array_values($unique);
     }
 
-    /** Extrai o ano de datas livres como "3 dezembro 2019" ou "Sep 26, 2008". */
+    /** Extracts the year from free-form dates such as "3 dezembro 2019" or "Sep 26, 2008". */
     public static function yearFrom(mixed $date): ?int
     {
         if (is_int($date)) {

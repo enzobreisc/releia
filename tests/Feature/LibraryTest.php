@@ -268,7 +268,7 @@ test('prateleiras personalizadas: criar, mover livros, ordenar e apagar', functi
         $this->patch(route('books.bookshelf', $book), ['bookshelf_id' => $shelf->id])->assertRedirect();
     }
 
-    // Antes de outro livro: o novo entra na frente.
+    // Before another book: the new one goes first.
     $this->patch(route('books.bookshelf', $c), ['bookshelf_id' => $shelf->id, 'before_book_id' => $a->id]);
 
     expect($shelf->books()->pluck('id')->all())->toBe([$c->id, $a->id, $b->id]);

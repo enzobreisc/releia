@@ -5,12 +5,9 @@ namespace App\Http\Presenters;
 use App\Models\Reading;
 use App\Support\DateLabel;
 
-/** Shape of the statistics, profile and Wrapped data sent to the pages. */
 final class StatsPresenter
 {
     /**
-     * A reading with the book's data and the reading's own rating.
-     *
      * @return array<string, mixed>|null
      */
     public static function reading(?Reading $reading): ?array
@@ -37,7 +34,6 @@ final class StatsPresenter
         ];
     }
 
-    /** Axis label: "Mar" for a month (YYYY-MM), the year itself in the history. */
     public static function bucketLabel(string $key, bool $history): string
     {
         if ($history) {
@@ -47,7 +43,6 @@ final class StatsPresenter
         return DateLabel::monthAbbreviation((int) substr($key, 5, 2));
     }
 
-    /** Full month name for Wrapped ("March"). */
     public static function monthName(string $month): string
     {
         return DateLabel::monthName((int) substr($month, 5, 2));

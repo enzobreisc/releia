@@ -11,7 +11,6 @@ beforeEach(function () {
     Carbon::setTestNow('2026-10-14 20:00:00');
 });
 
-/** Livro na estante "lendo", parado na página indicada. */
 function timerBookAt(int $page, int $pages = 300): Book
 {
     $book = Book::factory()->onShelf(ReadingStatus::Reading)->create(['pages' => $pages]);
@@ -107,7 +106,7 @@ test('timer recusa página inicial antes da registrada e página final que não 
     $this->post(route('quick-log.timer.finish'), ['page_to' => 40])->assertSessionHasErrors('page_to');
     $this->post(route('quick-log.timer.finish'), ['page_to' => 120])->assertSessionHasErrors('page_to');
 
-    // Nada foi gravado: nem sessão nem o avanço até a página inicial.
+    // Nothing was saved: neither a session nor the page advance up to the starting page.
     expect(ReadingSession::count())->toBe(0)
         ->and($book->currentReading->refresh()->current_page)->toBe(32)
         ->and(app(ReadingTimer::class)->current())->not->toBeNull();

@@ -46,13 +46,11 @@ use Illuminate\Support\Facades\Schema;
  */
 class RecommendationService
 {
-    /** How many rated books become sources in one search. */
     private const MAX_SOURCES = 6;
 
     /** Maximum time of one search, in seconds: past that, it keeps what it already found. */
     private const BUDGET_SECONDS = 20;
 
-    /** How many new suggestions a search adds. */
     private const MAX_NEW = 20;
 
     private const CACHE_DAYS = 7;
@@ -69,13 +67,11 @@ class RecommendationService
     /** How many searches have been made: on each one, Open Library is read on a different page. */
     private const ROUND_KEY = 'suggestion-round';
 
-    /** How many pages of results per subject alternate before starting over. */
     private const PAGES = 3;
 
     /** Pending suggestions kept: above this the oldest ones drop out. */
     private const MAX_PENDING = 60;
 
-    /** Open Library page of this search. */
     private int $page = 1;
 
     public function __construct(
@@ -86,7 +82,6 @@ class RecommendationService
         private readonly CandidateRanker $ranker = new ScoredRanker,
     ) {}
 
-    /** Are there books rated 4 or 5 to generate suggestions from? */
     public function hasSources(): bool
     {
         return $this->sourceReadings()->exists();
@@ -196,7 +191,6 @@ class RecommendationService
         return count($created);
     }
 
-    /** Keeps only the most recent pending ones. */
     private function trimPending(): void
     {
         $keep = Recommendation::query()->where('status', RecommendationStatus::New)->latest('id')->limit(self::MAX_PENDING)->pluck('id');
@@ -435,8 +429,6 @@ class RecommendationService
     }
 
     /**
-     * The candidates of a source book, each with its reason.
-     *
      * @return list<Suggestion>
      */
     private function candidatesFor(Book $book): array
@@ -649,8 +641,6 @@ class RecommendationService
     }
 
     /**
-     * Keys of a candidate, to compare with the collection and the suggestions.
-     *
      * @return list<string>
      */
     private function keysOf(BookCandidate $candidate): array
@@ -715,8 +705,6 @@ class RecommendationService
     }
 
     /**
-     * Authors stored as "A, B" turn back into a list.
-     *
      * @return list<string>
      */
     private function authorList(?string $author): array

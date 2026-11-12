@@ -9,7 +9,6 @@ use Illuminate\Http\RedirectResponse;
 
 class GoalController extends Controller
 {
-    /** The year's book goal and the daily page goal, kept in settings. */
     public function update(UpdateGoalRequest $request): RedirectResponse
     {
         Setting::put('yearly_goal', $request->integer('yearly_goal'));

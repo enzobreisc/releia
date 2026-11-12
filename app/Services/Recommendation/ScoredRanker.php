@@ -3,9 +3,9 @@
 namespace App\Services\Recommendation;
 
 /**
- * Ordena pela pontuação: afinidade com os livros que você amou, depois popularidade.
- * Um pequeno sorteio mistura os candidatos de pontuação próxima, para duas buscas seguidas
- * não devolverem sempre a mesma lista.
+ * Orders by score: affinity with the books you loved, then popularity.
+ * A small random jitter shuffles candidates with close scores, so two consecutive searches
+ * do not always return the same list.
  */
 final class ScoredRanker implements CandidateRanker
 {

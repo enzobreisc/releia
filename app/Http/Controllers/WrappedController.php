@@ -12,7 +12,6 @@ class WrappedController extends Controller
 {
     public function __construct(private readonly StatsService $stats) {}
 
-    /** Retrospectiva de um ano (?year=2026). Padrão: o ano atual. */
     public function show(Request $request): Response
     {
         $years = $this->stats->years();

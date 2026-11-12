@@ -8,7 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Meta anual, atalhos, preferências e opções de IA.
         Schema::create('settings', function (Blueprint $table) {
             $table->string('key')->primary();
             $table->json('value')->nullable();

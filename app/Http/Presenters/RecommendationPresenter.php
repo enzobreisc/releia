@@ -4,7 +4,6 @@ namespace App\Http\Presenters;
 
 use App\Models\Recommendation;
 
-/** Formato das sugestões enviado às páginas. */
 final class RecommendationPresenter
 {
     /**
@@ -19,7 +18,7 @@ final class RecommendationPresenter
             'cover_url' => $recommendation->cover_url,
             'reason' => $recommendation->reason,
             'based_on' => $recommendation->basedOn->title,
-            // Com o ISBN dá para achar a obra na hora (sugestões antigas não a guardaram).
+            // Older suggestions have no work_key, but an ISBN still lets the editions be found on demand.
             'has_editions' => $recommendation->work_key !== null || $recommendation->isbn_13 !== null,
         ];
     }

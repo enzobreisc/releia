@@ -9,7 +9,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('readings', function (Blueprint $table) {
-            // Por que a leitura foi abandonada, em poucas palavras. Opcional.
             $table->string('abandon_reason', 120)->nullable()->after('review');
         });
     }

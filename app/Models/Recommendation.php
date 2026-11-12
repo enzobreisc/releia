@@ -11,8 +11,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Livro sugerido a partir de um livro que você avaliou bem.
- *
  * @property int $id
  * @property string $title
  * @property string|null $author
@@ -31,7 +29,7 @@ class Recommendation extends Model
     /** @use HasFactory<RecommendationFactory> */
     use HasFactory;
 
-    // A tabela só tem created_at.
+    // The table has no updated_at column.
     public const UPDATED_AT = null;
 
     /**

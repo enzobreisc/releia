@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('shopping_items', function (Blueprint $table) {
-            // Capa guardada no app, de um livro que veio de "quero ler".
+            // Cover stored locally for books that came from the "want to read" list.
             $table->string('cover_path')->nullable()->after('cover_url');
         });
     }

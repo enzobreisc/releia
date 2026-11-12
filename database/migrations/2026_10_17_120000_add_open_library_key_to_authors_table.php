@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('authors', function (Blueprint $table) {
-            // Identidade do autor na Open Library ("OL1234A"): grafias diferentes do mesmo nome
-            // ("Júnior" e "Junior") apontam para a mesma chave.
+            // Open Library author key ("OL1234A"): different spellings of the same name
+            // ("Júnior" and "Junior") point to the same key.
             $table->string('open_library_key')->nullable()->index();
         });
     }

@@ -9,7 +9,6 @@ enum Locale: string
 
     public const SETTING = 'locale';
 
-    /** Language tag for Intl and the HTML lang attribute. */
     public function languageTag(): string
     {
         return match ($this) {

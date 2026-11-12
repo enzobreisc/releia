@@ -21,7 +21,6 @@ beforeEach(function () {
     Carbon::setTestNow('2026-10-14 22:30:00');
 });
 
-/** Book on the "want to read" shelf, as adding one does. */
 function wantToRead(array $attributes = []): Book
 {
     $book = Book::factory()->create($attributes);
@@ -30,7 +29,6 @@ function wantToRead(array $attributes = []): Book
     return $book;
 }
 
-/** Fakes the external sources for buying a book with an ISBN. */
 function fakeMetadataSources(): void
 {
     Http::fake([
@@ -469,7 +467,6 @@ test('começar a ler um livro tira ele da fila e reordena o resto', function () 
         ->and(QueueItem::sole()->position)->toBe(1);
 });
 
-/** Estante Virtual search page with the embedded state, as on the real site. */
 function estanteVirtualPage(array $products): string
 {
     $state = json_encode(['Newsletter' => [], 'SearchPage' => ['parentSkus' => $products]]);

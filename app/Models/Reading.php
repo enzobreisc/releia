@@ -84,8 +84,6 @@ class Reading extends Model
     }
 
     /**
-     * Rating of each book's most recent reading, as a correlated subquery on `books`.
-     *
      * @return Builder<Reading>
      */
     public static function currentRatingOfBook(): Builder

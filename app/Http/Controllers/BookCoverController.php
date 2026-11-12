@@ -12,7 +12,7 @@ class BookCoverController extends Controller
     {
         abort_if($book->cover_path === null || ! Storage::disk('local')->exists($book->cover_path), 404);
 
-        // A URL leva a versão (?v=), então a capa pode ficar em cache por muito tempo.
+        // The URL carries a version (?v=), so the cover can be cached for a long time.
         return Storage::disk('local')->response($book->cover_path, headers: [
             'Cache-Control' => 'public, max-age=31536000, immutable',
         ]);

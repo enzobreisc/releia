@@ -5,7 +5,6 @@ namespace App\Enums;
 use App\Models\ShoppingItem;
 use Illuminate\Database\Eloquent\Builder;
 
-/** Ordering of the shopping list, chosen with the "sort" query parameter. */
 enum ShoppingSort: string
 {
     case PriceAsc = 'price_asc';

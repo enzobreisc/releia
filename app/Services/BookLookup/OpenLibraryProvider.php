@@ -13,19 +13,19 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Fonte principal. A Books API (por ISBN) é legado segundo a própria documentação,
- * por isso a busca por título usa a Search API.
+ * Main source. The Books API (by ISBN) is legacy per its own documentation, so title search
+ * uses the Search API.
  */
 class OpenLibraryProvider implements MetadataProvider
 {
     private const SEARCH_FIELDS = 'key,title,subtitle,author_name,first_publish_year,isbn,number_of_pages_median,subject,cover_i,edition_count,want_to_read_count,ratings_count';
 
-    /** As sugestões só valem para obras com edição em português; `sort` traz as mais queridas primeiro. */
+    /** Suggestions only count works with a Portuguese edition; `sort` brings the most loved first. */
     private const SUGGESTION_LANGUAGE = 'por';
 
     private const SEARCH_RESULTS_LIMIT = 40;
 
-    /** Obras populares têm dezenas de edições; 200 cobre quase todas numa chamada. */
+    /** Popular works have dozens of editions; 200 covers almost all of them in one call. */
     private const EDITIONS_LIMIT = 200;
 
     public function findByIsbn(string $isbn13): ?BookCandidate
@@ -56,7 +56,7 @@ class OpenLibraryProvider implements MetadataProvider
             coverUrl: BookCandidate::nonEmptyString($book['cover']['large'] ?? $book['cover']['medium'] ?? null),
         );
 
-        // A edição muitas vezes não traz páginas; a obra traz a mediana entre as edições.
+        // The edition often lacks a page count; the work carries the median across its editions.
         if ($candidate->pages === null || $candidate->genre === null) {
             $work = $this->get('/search.json', [
                 'isbn' => $isbn13,
@@ -81,7 +81,7 @@ class OpenLibraryProvider implements MetadataProvider
     {
         $docs = $this->get('/search.json', array_filter([
             'q' => $query,
-            // Filtra obras que têm alguma edição dessa editora (ignora acentos).
+            // Keeps works with at least one edition from this publisher (accent-insensitive).
             'publisher' => $publisher,
             'fields' => self::SEARCH_FIELDS,
             'limit' => 10,
@@ -117,8 +117,8 @@ class OpenLibraryProvider implements MetadataProvider
     }
 
     /**
-     * Edições de uma obra. As edições não trazem o nome dos autores (só
-     * referências), por isso quem chama completa com os autores da obra.
+     * Editions of a work. Editions carry author references but not names, so the caller
+     * fills in the work's authors.
      *
      * @return list<BookCandidate>
      */
@@ -158,7 +158,7 @@ class OpenLibraryProvider implements MetadataProvider
         return $editions;
     }
 
-    /** Obra (chave "OL1003040W") a que um ISBN pertence, ou null se a Open Library não conhece a edição. */
+    /** Work key (e.g. "OL1003040W") that an ISBN belongs to, or null when Open Library does not know the edition. */
     public function workKeyForIsbn(string $isbn13): ?string
     {
         $doc = $this->get('/search.json', ['isbn' => $isbn13, 'fields' => 'key', 'limit' => 1])['docs'][0] ?? null;
@@ -166,15 +166,14 @@ class OpenLibraryProvider implements MetadataProvider
         return is_array($doc) ? self::workKey($doc['key'] ?? null) : null;
     }
 
-    /** "/works/OL1003040W" vira "OL1003040W". */
     public static function workKey(mixed $key): ?string
     {
         return is_string($key) && preg_match('#^/works/(OL\d+W)$#', $key, $match) ? $match[1] : null;
     }
 
     /**
-     * A busca devolve obras, com os ISBNs de todas as edições.
-     * Prefere uma edição brasileira; senão, o primeiro ISBN válido.
+     * Searches return works with the ISBNs of all their editions.
+     * Prefers a Brazilian edition; otherwise the first valid ISBN.
      *
      * @param  array<mixed>  $isbns
      */
@@ -220,8 +219,8 @@ class OpenLibraryProvider implements MetadataProvider
     }
 
     /**
-     * Obras de um autor, com as edições de cada uma (por nome, não por chave).
-     * Usado pelas sugestões; a busca por autor também traz obras de coautores.
+     * Works by an author, looked up by name. Used by suggestions; the author search also
+     * returns works by co-authors, which callers filter out.
      *
      * @return list<BookCandidate>
      */
@@ -231,8 +230,8 @@ class OpenLibraryProvider implements MetadataProvider
     }
 
     /**
-     * Obras de um autor, de um assunto ("Russian literature") ou de um título, as mais relevantes primeiro,
-     * em qualquer idioma, ou só as com edição no idioma dado. O título pesa menos, para o autor e o assunto virem antes.
+     * Works by author, subject ("Russian literature") or title, most relevant first, in any language
+     * or only those with an edition in the given language. Title weighs less, so author and subject rank first.
      *
      * @return list<BookCandidate>
      */
@@ -251,7 +250,7 @@ class OpenLibraryProvider implements MetadataProvider
     }
 
     /**
-     * Obras com um assunto. Assuntos genéricos (ex.: "Fiction") trazem milhares de resultados.
+     * Works with a subject. Generic subjects such as "Fiction" return thousands of results.
      *
      * @return list<BookCandidate>
      */
@@ -261,9 +260,9 @@ class OpenLibraryProvider implements MetadataProvider
     }
 
     /**
-     * Chaves do autor na Open Library a partir de um livro dele. A Open Library costuma ter
-     * o mesmo autor cadastrado mais de uma vez ("Júnior" e "Junior"); a busca por ISBN
-     * devolve `author_name` e `author_key` na mesma ordem, então o nome escolhe as chaves.
+     * Author keys in Open Library from one of the author's books. Open Library often registers the
+     * same author more than once ("Júnior" and "Junior"); the ISBN search returns `author_name` and
+     * `author_key` in the same order, so the name picks the keys.
      *
      * @return list<string>
      */
@@ -279,15 +278,15 @@ class OpenLibraryProvider implements MetadataProvider
     }
 
     /**
-     * Igual, mas pelo título do livro, para edições que a Open Library não tem por ISBN.
-     * Só vale a obra com o mesmo título (sem subtítulo nem parênteses) e um autor de nome parecido:
-     * título igual não basta, outro livro pode ter o mesmo nome.
+     * Same as above, but by book title, for editions Open Library does not have by ISBN.
+     * Only a work with the same title (no subtitle or parentheses) and a similar author name counts:
+     * an equal title is not enough, since another book may share it.
      *
      * @return list<string>
      */
     public function authorKeysForTitle(string $title, string $name): array
     {
-        // "O Tatuador de Auschwitz. Baseado na história real…": o subtítulo depois do ponto não conta.
+        // Text after a period is a subtitle and is ignored, e.g. "O Tatuador de Auschwitz. Baseado na história real…".
         $shorten = fn (string $value) => BookIdentity::normalizeTitle((string) preg_replace('/\.\s.*$/', '', $value));
         $wanted = $shorten($title);
 
@@ -313,7 +312,7 @@ class OpenLibraryProvider implements MetadataProvider
     }
 
     /**
-     * @param  array<mixed>  $doc  com `author_name` e `author_key` na mesma ordem
+     * @param  array<mixed>  $doc  with `author_name` and `author_key` in the same order
      * @return list<string>
      */
     private function matchingAuthorKeys(array $doc, string $name): array
@@ -330,14 +329,14 @@ class OpenLibraryProvider implements MetadataProvider
             }
         }
 
-        // Não vale "o único autor listado": a Open Library às vezes põe o tradutor no lugar do autor.
+        // No shortcut for a single listed author: Open Library sometimes lists the translator in its place.
         return $keys;
     }
 
     /**
-     * Chaves do autor pelo nome, só quando não há dúvida: um único autor com esse nome ou um
-     * claramente mais conhecido (3× mais obras). Nesse caso entram também os cadastros
-     * duplicados com o mesmo nome. Homônimos parecidos devolvem lista vazia.
+     * Author keys by name, only when there is no doubt: a single author with that name, or one
+     * clearly more famous (3× more works). In that case duplicate records with the same name come
+     * too. Look-alike namesakes return an empty list.
      *
      * @return list<string>
      */
@@ -360,8 +359,8 @@ class OpenLibraryProvider implements MetadataProvider
     }
 
     /**
-     * Todos os cadastros com exatamente esse nome e a quantidade de obras de cada um. Quem usa
-     * precisa confirmar com um livro da biblioteca, porque pode haver homônimos.
+     * All records with exactly this name, with the number of works each has. Callers must confirm
+     * with a book in the library, since namesakes may exist.
      *
      * @return array<string, int>
      */
@@ -380,8 +379,8 @@ class OpenLibraryProvider implements MetadataProvider
     }
 
     /**
-     * Todas as obras de um autor pelas chaves (não pelo nome, que mistura homônimos), as mais
-     * queridas primeiro. Cada uma vem com os ISBNs de todas as edições, para conferir com a biblioteca.
+     * All works of an author by keys (not by name, which mixes namesakes), most loved first. Each one
+     * comes with the ISBNs of all its editions, to check against the library.
      *
      * @param  list<string>  $keys
      * @return list<array{candidate: BookCandidate, isbns: list<string>, portuguese: bool}>
@@ -479,7 +478,7 @@ class OpenLibraryProvider implements MetadataProvider
         return $titles;
     }
 
-    /** Nome igual ou muito parecido (grafias de língua diferente: Tolstói / Tolstoy). */
+    /** Same or very similar name, allowing for spellings in different languages (Tolstói / Tolstoy). */
     private static function similarName(string $a, string $b): bool
     {
         if (self::sameName($a, $b)) {
@@ -491,7 +490,7 @@ class OpenLibraryProvider implements MetadataProvider
         return $percent >= 80;
     }
 
-    /** Mesmo nome, ignorando acento, caixa, pontuação e sufixos como "Jr." e "Júnior". */
+    /** Same name, ignoring accents, case, punctuation and suffixes such as "Jr." and "Júnior". */
     private static function sameName(string $a, string $b): bool
     {
         $strip = fn (string $name) => trim((string) preg_replace('/\b(jr|junior|filho|neto|sobrinho)\b/', '', BookIdentity::normalize($name)));

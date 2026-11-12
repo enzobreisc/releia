@@ -60,10 +60,6 @@ class ShoppingItem extends Model
         return $this->belongsTo(Book::class);
     }
 
-    /**
-     * Where to buy: the requested store; otherwise the pasted link or, without one,
-     * the Amazon search by ISBN or title.
-     */
     public function shopUrl(?string $store = null): string
     {
         $link = $store === null ? null : StoreLinks::url($store, $this->isbn, $this->title, $this->author);

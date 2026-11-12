@@ -11,9 +11,6 @@ use Illuminate\Validation\Rule;
 
 class StoreBookRequest extends FormRequest
 {
-    /**
-     * Normalizes before validating: ISBN without hyphens and comma-separated authors.
-     */
     protected function prepareForValidation(): void
     {
         $isbn = $this->input('isbn_13');

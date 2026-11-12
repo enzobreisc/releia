@@ -10,14 +10,12 @@ use Native\Desktop\Facades\MenuBar;
 use Throwable;
 
 /**
- * Everything native about the quick log lives here: menu bar icon and global
- * shortcut. Called only on native app boot, never from controllers.
+ * Called only on native app boot, never from controllers.
  */
 final class QuickLog
 {
     public const DEFAULT_SHORTCUT = 'CmdOrCtrl+Shift+L';
 
-    /** Creates the menu bar icon and registers the current shortcut. */
     public static function install(): void
     {
         self::installMenuBar();
@@ -25,9 +23,7 @@ final class QuickLog
     }
 
     /**
-     * The 360×560 window loads the day's reading (timer and page). The "Template"
-     * icon adapts to macOS light and dark themes. The tooltip is set once at boot,
-     * so a language change shows up after a restart.
+     * The tooltip is set once at boot, so a language change shows up after a restart.
      */
     public static function installMenuBar(): void
     {
@@ -53,7 +49,6 @@ final class QuickLog
         return trans('Leitura do dia', [], $locale);
     }
 
-    /** Combination stored in settings, or the default when there is none or the database is not ready. */
     public static function shortcut(): string
     {
         try {
@@ -74,8 +69,8 @@ final class QuickLog
     }
 
     /**
-     * Replaces the combination: releases the previous one before registering the new one,
-     * because Electron does not remove the old one on its own. Used when the user changes the shortcut.
+     * Releases the previous combination before registering the new one, because Electron
+     * does not remove the old one on its own.
      */
     public static function replaceShortcut(string $previous, string $next): void
     {

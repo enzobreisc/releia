@@ -10,8 +10,6 @@ pest()->extend(TestCase::class)
     ->in('Feature');
 
 /**
- * Resposta real gravada de uma API externa (tests/Fixtures).
- *
  * @return array<mixed>
  */
 function apiFixture(string $path): array

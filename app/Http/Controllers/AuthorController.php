@@ -15,13 +15,12 @@ class AuthorController extends Controller
 {
     public function __construct(private readonly AuthorService $authors) {}
 
-    /** Autores da biblioteca, com o que o leitor tem e leu de cada um. */
     public function index(AuthorIndex $index): Response
     {
         return Inertia::render('authors', $index->build());
     }
 
-    /** Os livros do autor na biblioteca. As outras obras chegam à parte (`works`), por serem de rede. */
+    /** Other works arrive separately (`works`) because they come from the network. */
     public function show(Author $author): Response
     {
         $books = Book::query()
@@ -37,7 +36,7 @@ class AuthorController extends Controller
         ]);
     }
 
-    /** Obras do autor que faltam na biblioteca; `verified` falso quando não foi possível identificar o autor. */
+    /** `verified` is false when the author could not be identified. */
     public function works(Author $author): JsonResponse
     {
         return response()->json($this->authors->works($author));

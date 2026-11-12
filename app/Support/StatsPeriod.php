@@ -5,7 +5,6 @@ namespace App\Support;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 
-/** Intervalo de datas (inclusive) usado pelas estatísticas. */
 final class StatsPeriod
 {
     private function __construct(
@@ -23,7 +22,6 @@ final class StatsPeriod
         );
     }
 
-    /** Do primeiro registro até hoje. */
     public static function history(DateTimeInterface $since): self
     {
         return new self(
@@ -33,7 +31,6 @@ final class StatsPeriod
         );
     }
 
-    /** Os últimos $days dias, até hoje (usado no calendário do histórico). */
     public static function lastDays(int $days): self
     {
         $today = CarbonImmutable::today();
@@ -41,7 +38,7 @@ final class StatsPeriod
         return new self($today->subDays($days - 1), $today, history: false);
     }
 
-    /** Último dia do período que já aconteceu: não existe ritmo para dias futuros. */
+    /** The last day that has already happened: future days have no pace. */
     public function lastDay(): CarbonImmutable
     {
         $today = CarbonImmutable::today();
@@ -49,7 +46,6 @@ final class StatsPeriod
         return $this->end->isAfter($today) ? $today : $this->end;
     }
 
-    /** Dias do período até hoje, contando o primeiro. Base de páginas por dia. */
     public function elapsedDays(): int
     {
         $last = $this->lastDay();

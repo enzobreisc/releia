@@ -89,8 +89,8 @@ class Book extends Model
     }
 
     /**
-     * Replaces the authors keeping the given order. A name that differs from an existing
-     * author only by accents or case reuses that author ("Dostoievski" is "Dostoiévski").
+     * A name that differs from an existing author only by accents or case reuses that
+     * author ("Dostoievski" is "Dostoiévski").
      *
      * @param  list<string>  $names
      */
@@ -110,7 +110,6 @@ class Book extends Model
         $this->unsetRelation('authors');
     }
 
-    /** Rebuilds the search text from the title, authors and ISBNs. */
     public function refreshSearchText(): void
     {
         $this->search_text = self::normalizeSearch(implode(' ', array_filter([

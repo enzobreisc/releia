@@ -18,8 +18,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Full-screen reading session: the timer, the page where the reader is and the day's numbers.
- * It drives the same timer as the menu bar window, which keeps counting while this screen is closed.
+ * Drives the same timer as the menu bar window, which keeps counting while this screen is closed.
  */
 class LiveSessionController extends Controller
 {
@@ -56,7 +55,6 @@ class LiveSessionController extends Controller
         ]);
     }
 
-    /** Opens the screen for the book; a timer already running on that book is simply resumed on screen. */
     public function start(Book $book): RedirectResponse
     {
         $timer = $this->timer->current();
@@ -99,7 +97,6 @@ class LiveSessionController extends Controller
         return back();
     }
 
-    /** Saves the session up to the page on screen; on the last page the reader may also finish the book. */
     public function finish(FinishLiveSessionRequest $request): RedirectResponse
     {
         $timer = $this->timer->current();
@@ -129,7 +126,6 @@ class LiveSessionController extends Controller
         return to_route('books.show', $session->reading->book_id);
     }
 
-    /** Drops the session without saving anything and goes back to the book. */
     public function discard(): RedirectResponse
     {
         $timer = $this->timer->current();

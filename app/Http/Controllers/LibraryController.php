@@ -58,8 +58,7 @@ class LibraryController extends Controller
     }
 
     /**
-     * Count per shelf, considering only each book's most recent reading
-     * (a reread book does not count as both "read" and "reading").
+     * A reread book counts only on the shelf of its most recent reading.
      *
      * @return list<array{value: string|null, label: string, count: int}>
      */

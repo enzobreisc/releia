@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('queue_items', function (Blueprint $table) {
             $table->id();
-            // Um livro entra na fila uma vez só.
+            // A book joins the queue only once.
             $table->foreignId('book_id')->unique()->constrained()->cascadeOnDelete();
             $table->unsignedInteger('position')->index();
             $table->timestamp('added_at');

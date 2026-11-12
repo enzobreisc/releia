@@ -5,8 +5,8 @@ namespace App\Services\Recommendation;
 use App\Support\BookIdentity;
 
 /**
- * Assuntos da Open Library que não servem para aproximar livros: "Fiction" e "Accidents"
- * casam com quase tudo. Filtro simples de propósito; a lista cresce conforme o uso.
+ * Open Library subjects that do not help match similar books: "Fiction" and "Accidents"
+ * match almost everything. The filter is deliberately simple; the list grows with use.
  */
 final class GenericSubjects
 {
@@ -32,14 +32,13 @@ final class GenericSubjects
         'ficcion',
     ];
 
-    /** Assunto usável para buscar livros parecidos, ou falso se for genérico ou vazio. */
     public static function isUseful(?string $subject): bool
     {
         if ($subject === null || trim($subject) === '') {
             return false;
         }
 
-        // "nyt:...", "series:..." são marcadores da Open Library, não assuntos.
+        // Open Library prefixes markers such as "nyt:..." and "series:..." that are not subjects.
         if (str_contains($subject, ':')) {
             return false;
         }

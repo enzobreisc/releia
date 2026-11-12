@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/** Correction of an already logged session. */
 class UpdateSessionRequest extends FormRequest
 {
     /**

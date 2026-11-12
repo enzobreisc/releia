@@ -31,12 +31,10 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ShoppingController extends Controller
 {
-    /** Matches shown in the shopping list search. */
     private const MATCH_LIMIT = 5;
 
     public function __construct(private readonly ShoppingService $shopping) {}
 
-    /** Takes the book off the "want to read" shelf and moves it to the shopping list. */
     public function fromBook(Book $book): RedirectResponse
     {
         $title = $book->title;
@@ -52,7 +50,6 @@ class ShoppingController extends Controller
         return to_route('shopping.index');
     }
 
-    /** Shopping list (filtered by store) and estimated total of pending items. */
     public function index(Request $request, BookLookupService $lookup): Response
     {
         $store = StoreType::tryFrom($request->string('store')->toString());
@@ -76,7 +73,6 @@ class ShoppingController extends Controller
                 'sort' => $sort?->value,
             ],
             'queue_on_buy' => ShoppingService::queueOnBuy(),
-            // Match search (ISBN, title or Amazon link), only via partial reload.
             'matches' => Inertia::optional(fn () => $this->matches($request->string('match')->trim()->toString(), $lookup)),
             'totals' => [
                 'pending_count' => $pending->count(),
@@ -87,9 +83,6 @@ class ShoppingController extends Controller
     }
 
     /**
-     * An Amazon link becomes the ISBN from the ASIN; the rest goes to the normal search
-     * (exact ISBN or title).
-     *
      * @return array{query: string, isbn_from_url: string|null, items: list<array<string, mixed>>}
      */
     private function matches(string $query, BookLookupService $lookup): array
@@ -123,7 +116,6 @@ class ShoppingController extends Controller
         return back();
     }
 
-    /** "Look up price": the edition's lowest price on Estante Virtual, with undo. */
     public function lookupPrice(ShoppingItem $shoppingItem, UndoService $undo): RedirectResponse
     {
         if ($shoppingItem->isbn === null) {
@@ -151,10 +143,7 @@ class ShoppingController extends Controller
         return back();
     }
 
-    /**
-     * Opens the purchase link in the default browser. The native window does not
-     * open new tabs, so the request goes through NativePHP's Shell.
-     */
+    /** The native window cannot open new tabs, so the link goes through NativePHP's Shell. */
     public function open(Request $request, ShoppingItem $shoppingItem): RedirectResponse|SymfonyResponse
     {
         $data = $request->validate(['store' => ['nullable', Rule::in(StoreLinks::keys())]]);
@@ -179,7 +168,6 @@ class ShoppingController extends Controller
         return back();
     }
 
-    /** Buys the item: creates the book in the library and, per the saved preference, queues it. */
     public function buy(Request $request, ShoppingItem $shoppingItem, UndoService $undo): RedirectResponse
     {
         $queue = $request->has('queue') ? $request->boolean('queue') : ShoppingService::queueOnBuy();
@@ -207,7 +195,6 @@ class ShoppingController extends Controller
         return back();
     }
 
-    /** Buys the selected items at once, following the saved queue preference, with a single undo. */
     public function buyMany(ShoppingSelectionRequest $request, UndoService $undo): RedirectResponse
     {
         $items = $request->shoppingItems()->whereNull('bought_at')->values();
@@ -253,7 +240,6 @@ class ShoppingController extends Controller
         return back();
     }
 
-    /** Marks the item as one to buy now, or moves it back to the wishlist. */
     public function priority(Request $request, ShoppingItem $shoppingItem, UndoService $undo): RedirectResponse
     {
         $data = $request->validate(['is_priority' => ['required', 'boolean']]);
@@ -265,7 +251,6 @@ class ShoppingController extends Controller
         return back();
     }
 
-    /** Unmarks the purchase. */
     public function unbuy(ShoppingItem $shoppingItem, UndoService $undo): RedirectResponse
     {
         $snapshot = $undo->capture([
@@ -287,7 +272,6 @@ class ShoppingController extends Controller
         return back();
     }
 
-    /** "On buy" preference: just want to read, or want to read plus queue. */
     public function preference(Request $request): RedirectResponse
     {
         $data = $request->validate(['queue_on_buy' => ['required', 'boolean']]);

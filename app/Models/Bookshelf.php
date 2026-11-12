@@ -8,8 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * Prateleira personalizada da estante da biblioteca (não confundir com as estantes
- * por status: Lendo, Quero ler...). A ordem das prateleiras é a coluna position.
+ * Custom shelf in the library. Not the same as the status shelves (Reading, Want to read).
  *
  * @property int $id
  * @property string $name

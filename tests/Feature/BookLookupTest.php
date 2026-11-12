@@ -8,9 +8,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 /**
- * Volume do Google Books no formato documentado em
- * developers.google.com/books/docs/v1/using. A API sem chave respondia 429
- * quando os fixtures foram gravados, por isso este é montado à mão.
+ * Google Books volume in the documented format. The keyless API answered 429 when the
+ * fixtures were recorded, so this one is built by hand.
  *
  * @return array<string, mixed>
  */
@@ -168,7 +167,7 @@ test('edições vêm sem repetidas, só com ISBN, brasileiras e com capa primeir
         ->and($editions[0]->authors)->toBe(['Machado de Assis'])
         ->and($isbns)->toContain('9788582850350', '9786586490084', '9788594318602');
 
-    // Entre as brasileiras com capa, as mais recentes vêm antes.
+    // Among Brazilian editions with a cover, the most recent come first.
     $brazilianWithCover = array_values(array_filter(
         $editions,
         fn ($edition) => Isbn::isBrazilian((string) $edition->isbn13) && $edition->coverUrl !== null,

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('recommendations', function (Blueprint $table) {
-            // Obra da Open Library: com ela dá para listar as edições e escolher uma.
+            // Open Library work key: lets the app list its editions and pick one.
             $table->string('work_key')->nullable();
         });
     }

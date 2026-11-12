@@ -17,7 +17,7 @@ class ShoppingPriceRequest extends FormRequest
         ];
     }
 
-    /** Preço em centavos; vazio apaga o preço anotado. */
+    /** An empty price clears the noted price. */
     public function cents(): ?int
     {
         return Money::parseReais($this->validated('estimated_price'));

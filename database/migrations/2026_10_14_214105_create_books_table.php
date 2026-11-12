@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('books', function (Blueprint $table) {
             $table->id();
-            // Livros cadastrados à mão podem não ter ISBN; o SQLite aceita vários NULL num índice único.
+            // Hand-added books may have no ISBN; SQLite allows several NULLs in a unique index.
             $table->string('isbn_13', 13)->nullable()->unique();
             $table->string('isbn_10', 10)->nullable();
             $table->string('title');
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('cover_path')->nullable();
             $table->string('source');
-            // Título, autores e ISBN sem acento e em minúsculas: o LIKE do SQLite não ignora acentos.
+            // Search columns are unaccented and lowercase, because SQLite's LIKE is accent-sensitive.
             $table->text('search_text');
             $table->timestamps();
         });

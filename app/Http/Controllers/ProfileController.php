@@ -26,7 +26,6 @@ class ProfileController extends Controller
         private readonly StatsService $stats,
     ) {}
 
-    /** Avatar: the last 25 reading days on a 5×5 grid. */
     private const AVATAR_DAYS = 25;
 
     private const TOP_GENRES = 3;
@@ -77,7 +76,6 @@ class ProfileController extends Controller
         ]);
     }
 
-    /** The reader's name and tagline. */
     public function update(UpdateProfileRequest $request): RedirectResponse
     {
         $data = $request->validated();
@@ -89,7 +87,6 @@ class ProfileController extends Controller
         return back();
     }
 
-    /** Pins a book to the "Pinned books" section. */
     public function pin(PinBookRequest $request): RedirectResponse
     {
         $data = $request->validated();
@@ -116,8 +113,6 @@ class ProfileController extends Controller
     }
 
     /**
-     * Books finished in the year, in the order they were finished, for the profile shelf.
-     *
      * @return list<array<string, mixed>>
      */
     private function yearBooks(int $year): array

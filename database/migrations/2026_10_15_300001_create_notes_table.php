@@ -14,9 +14,9 @@ return new class extends Migration
             $table->unsignedInteger('page')->nullable();
             $table->string('kind')->index();
             $table->text('body_md');
-            // Corpo e tags sem acento e em minúsculas, para a busca (⌘F) ignorar acentos.
+            // Body and tags are stored unaccented and lowercase so the ⌘F search ignores accents.
             $table->text('search_text');
-            // Dia em que a nota deve ser revista; a revisão do dia filtra por ele.
+            // Day the note should be reviewed; the daily review filters on it.
             $table->date('next_review_at')->nullable()->index();
             $table->unsignedInteger('review_count')->default(0);
             $table->timestamps();

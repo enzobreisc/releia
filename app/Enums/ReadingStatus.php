@@ -20,7 +20,6 @@ enum ReadingStatus: string
         };
     }
 
-    /** Tab label in the Library. */
     public function shelfLabel(): string
     {
         return match ($this) {

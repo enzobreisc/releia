@@ -13,7 +13,6 @@ class StatsController extends Controller
 {
     public function __construct(private readonly StatsService $stats) {}
 
-    /** Estatísticas de um ano (?year=2026) ou do histórico (?year=all). */
     public function index(Request $request): Response
     {
         $years = $this->stats->years();
@@ -36,7 +35,6 @@ class StatsController extends Controller
             'extremes' => $this->extremes($period),
             'best_month' => $this->bestMonth($period),
             'streak' => $this->stats->streaks($period),
-            // No histórico, o calendário mostra os últimos 365 dias.
             'calendar' => $this->stats->heatmap($history ? StatsPeriod::lastDays(365) : $period),
             'forecast' => $this->stats->forecast($period),
         ]);

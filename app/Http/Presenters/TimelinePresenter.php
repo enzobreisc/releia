@@ -4,7 +4,6 @@ namespace App\Http\Presenters;
 
 use App\Services\TimelineEntry;
 
-/** Shape of the timeline readings sent to the page. */
 final class TimelinePresenter
 {
     /**

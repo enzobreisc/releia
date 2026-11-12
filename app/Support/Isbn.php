@@ -4,7 +4,6 @@ namespace App\Support;
 
 final class Isbn
 {
-    /** Tira hífens e espaços e devolve o ISBN-13, ou null se não for um ISBN válido. */
     public static function toIsbn13(string $value): ?string
     {
         $digits = strtoupper((string) preg_replace('/[^0-9Xx]/', '', $value));
@@ -22,7 +21,7 @@ final class Isbn
         return null;
     }
 
-    /** ISBN-10 equivalente, quando existe (só para o prefixo 978). */
+    /** Only ISBN-13s with the 978 prefix have an ISBN-10 equivalent. */
     public static function toIsbn10(string $isbn13): ?string
     {
         if (! str_starts_with($isbn13, '978') || strlen($isbn13) !== 13) {
@@ -41,7 +40,6 @@ final class Isbn
         return $base.($check === 10 ? 'X' : (string) $check);
     }
 
-    /** Edição brasileira: prefixos 978-85 e 978-65. */
     public static function isBrazilian(string $isbn13): bool
     {
         return str_starts_with($isbn13, '97885') || str_starts_with($isbn13, '97865');

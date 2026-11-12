@@ -51,7 +51,6 @@ class SuggestionController extends Controller
         return to_route('suggestions.index');
     }
 
-    /** Editions of the suggested work, with the ones already in the library flagged. */
     public function editions(Recommendation $recommendation): JsonResponse
     {
         return response()->json([
@@ -97,7 +96,6 @@ class SuggestionController extends Controller
         return back();
     }
 
-    /** ISBN of the chosen edition, when the user picked one. */
     private function isbn(Request $request): ?string
     {
         return $request->validate(['isbn_13' => ['nullable', 'string', 'max:20']])['isbn_13'] ?? null;

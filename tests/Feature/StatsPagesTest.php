@@ -91,7 +91,7 @@ test('o perfil limita os fixados e ignora livros excluídos', function () {
 
     expect(app(ProfileService::class)->pinnedIds())->toHaveCount(ProfileService::MAX_PINS);
 
-    // O último livro não entrou; excluir um fixado tira ele da lista.
+    // The last book is not listed; deleting a pinned book removes it from the list.
     $pinned = app(ProfileService::class)->pinnedIds();
     Book::query()->whereKey($pinned[0])->delete();
 
@@ -109,7 +109,7 @@ test('livro abandonado não aparece como terminado na atividade', function () {
 
     $events = app(ProfileService::class)->recentActivity(50);
 
-    // Livro E foi abandonado (tem finished_at, mas não está lido): só pode aparecer como sessão.
+    // Book E was abandoned (it has finished_at but is not read): it may only appear as a session.
     $finishedTitles = collect($events)->where('type', 'finished')->pluck('title')->all();
 
     expect($finishedTitles)->not->toContain('Livro E')
@@ -126,7 +126,7 @@ test('cada evento da atividade aponta para o livro', function () {
         ->and($events->every(fn (array $event) => $event['book_id'] === $bookIdsByTitle[$event['title']]))->toBeTrue();
 });
 
-/** Amostra mínima de 2026 para as telas (os números completos ficam em StatsServiceTest). */
+/** Minimal 2026 sample for the screens; the full figures live in StatsServiceTest. */
 function pagesSample2026(): void
 {
     $a = Book::factory()->withAuthors(['Ana'])->create(['title' => 'Livro A', 'pages' => 200, 'genre' => 'Romance']);

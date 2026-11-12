@@ -16,13 +16,12 @@ beforeEach(function () {
     Carbon::setTestNow('2026-10-15 09:00:00');
 });
 
-/** Respostas reais da Open Library (tests/Fixtures), escolhidas pela consulta. */
 function fakeOpenLibrary(): void
 {
     Http::fake(function (Request $request) {
         $url = urldecode($request->url());
 
-        // A edição brasileira confirma o título em português pelo ISBN.
+        // The Brazilian edition confirms the Portuguese title by ISBN.
         if (preg_match('/bibkeys=ISBN:(\d{13})/', $url, $match) === 1) {
             $doc = openLibraryIndex()[$match[1]] ?? null;
 
@@ -50,8 +49,6 @@ function fakeOpenLibrary(): void
 }
 
 /**
- * Documentos das buscas gravadas, por ISBN-13.
- *
  * @return array<string, array<string, mixed>>
  */
 function openLibraryIndex(): array
@@ -69,7 +66,6 @@ function openLibraryIndex(): array
     return $index;
 }
 
-/** Livro da biblioteca com uma leitura avaliada. */
 function ratedBook(string $title, string $author, int $rating, ?string $genre = null, ?string $isbn = null): Book
 {
     $book = Book::factory()->withAuthors([$author])->create([
@@ -153,7 +149,7 @@ test('por assunto só entra obra com edição brasileira, mesmo gênero e popula
         return match (true) {
             str_contains($url, 'subject=Fantasy') => Http::response(['docs' => [
                 $doc('The Hobbit', '9788595084742'),
-                $doc('Mort', '9781473200319'), // sem edição brasileira
+                $doc('Mort', '9781473200319'), // no Brazilian edition
                 $doc('Livro raro', '9788535933390', ['want_to_read_count' => 1, 'ratings_count' => 0]),
                 $doc('Duna', '9788576573135', ['subject' => ['Science fiction']]),
                 $doc('Sem capa', '9788535914849', ['cover_i' => null]),
@@ -269,7 +265,7 @@ test('a busca na Open Library é cacheada: só a página nova volta à rede', fu
     $sent = count(Http::recorded());
 
     $service->generate();
-    // Só a página nova do assunto vai à rede; o autor e as edições já estão em cache.
+    // Only the new subject page goes to the network; the author and editions are already cached.
     Http::assertSentCount($sent + 1);
 });
 
@@ -359,7 +355,7 @@ test('a sugestão do dia é estável durante o dia', function () {
     expect($first)->not->toBeNull()
         ->and($service->today()?->id)->toBe($first->id);
 
-    // Mesmo que a sugestão do dia seja descartada, o dia continua com uma sugestão.
+    // Even if the day's suggestion is dismissed, the day still gets one.
     $service->dismiss($first);
     $next = $service->today();
 

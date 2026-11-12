@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/** The name of a new bookcase shelf. */
 class StoreBookshelfRequest extends FormRequest
 {
     /**

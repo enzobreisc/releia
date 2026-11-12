@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-/** Troca os status salvos em português pelos valores em inglês do enum ReadingStatus. */
 return new class extends Migration
 {
     /** @var array<string, string> */

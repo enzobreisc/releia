@@ -25,7 +25,6 @@ class HomeController extends Controller
         $today = Carbon::today();
 
         return Inertia::render('home', [
-            // Nome do perfil, para o cumprimento ("Boa noite, Ana").
             'reader_name' => $profile->reader()['name'],
             'reading' => $dashboard->readingNow(),
             'goal' => $dashboard->yearGoal($today),
@@ -39,7 +38,7 @@ class HomeController extends Controller
             'live_session' => LiveSessionPresenter::summary($timer),
             'next_in_queue' => $dashboard->nextInQueue(),
             'recent' => $dashboard->recentlyFinished(),
-            // Escolhida uma vez por dia entre as sugestões novas; não chama a rede.
+            // Picked once a day from the new suggestions, so the page never waits on the network.
             'suggestion' => function () use ($suggestions) {
                 $pick = $suggestions->today()?->load('basedOn');
 

@@ -14,8 +14,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
- * Excerpt, reflection or quote about a book, in Markdown. Tags come from the
- * text itself (#tag), so there is no separate field for them.
+ * Tags come from the text itself (#tag), so there is no separate field for them.
  *
  * @property int $id
  * @property int $book_id
@@ -68,8 +67,6 @@ class Note extends Model
     }
 
     /**
-     * Tags mentioned in the text, unaccented, lowercase and without repeats.
-     *
      * @return list<string>
      */
     public static function extractTags(string $body): array

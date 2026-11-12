@@ -5,8 +5,7 @@ namespace App\Support;
 use Illuminate\Support\Str;
 
 /**
- * Search links for Brazilian stores and price comparers. None has an open price
- * API, so the app links to the ISBN search and the reader decides.
+ * None of these stores has an open price API, so the app links to the ISBN search and the reader decides.
  */
 final class StoreLinks
 {

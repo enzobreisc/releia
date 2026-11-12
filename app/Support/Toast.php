@@ -6,11 +6,7 @@ use App\Services\UndoService;
 use Illuminate\Support\Str;
 
 /**
- * Notice shown after an action (bottom right corner). It goes to the session
- * as a flash, so it survives the redirect and shows only once.
- *
- * The optional action is a button on the notice: `label`, `method` (get, post
- * or patch), `url` and `data`. The undo is an UndoService token.
+ * Stored as a session flash, so the notice survives the redirect and shows only once.
  *
  * @phpstan-type ToastAction array{label: string, method: string, url: string, data?: array<string, mixed>}
  */

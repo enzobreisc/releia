@@ -8,10 +8,6 @@ use Native\Desktop\Facades\Window;
 
 class NativeAppServiceProvider implements ProvidesPhpIni
 {
-    /**
-     * Executed once the native application has been booted.
-     * Use this method to open windows, register global shortcuts, etc.
-     */
     public function boot(): void
     {
         Window::open()
@@ -23,13 +19,10 @@ class NativeAppServiceProvider implements ProvidesPhpIni
             ->titleBarHiddenInset()
             ->rememberState();
 
-        // Ícone da barra de menu e atalho global do registro rápido (app/Native/QuickLog.php).
         QuickLog::install();
     }
 
     /**
-     * Return an array of php.ini directives to be set.
-     *
      * @return array<string, string>
      */
     public function phpIni(): array

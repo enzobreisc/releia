@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
-/** Números da tela Início e do mini cartão da barra lateral. */
 class DashboardService
 {
     public function __construct(
@@ -21,8 +20,6 @@ class DashboardService
     ) {}
 
     /**
-     * Readings in progress, one per book, the last one read first.
-     *
      * @return Collection<int, array<string, mixed>>
      */
     public function readingNow(): Collection
@@ -34,9 +31,6 @@ class DashboardService
     }
 
     /**
-     * Mini cartão "lendo agora": a leitura mais recente, o mapa dos últimos
-     * sete dias e a sequência. Null quando nada está em andamento.
-     *
      * @return array<string, mixed>|null
      */
     public function sidebarCard(Carbon $today): ?array
@@ -54,15 +48,14 @@ class DashboardService
         ];
     }
 
-    /** Sequência atual (dias seguidos com leitura). */
     public function streak(Carbon $today): int
     {
         return ReadingActivity::streak($this->activity->daysWithSessions(), $today)['current'];
     }
 
     /**
-     * Meta do ano e previsão linear: livros concluídos ÷ dias passados × dias do ano.
-     * Conta leituras concluídas (releituras entram). Sem meta definida, devolve null.
+     * Yearly goal and linear projection: finished books ÷ days passed × days in the year.
+     * Rereads count as finished books.
      *
      * @return array{year: int, goal: int|null, finished: int, projected: int}
      */
@@ -87,7 +80,6 @@ class DashboardService
         ];
     }
 
-    /** Pages the reader wants to read each day; null while no goal is set. */
     public function dailyGoal(): ?int
     {
         $goal = Setting::get('daily_goal');
@@ -96,9 +88,6 @@ class DashboardService
     }
 
     /**
-     * Últimos livros terminados, mais recente primeiro, com o dia em que terminaram
-     * e quantos dias levaram (nulos quando a leitura não tem as duas datas).
-     *
      * @return list<array<string, mixed>>
      */
     public function recentlyFinished(int $limit = 8): array
@@ -121,8 +110,6 @@ class DashboardService
     }
 
     /**
-     * The first book in the queue with its place in it; null when the queue is empty.
-     *
      * @return array{book_id: int, title: string, authors: string, cover_url: string|null, pages: int|null, position: int, total: int}|null
      */
     public function nextInQueue(): ?array

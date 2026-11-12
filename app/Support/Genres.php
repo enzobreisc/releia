@@ -5,16 +5,13 @@ namespace App\Support;
 use Illuminate\Support\Str;
 
 /**
- * Gêneros que o app usa, em vez dos assuntos soltos das fontes ("Magic realism
- * (Literature)", "provação", "Accidents"). Cada fonte manda uma lista de
- * assuntos; o gênero é o que mais aparece nela, na ordem do catálogo em empate.
+ * The app shows curated genres instead of the noisy subjects the sources return.
  */
 final class Genres
 {
     /**
-     * Do mais específico para o mais geral: no empate, vale o primeiro.
-     * `subject` é o assunto da Open Library usado nas sugestões (a busca deles é em inglês).
-     * As palavras-chave são regex sobre o assunto sem acento e em minúsculas.
+     * Ordered from most specific to most general: on a tie, the first one wins.
+     * `subject` is the Open Library subject used for suggestions, since their search is in English.
      *
      * @var array<string, array{subject: string|null, keywords: list<string>}>
      */
@@ -44,11 +41,11 @@ final class Genres
         'Culinária' => ['subject' => 'Cooking', 'keywords' => ['cooking', 'cookbook', 'culinaria', 'receitas', 'recipes', 'gastronomia', 'food']],
         'Saúde e bem-estar' => ['subject' => 'Health', 'keywords' => ['health', 'saude', 'fitness', 'nutrition', 'nutricao', 'wellness', 'bem-estar', 'diet']],
         'Viagem' => ['subject' => 'Travel', 'keywords' => ['travel', 'viagem', 'viagens', 'voyages', 'guia turistico']],
-        // O mais geral, por último: "romance" em português é o livro de ficção em prosa.
+        // Most general, last: "romance" in Portuguese means prose fiction.
         'Romance' => ['subject' => null, 'keywords' => ['romance', 'novel', 'novels', 'romances', 'fiction', 'ficcao', 'literature', 'literatura', 'domestic', 'magic realism', 'realismo', 'love stories', 'literary']],
     ];
 
-    /** Peso dos assuntos muito gerais, para não vencerem um gênero específico no empate. */
+    /** Very general subjects count half, so they do not beat a specific genre on a tie. */
     private const GENERAL = 'Romance';
 
     /**
@@ -63,8 +60,7 @@ final class Genres
     }
 
     /**
-     * Gênero que melhor descreve uma lista de assuntos das fontes, ou null
-     * se nenhum assunto casa com o catálogo (melhor sem gênero que com ruído).
+     * Null when no subject matches the catalog: no genre is better than a noisy one.
      *
      * @param  array<mixed>  $subjects
      */
@@ -88,7 +84,7 @@ final class Genres
             return null;
         }
 
-        // Ordem do catálogo no empate: arsort é estável desde o PHP 8.
+        // Catalog order breaks ties: arsort is stable since PHP 8.
         $ordered = array_intersect_key(array_map(fn ($name) => 0, self::CATALOG), $scores);
         $scores = array_replace($ordered, $scores);
         arsort($scores);
@@ -96,15 +92,12 @@ final class Genres
         return (string) array_key_first($scores);
     }
 
-    /** Assunto da Open Library para buscar parecidos, quando o gênero é do catálogo. */
     public static function openLibrarySubject(?string $genre): ?string
     {
         return $genre !== null ? (self::CATALOG[$genre]['subject'] ?? null) : null;
     }
 
     /**
-     * Cada assunto vira termos simples: "Fiction / Science Fiction / General" são três.
-     *
      * @param  array<mixed>  $subjects
      * @return list<string>
      */

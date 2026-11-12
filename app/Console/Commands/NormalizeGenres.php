@@ -19,7 +19,7 @@ class NormalizeGenres extends Command
         foreach (Book::query()->whereNotNull('genre')->get() as $book) {
             $genre = Genres::fromSubjects([$book->genre]);
 
-            // Sem correspondência o texto fica como está: pode ter sido digitado à mão.
+            // No match keeps the text as is: it may have been typed by hand.
             if ($genre !== null && $genre !== $book->genre) {
                 $changes[] = [$book->id, $book->title, $book->genre, $genre];
 

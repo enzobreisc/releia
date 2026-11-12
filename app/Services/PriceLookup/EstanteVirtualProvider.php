@@ -7,15 +7,15 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Menor preço de uma edição na Estante Virtual (novos e usados). Não há API:
- * lê o estado que a página de busca embute no HTML, então pode parar de
- * funcionar se o site mudar. Nesse caso devolve null e o preço segue manual.
+ * Lowest price of an edition at Estante Virtual (new and used). There is no API: it reads
+ * the state the search page embeds in its HTML, so it stops working if the site changes.
+ * In that case it returns null and the price stays manual.
  */
 class EstanteVirtualProvider
 {
     private const STATE_MARKER = 'window.__INITIAL_STATE__=';
 
-    /** Preço em centavos, ou null se a edição não está à venda ou a página mudou. */
+    /** Price in cents, or null when the edition is not for sale or the page layout changed. */
     public function lowestPriceCents(string $isbn13): ?int
     {
         try {
@@ -48,7 +48,7 @@ class EstanteVirtualProvider
             return null;
         }
 
-        // O JSON vem seguido de mais código; raw_decode lê só o objeto.
+        // The state JSON is often followed by more script code, which makes json_decode fail; leadingObject() reads only the object.
         $json = substr($html, $start + strlen(self::STATE_MARKER));
         $state = json_decode($json, true, 512, JSON_INVALID_UTF8_SUBSTITUTE);
 
@@ -64,8 +64,8 @@ class EstanteVirtualProvider
             return null;
         }
 
-        // A entrada "-BK" é o livro do catálogo, com o menor preço entre as ofertas.
-        // As demais são anúncios de vendedores, muitas vezes de outros livros.
+        // The "-BK" entry is the catalogue book with the lowest offer price; the others are
+        // seller listings, often for other books.
         foreach ($products as $product) {
             if (! is_array($product) || ! str_ends_with((string) ($product['code'] ?? ''), '-BK')) {
                 continue;
@@ -82,8 +82,6 @@ class EstanteVirtualProvider
     }
 
     /**
-     * O objeto do estado, ignorando o que vem depois dele no script.
-     *
      * @return array<mixed>|null
      */
     private function leadingObject(string $text): ?array

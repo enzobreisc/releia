@@ -122,7 +122,6 @@ class ReadingService
         return $reading;
     }
 
-    /** Abandons, keeping the page and, when given, the reason. */
     public function abandon(Reading $reading, ?string $reason = null, ?int $rating = null): Reading
     {
         if ($reading->status === ReadingStatus::Read) {
@@ -420,9 +419,6 @@ class ReadingService
         return $minutes > 0 ? round((int) $totals->pages / $minutes * 60, 1) : null;
     }
 
-    /**
-     * Valid end date: not after today, not before the start nor the last session.
-     */
     private function ensureEndDate(Reading $reading, Carbon $end, string $field): void
     {
         if ($end->greaterThan(Carbon::today())) {
@@ -455,7 +451,6 @@ class ReadingService
         }
     }
 
-    /** Recomputes current_page from the highest logged page, when sessions remain. */
     private function syncCurrentPage(Reading $reading): void
     {
         $last = $reading->sessions()->max('page_to');

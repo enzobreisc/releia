@@ -15,7 +15,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Um livro fica em uma prateleira só; sem prateleira, vai para "Sem prateleira".
+        // A book sits on one shelf at most; books without one are grouped as unshelved.
         Schema::table('books', function (Blueprint $table) {
             $table->foreignId('bookshelf_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedInteger('shelf_position')->default(0);

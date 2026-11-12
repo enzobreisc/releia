@@ -16,8 +16,6 @@ use Inertia\Middleware;
 class HandleInertiaRequests extends Middleware
 {
     /**
-     * The root template that's loaded on the first page visit.
-     *
      * @see https://inertiajs.com/server-side-setup#root-template
      *
      * @var string
@@ -25,8 +23,6 @@ class HandleInertiaRequests extends Middleware
     protected $rootView = 'app';
 
     /**
-     * Determines the current asset version.
-     *
      * @see https://inertiajs.com/asset-versioning
      */
     public function version(Request $request): ?string
@@ -35,8 +31,6 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * Define the props that are shared by default.
-     *
      * @see https://inertiajs.com/shared-data
      *
      * @return array<string, mixed>
@@ -55,11 +49,8 @@ class HandleInertiaRequests extends Middleware
                 'queue' => QueueItem::count(),
                 'shopping' => ShoppingItem::query()->whereNull('bought_at')->count(),
             ],
-            // Notice for the last action (App\Support\Toast), shown once.
             'toast' => fn () => $request->session()->get(Toast::SESSION_KEY),
-            // Mini "reading now" card in the sidebar; null when nothing is in progress.
             'reading_now' => fn () => app(DashboardService::class)->sidebarCard(Carbon::today()),
-            // The sidebar card links back to the session screen while a timer is running.
             'has_live_session' => fn () => app(ReadingTimer::class)->current() !== null,
         ];
     }

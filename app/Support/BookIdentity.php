@@ -10,7 +10,6 @@ use Illuminate\Support\Str;
  */
 final class BookIdentity
 {
-    /** Articles ignored when comparing titles ("A Metamorfose" is "Metamorfose"). */
     private const ARTICLES = 'a|o|as|os|um|uma|uns|umas|the|an';
 
     /**
@@ -35,8 +34,7 @@ final class BookIdentity
     }
 
     /**
-     * Title without subtitle, parentheses or articles, including the catalog style that moves
-     * the article to the end: "Morte De Ivan Ilitch, A" becomes "morte de ivan ilitch".
+     * Catalogs often move the article to the end ("Morte De Ivan Ilitch, A"), so it is stripped from both positions.
      */
     public static function normalizeTitle(string $title): string
     {
@@ -46,7 +44,6 @@ final class BookIdentity
         return (string) preg_replace('/^('.self::ARTICLES.')\s+(?=\S)/', '', self::normalize($withoutTrailingArticle));
     }
 
-    /** Lowercase, without accents or punctuation. */
     public static function normalize(string $value): string
     {
         return Str::of($value)->ascii()->lower()->replaceMatches('/[^a-z0-9 ]+/', ' ')->squish()->toString();

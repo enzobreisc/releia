@@ -19,7 +19,7 @@ final readonly class Suggestion
     public const BY_SUBJECT = 'subject';
 
     /**
-     * @param  list<Book>  $also  outros livros que levaram ao mesmo candidato
+     * @param  list<Book>  $also  other books that led to the same candidate
      */
     public function __construct(
         public BookCandidate $candidate,
@@ -34,7 +34,6 @@ final readonly class Suggestion
         }
     }
 
-    /** One more of your books pointing to the same candidate. */
     public function withSource(Book $book, float $weight): self
     {
         return new self(

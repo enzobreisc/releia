@@ -6,7 +6,6 @@ use App\Enums\ReadingStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/** Shelf, rating and review. Current page and sessions are handled elsewhere. */
 class UpdateReadingRequest extends FormRequest
 {
     /**

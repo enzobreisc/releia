@@ -20,10 +20,6 @@ use Illuminate\Validation\Rule;
 
 /**
  * @phpstan-import-type Snapshot from UndoService
- *
- * Shelf, rating, review and the lifecycle of each reading: start, finish,
- * abandon, reread, correct and change dates. Every change answers with a
- * notice, almost always with undo.
  */
 class ReadingController extends Controller
 {
@@ -32,7 +28,6 @@ class ReadingController extends Controller
         private readonly UndoService $undo,
     ) {}
 
-    /** Rating, review and simple shelf changes, on the book's most recent reading. */
     public function update(UpdateReadingRequest $request, Book $book): RedirectResponse
     {
         $reading = $book->currentReading;
@@ -77,7 +72,6 @@ class ReadingController extends Controller
         return back();
     }
 
-    /** "Start" from outside the detail page (queue, finish notice): moves to reading and opens the book. */
     public function start(Book $book): RedirectResponse
     {
         $snapshot = $this->captureBook($book);
@@ -91,7 +85,6 @@ class ReadingController extends Controller
         return to_route('books.show', $book);
     }
 
-    /** Finish and rate: date (or undated), rating and a one-line review. */
     public function finish(Request $request, Reading $reading, DashboardService $dashboard): RedirectResponse
     {
         $data = $request->validate([
@@ -152,7 +145,6 @@ class ReadingController extends Controller
         return back();
     }
 
-    /** Read again: today (reading) or later (want to read, at the end of the queue). */
     public function reread(Request $request, Book $book): RedirectResponse
     {
         $data = $request->validate([
@@ -168,7 +160,6 @@ class ReadingController extends Controller
         return back();
     }
 
-    /** Correct: unmarks as read and clears the finish date. */
     public function reopen(Reading $reading): RedirectResponse
     {
         $snapshot = $this->captureBook($reading->book);
@@ -211,7 +202,6 @@ class ReadingController extends Controller
         return back();
     }
 
-    /** Deletes a reading from the history (with its sessions). */
     public function destroy(Reading $reading): RedirectResponse
     {
         $book = $reading->book;

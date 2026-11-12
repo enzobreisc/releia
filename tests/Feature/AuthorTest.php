@@ -9,7 +9,6 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
-/** Autor com um livro de ISBN, como o Torto Arado. */
 function authorWithBook(string $name = 'Itamar Vieira Junior', string $title = 'Torto Arado', ?string $isbn = '9786580309313'): Author
 {
     $book = Book::factory()->withAuthors([$name])->create(['title' => $title, 'isbn_13' => $isbn]);
@@ -99,9 +98,9 @@ test('as obras vêm pelas chaves do autor, sem o que já está na biblioteca', f
     fakeAuthorApi([
         ['key' => '/works/OL1W', 'title' => 'Torto Arado', 'author_name' => ['Itamar Vieira Júnior'], 'isbn' => ['9786580309313'], 'first_publish_year' => 2019, 'edition_count' => 4, 'language' => ['por']],
         ['key' => '/works/OL2W', 'title' => 'Doramar ou a Odisseia', 'author_name' => ['Itamar Vieira Junior'], 'isbn' => ['9786580309320'], 'first_publish_year' => 2021, 'edition_count' => 1, 'language' => ['por', 'eng'], 'want_to_read_count' => 5],
-        // Tradução listada como obra à parte: sem edição brasileira, não entra.
+        // Translation listed as a separate work: without a Brazilian edition it must not appear.
         ['key' => '/works/OL3W', 'title' => 'Doramar, or the Odyssey', 'author_name' => ['Itamar Vieira Junior'], 'isbn' => ['9781234567897'], 'language' => ['eng'], 'edition_count' => 1],
-        // A mesma obra com outro título original e edição brasileira repetida: aparece uma vez.
+        // Same work with another original title and a repeated Brazilian edition: listed once.
         ['key' => '/works/OL5W', 'title' => 'Doramar (original)', 'author_name' => ['Itamar Vieira Junior'], 'isbn' => ['9786580309320'], 'language' => ['por']],
         ['key' => '/works/OL4W', 'title' => 'Itamar Vieira Junior', 'author_name' => ['Itamar Vieira Junior']],
     ]);

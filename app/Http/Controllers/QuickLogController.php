@@ -22,10 +22,6 @@ use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Leitura do dia, na janela da barra de menu: escolher o livro, contar o
- * tempo com o timer e registrar a página final.
- */
 class QuickLogController extends Controller
 {
     public function __construct(
@@ -41,7 +37,6 @@ class QuickLogController extends Controller
 
         return Inertia::render('quick-log', [
             'readings' => $this->dashboard->readingNow(),
-            // Livros em "quero ler", para começar um por aqui.
             'available' => Book::query()
                 ->whereHas('currentReading', fn ($query) => $query->where('status', ReadingStatus::WantToRead->value))
                 ->orderByRaw('title COLLATE NOCASE')
@@ -57,12 +52,11 @@ class QuickLogController extends Controller
             'week' => $activity->lastWeekLevels($today),
             'streak' => $this->dashboard->streak($today),
             'shortcut' => QuickLog::shortcut(),
-            // Resumo da sessão que acabou de ser salva (uma vez só).
+            // Flashed to the session, so the summary is shown only once.
             'saved' => $request->session()->get('quick_log_saved'),
         ]);
     }
 
-    /** Registro sem timer: página final e minutos digitados. */
     public function store(QuickLogRequest $request): RedirectResponse
     {
         $book = Book::query()->findOrFail($request->integer('book_id'));
@@ -79,7 +73,6 @@ class QuickLogController extends Controller
         return to_route('quick-log');
     }
 
-    /** Começa o timer num livro, a partir da página em que você está. */
     public function start(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -129,7 +122,6 @@ class QuickLogController extends Controller
         return to_route('quick-log');
     }
 
-    /** Para o timer e salva a sessão com a página final. */
     public function finish(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -146,8 +138,8 @@ class QuickLogController extends Controller
     }
 
     /**
-     * Resumo para a tela "feito". Se a sessão chegou à última página, o livro
-     * termina aqui mesmo (data de hoje) e a tela oferece a nota e o próximo da fila.
+     * Reaching the last page finishes the book here, dated today, so the done
+     * screen can offer a note and the next book in the queue.
      */
     private function flashSaved(Request $request, ReadingSession $session): void
     {
@@ -179,7 +171,6 @@ class QuickLogController extends Controller
         return to_route('quick-log');
     }
 
-    /** Passa um livro de "quero ler" para "lendo", para aparecer na leitura do dia. */
     public function startBook(Request $request): RedirectResponse
     {
         $data = $request->validate([

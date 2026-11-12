@@ -4,11 +4,9 @@ namespace App\Support;
 
 use App\Enums\Locale;
 
-/** Amounts in reais: from typed text to integer cents, and back for display. */
 final class Money
 {
     /**
-     * Accepts "34,90", "34.90", "1.234,56", "R$ 5,5" and "10". Returns null when it is not an amount.
      * No floats: the number is built from the digits, so there is no rounding error.
      */
     public static function parseReais(?string $value): ?int
@@ -36,7 +34,6 @@ final class Money
         return (int) $reais * 100 + (int) $cents;
     }
 
-    /** 3490 becomes "R$ 34,90" (or "R$ 34.90" in English). */
     public static function format(int $cents): string
     {
         $isEnglish = app()->getLocale() === Locale::En->value;

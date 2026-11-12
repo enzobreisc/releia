@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Fonte reserva. Sem chave, a cota diária é compartilhada entre todos e
- * costuma responder 429; com GOOGLE_BOOKS_API_KEY a cota é própria.
+ * Fallback source. Without a key the daily quota is shared by everyone and often answers 429;
+ * with GOOGLE_BOOKS_API_KEY the quota is our own.
  */
 class GoogleBooksProvider implements MetadataProvider
 {
@@ -109,7 +109,7 @@ class GoogleBooksProvider implements MetadataProvider
 
         $url = BookCandidate::nonEmptyString($links['thumbnail'] ?? $links['smallThumbnail'] ?? null);
 
-        // As miniaturas vêm em http e com a "dobra" de página desenhada.
+        // Thumbnails come over http with a drawn page curl, so force https and drop the curl.
         return $url === null ? null : str_replace(['http://', '&edge=curl'], ['https://', ''], $url);
     }
 }

@@ -11,7 +11,6 @@ use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 
-/** Custom bookcase shelves: create, rename, delete and move books. */
 class BookshelfController extends Controller
 {
     public function store(StoreBookshelfRequest $request): RedirectResponse
@@ -42,10 +41,6 @@ class BookshelfController extends Controller
         return back();
     }
 
-    /**
-     * Puts the book on a shelf (or takes it off, with a null `bookshelf_id`), before another
-     * book when `before_book_id` is given, otherwise at the end.
-     */
     public function move(MoveBookRequest $request, Book $book): RedirectResponse
     {
         $data = $request->validated();

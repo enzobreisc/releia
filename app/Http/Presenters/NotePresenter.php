@@ -4,7 +4,7 @@ namespace App\Http\Presenters;
 
 use App\Models\Note;
 
-/** Shape of the notes sent to pages. Expects book and tags loaded. */
+/** Expects the book and tags to be eager-loaded. */
 final class NotePresenter
 {
     /**

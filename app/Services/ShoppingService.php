@@ -116,7 +116,6 @@ class ShoppingService
         });
     }
 
-    /** Price noted again: keeps the amount and the date it was checked. */
     public function updatePrice(ShoppingItem $item, ?int $cents): void
     {
         $item->forceFill([
@@ -231,7 +230,6 @@ class ShoppingService
         });
     }
 
-    /** Gives the book the cover stored on the item, if the book has none yet. */
     private function restoreCover(ShoppingItem $item, Book $book): void
     {
         if ($item->cover_path === null) {

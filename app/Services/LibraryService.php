@@ -10,7 +10,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
-/** Entrada e saída de livros da biblioteca. */
 class LibraryService
 {
     public function __construct(
@@ -44,7 +43,7 @@ class LibraryService
             $reading->book()->associate($book);
             $this->readings->changeStatus($reading, ReadingStatus::from($data['status']));
 
-            // Livro lido antes do app: a data informada vale para início e fim (não há sessões).
+            // A book read before using the app: the given date is both start and end, since there are no sessions.
             if ($reading->status === ReadingStatus::Read && ! empty($data['undated'])) {
                 $reading->started_at = $reading->finished_at = null;
                 $reading->save();
@@ -56,14 +55,14 @@ class LibraryService
             return $book;
         });
 
-        // Fora da transação: a capa é opcional e uma falha não desfaz o cadastro.
+        // Outside the transaction: the cover is optional, and a failed download must not undo the book.
         $coverUrl = ! empty($data['cover_url']) ? $data['cover_url'] : null;
 
         if ($coverUrl !== null && $this->covers->download($book, $coverUrl)) {
             return $book;
         }
 
-        // Sem link, ou o link não rendeu imagem: tenta pelo ISBN.
+        // No link, or the link yielded no image: try the ISBN.
         $fallback = $book->isbn_13 ? $this->covers->findByIsbn($book->isbn_13) : null;
 
         if ($fallback !== null) {
@@ -74,8 +73,8 @@ class LibraryService
     }
 
     /**
-     * Corrige os dados do livro. Capa nova (arquivo ou link) só é trocada se vier.
-     * Devolve true se a capa mudou, porque essa troca não tem desfazer.
+     * Corrects the book's data. A new cover (file or link) only replaces the current one when given.
+     * Returns true if the cover changed, since that change cannot be undone.
      *
      * @param  array{title: string, subtitle?: string|null, authors?: list<string>, isbn_13?: string|null, isbn_10?: string|null, publisher?: string|null, published_year?: int|null, pages?: int|null, genre?: string|null, description?: string|null}  $data
      */
@@ -97,7 +96,7 @@ class LibraryService
             $book->syncAuthors($data['authors'] ?? []);
             $book->refreshSearchText();
 
-            // Total menor que a página marcada sem sessão (ex.: "lido" manual): a página acompanha.
+            // A smaller total than the marked page (e.g. a manual "read" mark without sessions): the page follows the total.
             if ($book->pages !== null) {
                 $book->readings()->where('current_page', '>', $book->pages)->update(['current_page' => $book->pages]);
             }

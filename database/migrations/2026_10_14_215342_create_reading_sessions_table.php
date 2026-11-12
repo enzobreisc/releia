@@ -8,7 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Base do mapa de calor, do ritmo e da sequência de dias lendo.
         Schema::create('reading_sessions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('reading_id')->constrained()->cascadeOnDelete();

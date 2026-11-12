@@ -16,7 +16,7 @@ return [
     */
 
     'ssr' => [
-        // App desktop: a página roda localmente, SSR não traz ganho.
+        // Desktop app: pages render locally, so SSR brings no benefit.
         'enabled' => (bool) env('INERTIA_SSR_ENABLED', false),
         'url' => 'http://127.0.0.1:13714',
         // 'bundle' => base_path('bootstrap/ssr/ssr.mjs'),

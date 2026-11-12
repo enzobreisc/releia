@@ -6,7 +6,6 @@ use App\Enums\NoteKind;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/** Create and edit a note: the same set of fields in both cases. */
 class NoteRequest extends FormRequest
 {
     /**

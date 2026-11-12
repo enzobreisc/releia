@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * Preferências em chave e valor (JSON). Use Setting::get e Setting::put.
- *
  * @property string $key
  * @property mixed $value
  * @property Carbon|null $created_at
@@ -35,7 +33,6 @@ class Setting extends Model
 
     public static function get(string $key, mixed $default = null): mixed
     {
-        // Chave ausente retorna o padrão (a busca devolve null nesse caso).
         $setting = static::query()->whereKey($key)->first();
 
         return $setting === null ? $default : ($setting->value ?? $default);

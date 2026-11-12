@@ -61,7 +61,7 @@ return [
      * You may use wildcards to match multiple keys.
      */
     'cleanup_env_keys' => [
-        // O .env local é de desenvolvimento: sem estas chaves o app empacotado roda como produção.
+        // The local .env is for development: without these keys the bundled app runs in production mode.
         'APP_ENV',
         'APP_DEBUG',
         'AWS_*',
@@ -86,16 +86,16 @@ return [
      * You may use glob / wildcard patterns here.
      */
     'cleanup_exclude_files' => [
-        // Ferramentas de desenvolvimento: worktrees de agentes têm gigabytes e não fazem parte do app.
+        // Dev tooling: agent worktrees can take gigabytes and are not part of the app.
         '.claude',
         '.claude/*',
         '.git',
         '.github',
         'brand',
         'storage/framework/testing',
-        // Aponta para o Vite de desenvolvimento; empacotado, o app ficaria sem CSS e JS.
+        // Points at the Vite dev server; when bundled, the app would ship without CSS and JS.
         'public/hot',
-        // Bancos de desenvolvimento e de testes: o app usa o próprio banco, na pasta de dados.
+        // Dev and test databases: the app uses its own database in the data folder.
         'database/*.sqlite',
         'build',
         'temp',

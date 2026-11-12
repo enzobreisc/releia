@@ -38,7 +38,7 @@ class TimelineService
     }
 
     /**
-     * Started readings in chronological order. Any reading after the first of a book is a reread.
+     * Any reading after the first of a book is a reread.
      *
      * @return Collection<int, TimelineEntry>
      */

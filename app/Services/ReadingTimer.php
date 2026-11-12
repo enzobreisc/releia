@@ -43,8 +43,8 @@ class ReadingTimer
     }
 
     /**
-     * Starts counting. The starting page is the last one read; if it is higher than the
-     * logged one, the book advances to it on save (pages read without being logged).
+     * The starting page is the last one read; if it is higher than the logged one, the book
+     * advances to it on save (pages read without being logged).
      */
     public function start(Book $book, int $startPage): void
     {
@@ -77,10 +77,6 @@ class ReadingTimer
         ]);
     }
 
-    /**
-     * Remembers the page the reader is on while the session runs, kept within the
-     * starting page and the last page of the book.
-     */
     public function movePage(int $page): void
     {
         $timer = $this->current();
@@ -118,8 +114,6 @@ class ReadingTimer
     }
 
     /**
-     * Seconds read, without the pauses.
-     *
      * @param  TimerState  $timer
      */
     public function elapsedSeconds(array $timer): int
@@ -130,10 +124,6 @@ class ReadingTimer
         return max(0, $total - $timer['paused_seconds']);
     }
 
-    /**
-     * Stops the timer and logs today's session with the counted minutes
-     * (at least 1). Without a timer, it does nothing.
-     */
     public function finish(int $pageTo): ?ReadingSession
     {
         $timer = $this->current();

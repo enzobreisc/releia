@@ -12,7 +12,6 @@ beforeEach(function () {
     Carbon::setTestNow('2026-10-14 22:30:00');
 });
 
-/** Livro de 300 páginas em "lendo", já com a página atual definida. */
 function readingAt(int $page, ReadingStatus $status = ReadingStatus::Reading): Reading
 {
     $book = Book::factory()->onShelf($status)->create(['pages' => 300]);
@@ -142,7 +141,7 @@ test('progresso calcula percentual, ritmo e dias restantes', function () {
     $reading = readingAt(0);
     $service = app(ReadingService::class);
 
-    // 40 páginas em um dia, 20 no seguinte: ritmo de 30 páginas por dia de leitura.
+    // 40 pages on one day, 20 the next: a pace of 30 pages per reading day.
     Carbon::setTestNow('2026-10-10 20:00:00');
     $service->registerSession($reading, 40, null, Carbon::today());
     Carbon::setTestNow('2026-10-11 20:00:00');

@@ -13,28 +13,16 @@ use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
+    public function register(): void {}
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         $this->configureDefaults();
 
-        // O atalho chega por HTTP (_native/api/events), então o listener vale em todo request.
+        // The shortcut arrives over HTTP (_native/api/events), so the listener must be registered for every request.
         Event::listen(QuickLogShortcutPressed::class, ShowQuickLogWindow::class);
     }
 
-    /**
-     * Configure default behaviors for production-ready applications.
-     */
     protected function configureDefaults(): void
     {
         Date::use(CarbonImmutable::class);

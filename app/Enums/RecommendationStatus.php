@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-/** State of a suggestion. Dismissed ones are kept only so they do not come back. */
+/** Dismissed suggestions are kept only so they do not come back. */
 enum RecommendationStatus: string
 {
     case New = 'new';

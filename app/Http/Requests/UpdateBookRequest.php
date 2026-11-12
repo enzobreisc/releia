@@ -13,9 +13,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\Validator;
 
 /**
- * Editing the book's data. Besides the format rules, two checks that
- * depend on what already exists: the ISBN cannot belong to another book and the total
- * pages cannot fall below an already logged session.
+ * The ISBN cannot belong to another book and the page total cannot fall below a logged session.
  */
 class UpdateBookRequest extends FormRequest
 {

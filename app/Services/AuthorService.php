@@ -13,19 +13,17 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Obras de um autor. A identidade vem das chaves da Open Library, não do nome: a chave sai
- * do ISBN de um livro seu (sem ambiguidade) e, só quando não há ISBN, de um nome que não
- * deixa dúvida. Se nenhuma das duas identifica o autor, não mostramos obras (melhor nada
- * que obras de um homônimo).
+ * Works of an author. Identity comes from Open Library keys, not from the name: the key is
+ * taken from the ISBN of one of your books (unambiguous) and, only when there is no ISBN,
+ * from a name that leaves no doubt. If neither identifies the author, no works are shown
+ * (better nothing than works by a namesake).
  */
 class AuthorService
 {
     private const CACHE_DAYS = 7;
 
-    /** Quantas obras a página resolve para o português (uma ou mais chamadas cada). */
     private const MAX_WORKS = 30;
 
-    /** Edições brasileiras tentadas por obra até uma ter título na BrasilAPI. */
     private const ISBN_TRIES = 3;
 
     public function __construct(
@@ -35,7 +33,7 @@ class AuthorService
     ) {}
 
     /**
-     * Chaves do autor, guardadas depois da primeira vez. Vazio: não deu para ter certeza.
+     * Author keys, stored after the first lookup. Empty means the identity could not be confirmed.
      *
      * @return list<string>
      */
@@ -55,7 +53,7 @@ class AuthorService
             $keys = $this->confirmedByLibrary($author);
         }
 
-        // Falha de rede não pode virar "autor sem identidade" para sempre: só guarda o que achou.
+        // A network failure must not turn into an identity-less author for good, so only found keys are stored.
         if ($keys !== []) {
             $author->update(['open_library_key' => implode(',', $keys)]);
         }
@@ -64,8 +62,8 @@ class AuthorService
     }
 
     /**
-     * Chaves pelo que o autor escreveu e você tem: ISBN primeiro, título quando a Open Library
-     * não conhece a edição. O livro é a âncora, então homônimos não entram.
+     * Keys from the books you own by this author: ISBN first, title when Open Library does not
+     * know the edition. The book is the anchor, so namesakes are excluded.
      *
      * @return list<string>
      */
@@ -89,8 +87,8 @@ class AuthorService
     }
 
     /**
-     * Último recurso: cadastros com exatamente o nome do autor (comum em autores famosos, que a
-     * Open Library duplica). Só vale se algum livro seu aparece nas obras deles, por ISBN.
+     * Last resort: records named exactly like the author (common for famous authors, which Open
+     * Library duplicates). Only valid if one of your books appears among their works, by ISBN.
      *
      * @return list<string>
      */
@@ -116,8 +114,6 @@ class AuthorService
     }
 
     /**
-     * Autores da biblioteca que são a mesma pessoa (mesma chave), contando o próprio.
-     *
      * @return Collection<int, Author>
      */
     public function sameAuthors(Author $author): Collection
@@ -135,8 +131,6 @@ class AuthorService
     }
 
     /**
-     * Obras do autor que ainda não estão na biblioteca, as mais queridas primeiro.
-     *
      * @return array{verified: bool, items: list<array<string, mixed>>}
      */
     public function works(Author $author): array
@@ -158,7 +152,7 @@ class AuthorService
                 break;
             }
 
-            // A Open Library lista traduções como obras à parte: só vale a que tem edição brasileira.
+            // Open Library lists translations as separate works, so only one with a Brazilian edition counts.
             $brazilian = array_values(array_filter($work['isbns'], Isbn::isBrazilian(...)));
 
             if (! $work['portuguese'] || $brazilian === []) {
@@ -179,7 +173,6 @@ class AuthorService
 
             $title = BookIdentity::normalizeTitle($edition->title);
 
-            // Sem título, título que é o nome do autor, repetido (mesma obra em edições diferentes) ou já na biblioteca.
             if ($title === '' || isset($seen[$title]) || in_array('title:'.$title, $owned, true) || in_array($title, array_map(BookIdentity::normalize(...), $work['candidate']->authors), true)) {
                 continue;
             }
@@ -226,10 +219,10 @@ class AuthorService
     }
 
     /**
-     * Edição em português pelo ISBN: BrasilAPI primeiro (catálogo brasileiro, título certo) e,
-     * se ela não conhece, as outras fontes.
+     * Portuguese edition by ISBN: BrasilAPI first (Brazilian catalogue, reliable title), then the
+     * other sources when it does not know the ISBN.
      *
-     * @param  list<string>  $isbns  ISBNs brasileiros da obra
+     * @param  list<string>  $isbns  Brazilian ISBNs of the work
      */
     private function portugueseEdition(array $isbns): ?BookCandidate
     {
@@ -250,13 +243,11 @@ class AuthorService
             }
         }
 
-        // lookup->findByIsbn guarda o próprio cache.
+        // BookLookupService::findByIsbn already caches its result.
         return $this->lookup->findByIsbn($isbns[0]);
     }
 
     /**
-     * Chaves do que o usuário já tem desses autores: ISBNs (13 e 10) e títulos.
-     *
      * @param  Collection<int, Author>  $authors
      * @return list<string>
      */

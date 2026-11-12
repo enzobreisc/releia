@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Só ISBN, e só brasileiro. Consulta a CBL e editoras locais, então conhece
- * livros de editoras pequenas que Open Library e Google Books não têm.
+ * ISBN only, and only Brazilian ones. It queries the CBL and local publishers, so it knows
+ * books from small publishers that Open Library and Google Books do not have.
  */
 class BrasilApiProvider implements MetadataProvider
 {
@@ -32,7 +32,7 @@ class BrasilApiProvider implements MetadataProvider
             return null;
         }
 
-        // 404 é "não conheço este ISBN", não falha.
+        // A 404 means the ISBN is unknown, not a failure.
         if ($response->status() !== 404 && ! $response->successful()) {
             Log::warning('BrasilAPI respondeu com erro', ['status' => $response->status()]);
         }
@@ -65,10 +65,10 @@ class BrasilApiProvider implements MetadataProvider
     }
 
     /**
-     * A BrasilAPI mistura autor, tradutor, ilustrador e até a editora na mesma lista, sem dizer
-     * quem é quem ("Epicteto", "Edson Bini", "Karina Tenório", "Studio Mandragora"). O primeiro é
-     * o autor; os demais são, quase sempre, outras funções, então ficam de fora (dá para
-     * acrescentar à mão no editor, e as outras fontes só trazem autores).
+     * BrasilAPI mixes author, translator, illustrator and even publisher in one list without saying
+     * who is who ("Epicteto", "Edson Bini", "Karina Tenório", "Studio Mandragora"). The first is the
+     * author; the others are almost always other roles, so they are left out (they can be added by
+     * hand in the editor, and the other sources only bring authors).
      *
      * @param  array<mixed>  $book
      * @return list<string>

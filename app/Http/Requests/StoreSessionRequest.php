@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/** The page where you stopped and optional minutes. The date is always today. */
 class StoreSessionRequest extends FormRequest
 {
     /**

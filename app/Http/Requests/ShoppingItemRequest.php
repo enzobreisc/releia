@@ -30,9 +30,7 @@ class ShoppingItemRequest extends FormRequest
                     }
                 },
             ],
-            // Cover of the match picked in the search.
             'cover_url' => ['nullable', 'url:http,https', 'max:2048'],
-            // Link of a specific listing; an Amazon link also yields the ISBN.
             'url' => ['nullable', 'url:http,https', 'max:2048'],
             'store_type' => ['required', Rule::enum(StoreType::class)],
             'estimated_price' => self::priceRule(),
@@ -40,8 +38,6 @@ class ShoppingItemRequest extends FormRequest
     }
 
     /**
-     * Price typed in reais ("34,90"); the conversion to cents happens in payload().
-     *
      * @return list<mixed>
      */
     public static function priceRule(): array
@@ -58,9 +54,6 @@ class ShoppingItemRequest extends FormRequest
     }
 
     /**
-     * Data ready for ShoppingService: 13-digit ISBN (typed or taken
-     * from the Amazon link) and price in cents, with the date it was noted.
-     *
      * @return array{title: string, author: string, isbn: string|null, cover_url: string|null, url: string|null, store_type: string, estimated_price_cents: int|null, price_checked_at: CarbonInterface|null}
      */
     public function payload(): array

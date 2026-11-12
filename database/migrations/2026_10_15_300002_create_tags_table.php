@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('tags', function (Blueprint $table) {
             $table->id();
-            // Guardada sem acento e em minúsculas: #Não-Ficção e #nao-ficcao são a mesma tag.
+            // Stored unaccented and lowercase, so #Não-Ficção and #nao-ficcao are the same tag.
             $table->string('name')->unique();
             $table->timestamps();
         });

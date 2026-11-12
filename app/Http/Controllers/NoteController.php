@@ -47,7 +47,6 @@ class NoteController extends Controller
         return back();
     }
 
-    /** "Book title · p. 42", the notice's second line. */
     private function where(Note $note): string
     {
         return $note->book->title.($note->page === null ? '' : ' · '.__('p. :page', ['page' => $note->page]));

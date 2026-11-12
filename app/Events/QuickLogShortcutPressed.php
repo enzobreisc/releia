@@ -3,8 +3,7 @@
 namespace App\Events;
 
 /**
- * Disparado pelo atalho global. O NativePHP chama o evento com a combinação
- * como argumento, por isso o construtor aceita (e ignora) o valor.
+ * NativePHP passes the key combination as an argument, so the constructor must accept it.
  */
 class QuickLogShortcutPressed
 {

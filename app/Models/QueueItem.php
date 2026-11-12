@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Um livro na fila de próximas leituras. A ordem é a coluna position (1..n).
- *
  * @property int $id
  * @property int $book_id
  * @property int $position

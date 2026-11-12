@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/** The year's book goal and the optional daily page goal. */
 class UpdateGoalRequest extends FormRequest
 {
     /**

@@ -10,12 +10,12 @@ use App\Support\StatsPeriod;
 use Illuminate\Support\Carbon;
 
 /*
- * Amostra pequena com contas feitas à mão. Hoje é 14/10/2026 (287 dias decorridos no ano).
+ * Small sample with hand-computed figures. Today is 14 Oct 2026 (287 days elapsed in the year).
  *
- * Livros concluídos em 2026: A1 (10 a 14/01, 5 dias), B1 (01 a 31/03, 31 dias, sem sessões),
- * C1 (30/03, 1 dia) e A2 (releitura de A, 01 a 02/06, 2 dias). Total: 4.
- * Páginas: sessões somam 470 (A1 200, A2 40, C1 150, D 70, E 10) + B1 sem sessão (300) = 770.
- * Dias com sessão: 10 datas distintas. Sequência maior: 3 (10 a 12/01). Atual: 2 (13 e 14/10).
+ * Books finished in 2026: A1 (10 to 14 Jan, 5 days), B1 (1 to 31 Mar, 31 days, no sessions),
+ * C1 (30 Mar, 1 day) and A2 (reread of A, 1 to 2 Jun, 2 days). Total: 4.
+ * Pages: sessions sum to 470 (A1 200, A2 40, C1 150, D 70, E 10) + B1 without sessions (300) = 770.
+ * Days with sessions: 10 distinct dates. Longest streak: 3 (10 to 12 Jan). Current: 2 (13 and 14 Oct).
  */
 beforeEach(function () {
     Carbon::setTestNow('2026-10-14 12:00:00');
@@ -82,10 +82,10 @@ test('indicadores do ano batem com o cálculo manual', function () {
         'books_read' => 4,
         'rereads' => 1,
         'pages_read' => 770,
-        'pages_per_day' => 2.7,                  // 770 ÷ 287 dias decorridos
-        'pages_per_reading_day' => 47.0,         // 470 de sessão ÷ 10 dias com leitura
+        'pages_per_day' => 2.7,                  // 770 ÷ 287 elapsed days
+        'pages_per_reading_day' => 47.0,         // 470 session pages ÷ 10 reading days
         'reading_days' => 10,
-        'days_per_book' => 9.8,                  // (5 + 31 + 1 + 2) ÷ 4 = 9,75
+        'days_per_book' => 9.8,                  // (5 + 31 + 1 + 2) ÷ 4 = 9.75
     ]);
 });
 
@@ -104,7 +104,7 @@ test('releitura conta cada leitura como um livro lido', function () {
     statsSample2026();
     $service = app(StatsService::class);
 
-    // Livro A foi lido duas vezes em 2026 (a1 e a2): as duas contam.
+    // Book A was read twice in 2026 (a1 and a2): both count.
     expect($service->indicators(StatsPeriod::year(2026))['books_read'])->toBe(4)
         ->and($service->authors(StatsPeriod::year(2026))[0])->toBe(['label' => 'Ana', 'count' => 3]);
 });
@@ -113,13 +113,13 @@ test('o ano filtra pelas datas de fim e de sessão', function () {
     statsSample2026();
     $service = app(StatsService::class);
 
-    // f1 terminou em 31/12/2025: entra em 2025 e fica fora de 2026.
+    // f1 finished on 31 Dec 2025: it counts for 2025 and is outside 2026.
     $year2025 = $service->indicators(StatsPeriod::year(2025));
 
     expect($year2025['books_read'])->toBe(1)
         ->and($year2025['pages_read'])->toBe(100);
 
-    // Sessão com hora em 31/12/2026 ainda conta no ano.
+    // A session timed on 31 Dec 2026 still counts for the year.
     $reading = Reading::query()->where('status', ReadingStatus::Reading)->first();
     ReadingSession::factory()->for($reading)->create([
         'read_on' => Carbon::parse('2026-12-31 18:00:00'),
@@ -153,8 +153,8 @@ test('mais rápido, mais longo e melhor mês', function () {
 
     $extremes = $service->extremes($period);
 
-    expect($extremes['fastest']->book->title)->toBe('Livro C')   // 1 dia
-        ->and($extremes['longest']->book->title)->toBe('Livro B') // 300 páginas
+    expect($extremes['fastest']->book->title)->toBe('Livro C')   // 1 day
+        ->and($extremes['longest']->book->title)->toBe('Livro B') // 300 pages
         ->and($service->bestMonth($period))->toBe(['month' => '2026-03', 'count' => 2]);
 });
 
@@ -162,8 +162,8 @@ test('sequência atual e maior', function () {
     statsSample2026();
 
     expect(app(StatsService::class)->streaks(StatsPeriod::year(2026)))->toBe([
-        'current' => 2, // 13 e 14/10
-        'longest' => 3, // 10 a 12/01
+        'current' => 2, // 13 and 14 Oct
+        'longest' => 3, // 10 to 12 Jan
     ]);
 });
 
@@ -183,7 +183,7 @@ test('livros por mês com zeros e a previsão do ano', function () {
     $counts = array_column($service->booksPerBucket(StatsPeriod::year(2026)), 'count');
 
     expect($counts)->toBe([1, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0])
-        // 4 livros ÷ 287 dias × 365 = 5,02; meta 12.
+        // 4 books ÷ 287 days × 365 = 5.02; goal 12.
         ->and($service->forecast(StatsPeriod::year(2026)))->toBe(['projection' => 5, 'goal' => 12, 'books' => 4])
         ->and($service->forecast(StatsPeriod::year(2025)))->toBeNull();
 });
@@ -219,7 +219,7 @@ test('melhores leituras do ano pela nota, com desempate por páginas e data', fu
 
     $top = app(StatsService::class)->topRated(StatsPeriod::year(2026));
 
-    // A2 e A1 têm nota 5 e 200 páginas; A2 é mais recente, então vem primeiro.
+    // A2 and A1 both have rating 5 and 200 pages; A2 is more recent, so it comes first.
     expect($top->pluck('id')->all())->toBe([
         $readings['a2']->id,
         $readings['a1']->id,

@@ -3,8 +3,8 @@
 namespace App\Services\Recommendation;
 
 /**
- * Ponto de encaixe para as camadas 2 e 3 (embeddings e IA): reordena os candidatos
- * antes de virarem sugestões. Por enquanto a ordem é a da busca.
+ * Extension point for layers 2 and 3 (embeddings and AI), which reorder candidates
+ * before they become suggestions. Until then, the search order is kept.
  */
 interface CandidateRanker
 {

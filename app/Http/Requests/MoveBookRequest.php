@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/** Where a book goes on the bookcase: a shelf (or none) and an optional book to sit before. */
 class MoveBookRequest extends FormRequest
 {
     /**

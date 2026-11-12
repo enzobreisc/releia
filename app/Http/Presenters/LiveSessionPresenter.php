@@ -6,8 +6,6 @@ use App\Models\Book;
 use App\Services\ReadingTimer;
 
 /**
- * Shape of the running reading session sent to the pages.
- *
  * @phpstan-import-type TimerState from ReadingTimer
  */
 final class LiveSessionPresenter
@@ -28,8 +26,6 @@ final class LiveSessionPresenter
     }
 
     /**
-     * The running session as a one-line summary, or null while nothing is being timed.
-     *
      * @return array{title: string, timer: array{start_page: int, page: int, started_at: string, elapsed: int, paused: bool}}|null
      */
     public static function summary(ReadingTimer $readingTimer): ?array

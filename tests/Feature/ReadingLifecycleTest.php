@@ -21,7 +21,6 @@ beforeEach(function () {
     Carbon::setTestNow('2026-10-15 20:00:00');
 });
 
-/** Livro de 100 páginas com uma leitura no estado pedido. */
 function lifecycleBook(ReadingStatus $status, array $reading = []): Book
 {
     $book = Book::factory()->create(['pages' => 100]);
@@ -30,7 +29,6 @@ function lifecycleBook(ReadingStatus $status, array $reading = []): Book
     return $book->refresh();
 }
 
-/** Livro lido de 1 a 9 out, com nota 4 e uma sessão em 2 out. */
 function finishedBook(): Book
 {
     $book = lifecycleBook(ReadingStatus::Read, [

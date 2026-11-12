@@ -2,7 +2,6 @@
 
 namespace App\Services\AuthorPhoto;
 
-/** What Open Library knows about one author record: its photos and where the person is described elsewhere. */
 final readonly class AuthorRecord
 {
     /**

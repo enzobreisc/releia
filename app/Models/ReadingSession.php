@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Um trecho lido num dia. Páginas lidas = page_to - page_from + 1.
+ * Pages read = page_to - page_from + 1, both ends included.
  *
  * @property int $id
  * @property int $reading_id

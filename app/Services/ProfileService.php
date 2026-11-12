@@ -10,10 +10,10 @@ use App\Models\Setting;
 use Illuminate\Support\Collection;
 
 /**
- * Livros fixados e atividade recente do perfil.
+ * Pinned books and recent activity for the profile.
  *
- * Os fixados são uma lista de ids na tabela settings, em ordem de fixação. Não exigem
- * coluna nova em books, e a lista é pequena (no máximo MAX_PINS).
+ * Pins are a list of ids in the settings table, in pin order, so books needs no new column.
+ * The list is small (at most MAX_PINS).
  */
 class ProfileService
 {
@@ -21,11 +21,11 @@ class ProfileService
 
     public const PINS_SETTING = 'pinned_books';
 
-    /** Nome e frase do leitor, editáveis no perfil (o nome também aparece no cumprimento do Início). */
+    /** Reader name and bio, editable on the profile (the name is also used in the Home greeting). */
     private const READER_SETTING = 'reader';
 
     /**
-     * Livros fixados, na ordem em que foram fixados. Ids de livros excluídos são ignorados.
+     * Pinned books, in pin order. Ids of deleted books are skipped.
      *
      * @return Collection<int, Book>
      */
@@ -71,7 +71,7 @@ class ProfileService
         ]);
     }
 
-    /** Fixa um livro. Retorna false se já estiver no limite. */
+    /** Pins a book. Returns false when the pin limit is reached. */
     public function pin(Book $book): bool
     {
         $ids = $this->pinnedIds();
@@ -99,7 +99,7 @@ class ProfileService
     }
 
     /**
-     * Ids fixados em ordem. Ids de livros que não existem mais são descartados.
+     * Pinned ids in order. Ids of books that no longer exist are dropped.
      *
      * @return list<int>
      */
@@ -118,15 +118,14 @@ class ProfileService
     }
 
     /**
-     * Eventos recentes: leituras terminadas, sessões registradas e livros adicionados.
-     *
-     * Cada evento tem type (finished, session, added ou reread), book_id, title e date, mais o que o tipo precisa.
+     * Recent events: finished readings, logged sessions and added books. Each event has a type
+     * (finished, session, added or reread), book_id, title and date, plus the fields its type needs.
      *
      * @return list<array<string, mixed>>
      */
     public function recentActivity(int $limit = 8): array
     {
-        // Abandonados também têm finished_at: só leituras lidas são "terminadas".
+        // Abandoned readings also have finished_at, so only read books count as finished.
         $finished = Reading::query()
             ->with('book')
             ->where('status', ReadingStatus::Read->value)
@@ -156,7 +155,7 @@ class ProfileService
                 'pages' => $session->pages(),
             ]);
 
-        // Cada leitura nova é um evento: a primeira do livro é "adicionou", as outras são releituras.
+        // Each new reading is an event: the first one of a book means "added", the others are rereads.
         $firstReadings = Reading::query()->selectRaw('min(id) AS id')->groupBy('book_id')->pluck('id')->map(fn ($id) => (int) $id)->all();
 
         $added = Reading::query()

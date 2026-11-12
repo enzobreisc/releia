@@ -8,7 +8,6 @@ use App\Models\Author;
 use App\Models\Book;
 use Illuminate\Support\Collection;
 
-/** Per-author numbers for the authors list: ownership, reading, rating and share of all reading. */
 class AuthorIndex
 {
     private const int RATING_PRECISION = 1;

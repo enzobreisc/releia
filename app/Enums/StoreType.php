@@ -2,7 +2,6 @@
 
 namespace App\Enums;
 
-/** Where a book on the shopping list can be bought. */
 enum StoreType: string
 {
     case UsedBookstore = 'used_bookstore';

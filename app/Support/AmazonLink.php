@@ -3,8 +3,7 @@
 namespace App\Support;
 
 /**
- * Links da Amazon Brasil para a lista de compras. Sem API: a busca pelo ISBN
- * sempre abre (o /dp/ dá 404 quando a edição não está à venda lá).
+ * Amazon Brazil links. There is no API: the ISBN search always opens, because /dp/ returns 404 when the edition is not sold there.
  */
 final class AmazonLink
 {
@@ -21,8 +20,7 @@ final class AmazonLink
     }
 
     /**
-     * ISBN de um link da Amazon colado: o ASIN de livros físicos é o ISBN-10.
-     * Devolve null para links sem ASIN (encurtados, buscas) ou de outros produtos.
+     * The ASIN of a physical book is its ISBN-10. Shortened links and searches carry no ASIN.
      */
     public static function isbnFromUrl(string $url): ?string
     {
@@ -40,8 +38,7 @@ final class AmazonLink
     }
 
     /**
-     * ASIN do produto num link da Amazon (/dp/, /gp/product/, /o/ASIN/).
-     * Nos livros físicos é o ISBN-10; nos e-books começa com B0.
+     * Physical books use the ISBN-10 as ASIN; e-books start with B0.
      */
     public static function asinFromUrl(string $url): ?string
     {
@@ -62,7 +59,7 @@ final class AmazonLink
     {
         $host = strtolower((string) parse_url($url, PHP_URL_HOST));
 
-        // Só domínios da Amazon (amazon.com.br, amazon.co.uk…), não "amazon.com.br.outro.com".
+        // Only Amazon's own domains: a host like "amazon.com.br.evil.com" must not pass.
         return preg_match('/(^|\.)amazon\.(com|co|ca|de|fr|es|it|in|nl|se|pl|sg|ae|sa|eg)(\.[a-z]{2})?$/', $host) === 1;
     }
 

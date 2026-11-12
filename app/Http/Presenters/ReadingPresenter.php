@@ -7,11 +7,10 @@ use App\Models\Reading;
 use App\Models\ReadingSession;
 use App\Services\ReadingService;
 
-/** Formato das leituras e sessões enviado às páginas. */
 final class ReadingPresenter
 {
     /**
-     * Leitura com o progresso já calculado. Espera book com authors carregado.
+     * Expects the book with its authors loaded.
      *
      * @return array<string, mixed>
      */
@@ -30,8 +29,7 @@ final class ReadingPresenter
     }
 
     /**
-     * Uma leitura do histórico do livro (aba Leituras), com o resumo e as sessões.
-     * Espera as sessões carregadas.
+     * Expects the sessions to be loaded.
      *
      * @return array<string, mixed>
      */
@@ -64,7 +62,7 @@ final class ReadingPresenter
     }
 
     /**
-     * Sessão do log. O hash é derivado do id, só para lembrar um commit.
+     * The hash is a display label derived from the id, styled like a commit hash.
      *
      * @return array<string, mixed>
      */

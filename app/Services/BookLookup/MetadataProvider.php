@@ -2,7 +2,6 @@
 
 namespace App\Services\BookLookup;
 
-/** Uma fonte externa de metadados de livros. */
 interface MetadataProvider
 {
     public function findByIsbn(string $isbn13): ?BookCandidate;

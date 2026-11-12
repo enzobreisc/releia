@@ -21,7 +21,6 @@ beforeEach(function () {
     Carbon::setTestNow('2026-10-14 22:30:00');
 });
 
-/** Registra uma sessão num dia específico (sem mexer no dia de teste). */
 function sessionOn(string $day, int $pageFrom, int $pageTo, ?Reading $reading = null): ReadingSession
 {
     $reading ??= Book::factory()->onShelf(ReadingStatus::Reading)->create()->currentReading;
@@ -40,11 +39,11 @@ test('sequência conta dias seguidos e mantém hoje sem leitura até o fim do di
     expect(ReadingActivity::streak(['2026-10-12', '2026-10-13'], $today))
         ->toBe(['current' => 2, 'longest' => 2]);
 
-    // Hoje ainda não tem sessão: a sequência de ontem continua valendo.
+    // Today has no session yet: yesterday's streak still counts.
     expect(ReadingActivity::streak(['2026-10-11', '2026-10-13'], $today))
         ->toBe(['current' => 1, 'longest' => 1]);
 
-    // Dois dias sem leitura quebram a sequência atual, mas a maior fica registrada.
+    // Two days without reading break the current streak, but the longest one is kept.
     expect(ReadingActivity::streak(['2026-10-01', '2026-10-02', '2026-10-03', '2026-10-09'], $today))
         ->toBe(['current' => 0, 'longest' => 3]);
 
@@ -71,7 +70,7 @@ test('páginas por dia somam todas as leituras e a última semana tem sete níve
 test('meta do ano: previsão linear pelos dias passados', function () {
     Setting::put('yearly_goal', 24);
 
-    // 14 de outubro é o dia 287 de 2026, com 365 dias no ano.
+    // 14 October is day 287 of 2026, a 365-day year.
     Book::factory()->onShelf(ReadingStatus::Read)->create()
         ->currentReading->update(['finished_at' => '2026-03-01']);
     Book::factory()->onShelf(ReadingStatus::Read)->create()

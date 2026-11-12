@@ -6,13 +6,11 @@ use App\Enums\Locale;
 
 final class Ordinal
 {
-    /** "1º" for things like queue positions; "1st" in English. */
     public static function masculine(int $number): string
     {
         return self::isEnglish() ? self::english($number) : $number.'º';
     }
 
-    /** "1ª" for feminine nouns like "leitura"; "1st" in English. */
     public static function feminine(int $number): string
     {
         return self::isEnglish() ? self::english($number) : $number.'ª';

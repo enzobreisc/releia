@@ -6,15 +6,13 @@ use App\Models\ReadingSession;
 use Illuminate\Support\Carbon;
 
 /**
- * Atividade diária: páginas por dia, sequência de dias e níveis do mapa de calor.
- * Fica fora do ReadingService para a estatística (fase 4) reaproveitar as mesmas contas.
+ * Daily activity: pages per day, reading streak and heatmap levels. Kept out of
+ * ReadingService so the statistics can reuse the same calculations.
  */
 class ReadingActivity
 {
     /**
-     * Páginas lidas por dia entre duas datas (inclusive), somando todas as leituras.
-     *
-     * @return array<string, int> dia (Y-m-d) => páginas
+     * @return array<string, int> day (Y-m-d) => pages
      */
     public function pagesByDay(Carbon $from, Carbon $to): array
     {
@@ -27,7 +25,6 @@ class ReadingActivity
             ->all();
     }
 
-    /** Pages read on one day, across all readings. */
     public function pagesOn(Carbon $day): int
     {
         return $this->pagesByDay($day, $day)[$day->toDateString()] ?? 0;
@@ -47,7 +44,7 @@ class ReadingActivity
     }
 
     /**
-     * Dias com pelo menos uma sessão, em ordem crescente (Y-m-d).
+     * Days with at least one session, in ascending order (Y-m-d).
      *
      * @return list<string>
      */
@@ -63,8 +60,6 @@ class ReadingActivity
     }
 
     /**
-     * Níveis do mapa de calor dos últimos sete dias, do mais antigo ao de hoje.
-     *
      * @return list<int>
      */
     public function lastWeekLevels(Carbon $today): array
@@ -81,8 +76,8 @@ class ReadingActivity
     }
 
     /**
-     * Nível 0 (sem leitura) a 4, pela quantidade de páginas no dia. Usa a mesma
-     * escala das estatísticas, para o mini mapa e o calendário baterem.
+     * Level 0 (no reading) to 4, by pages read on the day. Uses the same scale as the
+     * statistics, so the mini map and the calendar always agree.
      */
     public static function level(int $pages): int
     {
@@ -90,12 +85,10 @@ class ReadingActivity
     }
 
     /**
-     * Sequência de dias seguidos com leitura.
+     * Consecutive days with reading. If today has no session yet, the current streak still
+     * counts from yesterday; it is only lost once a day ends without reading.
      *
-     * Se hoje ainda não tem sessão, a sequência atual continua valendo a partir
-     * de ontem: ela só se perde quando o dia termina sem leitura.
-     *
-     * @param  list<string>  $days  dias com leitura (Y-m-d)
+     * @param  list<string>  $days  days with reading (Y-m-d)
      * @return array{current: int, longest: int}
      */
     public static function streak(array $days, Carbon $today): array

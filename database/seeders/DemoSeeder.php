@@ -10,16 +10,11 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 
 /**
- * Biblioteca de demonstração para ver as telas com dados: livros e sessões espalhados
- * em 2026. Os dados são fixos (sem aleatoriedade), então os números são sempre os mesmos.
- *
- * Uso: php artisan db:seed --class=DemoSeeder
+ * Fixed data (no randomness), so the demo numbers are always the same.
  */
 class DemoSeeder extends Seeder
 {
     /**
-     * Título, autores, páginas, gênero, estante, início, fim, nota.
-     *
      * @var list<array{0: string, 1: list<string>, 2: int, 3: string, 4: string, 5: string|null, 6: string|null, 7: int|null}>
      */
     private const BOOKS = [
@@ -54,12 +49,11 @@ class DemoSeeder extends Seeder
                 'current_page' => $status === 'read' ? $pages : 0,
             ]);
 
-            // Livro ainda não começado não tem sessões.
             if ($started !== null) {
                 $this->addSessions($reading, $status, $pages, $started, $finished);
             }
 
-            // A página atual acompanha a última sessão, como no registro de verdade.
+            // Current page follows the last session, as real logging does.
             $lastPage = (int) $reading->sessions()->max('page_to');
             $reading->update(['current_page' => max($reading->current_page, $lastPage)]);
         }
@@ -67,10 +61,6 @@ class DemoSeeder extends Seeder
         Setting::put('yearly_goal', 12);
     }
 
-    /**
-     * Sessões a cada dois dias, com as páginas divididas igualmente. Lidos cobrem o livro
-     * inteiro; em andamento, parte; abandonados, só o começo.
-     */
     private function addSessions(Reading $reading, string $status, int $pages, string $started, ?string $finished): void
     {
         $start = Carbon::parse($started);

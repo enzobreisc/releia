@@ -34,11 +34,6 @@ class BookController extends Controller
         private readonly LibraryService $library,
     ) {}
 
-    /**
-     * Add book. `q` (and optional `publisher`) searches the external sources;
-     * `work` lists the editions of a work and `isbn` loads the details of an
-     * edition for the preview. The last two arrive through partial reloads.
-     */
     public function create(Request $request): Response
     {
         $query = trim((string) $request->string('q'));
@@ -91,7 +86,6 @@ class BookController extends Controller
                 ->values(),
             // Sessions only go into "want to read" or "reading" books (see ReadingService).
             'can_log' => $reading !== null && in_array($reading->status, [ReadingStatus::WantToRead, ReadingStatus::Reading], true),
-            // All readings, from the first to the current, for the Readings tab and the reread.
             'readings' => $history->map(fn (Reading $item, int $index) => ReadingPresenter::history($item, $index + 1, $book->pages))->values(),
             'notes' => fn () => Note::query()
                 ->with(['book:id,title', 'tags:id,name'])
@@ -103,7 +97,6 @@ class BookController extends Controller
             'note_kinds' => NoteKind::options(),
             'queued' => $queuePosition !== null,
             'queue_position' => $queuePosition === null ? null : (int) $queuePosition,
-            // What goes with the book if it is removed (confirmation dialog).
             'removal' => [
                 'readings' => $history->count(),
                 'finished' => $history->where('status', ReadingStatus::Read)->count(),
@@ -116,12 +109,10 @@ class BookController extends Controller
             'genres' => fn () => collect(Genres::names())
                 ->merge(Book::query()->whereNotNull('genre')->distinct()->pluck('genre'))
                 ->unique()->sort()->values(),
-            // "↻ look up" in the edit panel: the source's data to compare, via partial reload.
             'lookup' => Inertia::optional(fn () => $isbn === null ? null : $this->preview($isbn)),
         ]);
     }
 
-    /** Fixes the book's data ("edit data" panel). */
     public function update(UpdateBookRequest $request, Book $book, UndoService $undo): RedirectResponse
     {
         /** @var array{title: string, subtitle?: string|null, authors?: list<string>, isbn_13?: string|null, isbn_10?: string|null, publisher?: string|null, published_year?: int|null, pages?: int|null, genre?: string|null, description?: string|null, cover_url?: string|null} $data */

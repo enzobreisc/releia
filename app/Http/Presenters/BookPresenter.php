@@ -5,12 +5,9 @@ namespace App\Http\Presenters;
 use App\Models\Book;
 use App\Services\BookLookup\BookCandidate;
 
-/** Formato dos livros enviado às páginas. */
 final class BookPresenter
 {
     /**
-     * Cartão de livro. Na Biblioteca vêm também a posição na fila e o número de leituras.
-     *
      * @return array{id: int, title: string, authors: string, cover_url: string|null, status: string|null, status_label: string|null, rating: int|null, queue_position: int|null, readings_count: int|null}
      */
     public static function card(Book $book, ?int $queuePosition = null): array
@@ -29,8 +26,7 @@ final class BookPresenter
     }
 
     /**
-     * Lombada: o cartão com o que a estante precisa para ordenar e agrupar
-     * (páginas dão a espessura; gênero, autor e ano dão as prateleiras).
+     * Pages set the spine thickness; genre, author and year group the shelves.
      *
      * @return array<string, mixed>
      */
@@ -83,8 +79,6 @@ final class BookPresenter
     }
 
     /**
-     * Resultados de busca externa, cada um marcado se o ISBN já está na biblioteca.
-     *
      * @param  list<BookCandidate>  $candidates
      * @return list<array<string, mixed>>
      */
@@ -99,9 +93,7 @@ final class BookPresenter
     }
 
     /**
-     * Resultado de busca externa, marcando o que já está na biblioteca.
-     *
-     * @param  array<string, int>  $libraryIds  isbn_13 => id do livro
+     * @param  array<string, int>  $libraryIds  isbn_13 => book id
      * @return array<string, mixed>
      */
     public static function candidate(BookCandidate $candidate, array $libraryIds): array

@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/** The reader's name and tagline. */
 class UpdateProfileRequest extends FormRequest
 {
     /**
