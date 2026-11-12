@@ -1,9 +1,5 @@
 import { useTranslation } from '@/hooks/use-translation';
 
-/**
- * The book in three parts: what was read before this session, what this session
- * read and what is left. Needs the book's page count.
- */
 export function SessionProgressBar({
     startPage,
     page,

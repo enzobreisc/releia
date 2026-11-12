@@ -7,10 +7,7 @@ import type { ReadingProgress } from '@/types';
 
 const BUMPS = [10, 20, 50];
 
-/**
- * Today's log: the page where you stopped, +pages shortcuts and optional minutes.
- * Keying by progress makes the form restart from the new value after saving.
- */
+/** Keying by progress makes the form restart from the new value after saving. */
 export function SessionForm({
     bookId,
     progress,

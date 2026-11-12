@@ -10,14 +10,12 @@ import type { NoteCard } from '@/types/notes';
 import type { Option } from '@/types';
 
 type NoteEditorProps = {
-    /** Existing note; null when it is a new note. */
     note: NoteCard | null;
     bookId: number;
     kinds: Option[];
     onClose: () => void;
 };
 
-/** Note dialog on the book page: Markdown text with preview, kind and page. */
 export function NoteEditor({ note, bookId, kinds, onClose }: NoteEditorProps) {
     const { t } = useTranslation();
     const [kind, setKind] = useState(note?.kind ?? kinds[0]?.value ?? '');

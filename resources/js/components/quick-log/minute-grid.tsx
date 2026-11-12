@@ -17,7 +17,6 @@ function squareLevel(index: number, minutes: number) {
     return index % BRIGHT_EVERY === BRIGHT_EVERY - 1 ? HEAT_BRIGHT : HEAT_LIT;
 }
 
-/** One square per minute read, up to a full grid. */
 export function MinuteGrid({
     seconds,
     live,

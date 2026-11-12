@@ -9,7 +9,6 @@ import { today } from '@/lib/dates';
 import { destroy, update } from '@/routes/sessions';
 import type { ReadingSession } from '@/types';
 
-/** Sessions of a reading, most recent first. */
 export function SessionLog({
     sessions,
     emptyText,

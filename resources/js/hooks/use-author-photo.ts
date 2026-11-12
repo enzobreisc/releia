@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { JSON_HEADERS } from '@/lib/http';
 import { lookUpPhoto } from '@/routes/authors';
 
-/** The stored photo, or the one fetched in the background when the author has none yet. */
 export function useAuthorPhoto(author: {
     id: number;
     photo_url: string | null;

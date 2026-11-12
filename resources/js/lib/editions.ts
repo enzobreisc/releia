@@ -1,4 +1,3 @@
-/** O que a lista de edições precisa de cada uma para agrupar e filtrar. */
 export type EditionLike = {
     isbn_13: string | null;
     title: string;
@@ -7,17 +6,16 @@ export type EditionLike = {
     library_id: number | null;
 };
 
-/** Edição brasileira: prefixos 978-85 e 978-65 (igual a Isbn::isBrazilian). */
+/** Brazilian edition: ISBN prefixes 978-85 and 978-65, same as Isbn::isBrazilian. */
 export function isBrazilianIsbn(isbn: string | null): boolean {
     return !!isbn && (isbn.startsWith('97885') || isbn.startsWith('97865'));
 }
 
-/** Quantas edições aparecem antes de "mostrar mais". */
 export const EDITION_LIMIT = 15;
 
 /**
- * Uma linha por editora e ano: as dezenas de impressões iguais de obras de domínio público
- * (CreateSpace, Independently published...) viram uma só. A que já está na biblioteca vence.
+ * One row per publisher and year: the dozens of identical prints of public-domain works
+ * (CreateSpace, Independently published...) collapse into one. The one already in the library wins.
  */
 function dedupe<T extends EditionLike>(editions: T[]): T[] {
     const seen = new Map<string, T>();
@@ -35,8 +33,8 @@ function dedupe<T extends EditionLike>(editions: T[]): T[] {
 }
 
 /**
- * Edições para mostrar: só as brasileiras (sem nenhuma, as demais), sem repetidas e limitadas.
- * `foreign` conta as de outros países escondidas; `more` as escondidas pelo limite.
+ * Editions to show: only the Brazilian ones (all of them when there are none), deduplicated and limited.
+ * `foreign` counts the hidden foreign editions; `more` counts those hidden by the limit.
  */
 export function visibleEditions<T extends EditionLike>(
     editions: T[],

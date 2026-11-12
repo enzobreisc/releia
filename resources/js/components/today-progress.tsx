@@ -11,7 +11,6 @@ type TodayProgressProps = {
 /** Room above the larger of today's pages and the mark, so the bar never fills up. */
 const BAR_HEADROOM = 1.25;
 
-/** Today's pages against the daily goal, or against the average while there is no goal. */
 export function TodayProgress({
     pagesToday,
     averagePages,

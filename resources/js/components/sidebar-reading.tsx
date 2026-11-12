@@ -6,10 +6,6 @@ import { cn } from '@/lib/utils';
 import { show as showLiveSession } from '@/routes/live-session';
 import type { SidebarReading } from '@/types';
 
-/**
- * Mini "reading now" card in the sidebar: title, bar, week map and streak.
- * While a session is running it links back to the session screen.
- */
 export function SidebarReadingCard({
     reading,
     hasLiveSession,

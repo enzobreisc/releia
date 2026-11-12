@@ -7,7 +7,6 @@ import { useTranslation } from '@/hooks/use-translation';
 import type { NoteCard } from '@/types/notes';
 import type { Option } from '@/types';
 
-/** The book's notes (detail page tab), each opening in the note dialog. */
 export function BookNotes({
     bookId,
     notes,

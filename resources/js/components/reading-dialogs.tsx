@@ -102,7 +102,6 @@ function Chip({
     );
 }
 
-/** ⌘↵ submits the dialog from any field. */
 function useSubmitShortcut(submit: () => void, enabled: boolean) {
     useEffect(() => {
         function onKeyDown(event: KeyboardEvent) {
@@ -118,10 +117,6 @@ function useSubmitShortcut(submit: () => void, enabled: boolean) {
     }, [submit, enabled]);
 }
 
-/**
- * Finish and rate: end date, rating and a one-line review.
- * "Skip" marks it as read today, without a rating.
- */
 export function FinishDialog({
     title,
     reading,
@@ -130,7 +125,6 @@ export function FinishDialog({
 }: {
     title: string;
     reading: ReadingHistory;
-    /** Previous finished reading, for comparison ("the 1st time it took 9 days"). */
     previous: ReadingHistory | null;
     onClose: () => void;
 }) {
@@ -336,7 +330,7 @@ const REASONS: TranslationKey[] = [
 
 const OTHER_REASON: TranslationKey = 'outro';
 
-/** Abandon: optional reason and, if wanted, a rating. The page is kept. */
+/** The page is kept. */
 export function AbandonDialog({
     title,
     reading,
@@ -443,7 +437,6 @@ export function AbandonDialog({
     );
 }
 
-/** Read again: today or later (want to read, at the end of the queue). */
 export function RereadDialog({
     bookId,
     onClose,
@@ -487,7 +480,6 @@ export function RereadDialog({
     );
 }
 
-/** Read → Reading: read again (default) or fix a wrong mark. */
 export function BackToReadingDialog({
     title,
     reading,
@@ -610,10 +602,7 @@ export function CorrectDialog({
     );
 }
 
-/**
- * Reading dates. Reading: start only. Read or abandoned: start and end.
- * Sessions outside the period do not block: the notice offers the fix.
- */
+/** Sessions outside the period do not block: the notice offers the fix. */
 export function DatesDialog({
     reading,
     onClose,
@@ -810,7 +799,7 @@ export type Removal = {
     notes: number;
 };
 
-/** Remove book: says what goes with it. There is no undo. */
+/** There is no undo. */
 export function RemoveBookDialog({
     bookId,
     title,
@@ -862,7 +851,6 @@ export function RemoveBookDialog({
     );
 }
 
-/** Deletes a reading from the history, with its sessions. */
 export function DeleteReadingDialog({
     reading,
     title,

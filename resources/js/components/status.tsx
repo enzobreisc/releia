@@ -10,10 +10,7 @@ export const STATUS_LABELS: Record<Status, TranslationKey> = {
     abandoned: 'Abandonado',
 };
 
-/**
- * Shelf icon: shape, color and text together, never color alone.
- * Want to read: gray ring. Reading: half full. Read: ✓. Abandoned: amber dash.
- */
+/** Shape, color and text together, never color alone. */
 export function StatusIcon({
     status,
     size = 12,
@@ -87,7 +84,6 @@ export function StatusIcon({
     );
 }
 
-/** Small shelf badge (Library cards). */
 export function StatusBadge({
     status,
     label,

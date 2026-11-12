@@ -11,13 +11,13 @@ export type BookCard = {
     status: string | null;
     status_label: string | null;
     rating: number | null;
-    /** Posição na fila (Biblioteca); null fora da fila ou em outras telas. */
+    /** Position in the queue, shown in the Library; null outside the queue or on other screens. */
     queue_position: number | null;
-    /** Número de leituras do livro (Biblioteca); mais de uma é releitura. */
+    /** Number of readings of the book, shown in the Library; more than one means a reread. */
     readings_count: number | null;
 };
 
-/** Cartão com o que a estante de lombadas precisa para ordenar, agrupar e desenhar. */
+/** Book fields the spine shelf needs to sort, group and draw. */
 export type SpineBook = BookCard & {
     author: string | null;
     genre: string | null;
@@ -27,7 +27,7 @@ export type SpineBook = BookCard & {
     shelf_position: number;
 };
 
-/** Prateleira personalizada (não confundir com `Shelf`, a estante por status). */
+/** Custom shelf; not to be confused with `Shelf`, which groups by status. */
 export type Bookshelf = {
     id: number;
     name: string;
@@ -66,7 +66,7 @@ export type BookDetail = {
     readings_count: number;
 };
 
-/** Resultado de busca na Open Library ou no Google Books. */
+/** Search result from Open Library or Google Books. */
 export type Candidate = {
     isbn_13: string | null;
     isbn_10: string | null;
@@ -80,10 +80,10 @@ export type Candidate = {
     description: string | null;
     cover_url: string | null;
     source: string;
-    /** Obra da Open Library; a busca por título devolve obras. */
+    /** Open Library work; title searches return works. */
     work_key?: string | null;
     edition_count?: number | null;
-    /** Código do idioma da edição (por, eng…). */
+    /** Edition language code, three letters (e.g. por, eng). */
     language?: string | null;
     library_id: number | null;
 };

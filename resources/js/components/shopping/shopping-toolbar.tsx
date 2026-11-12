@@ -26,7 +26,6 @@ const SORT_OPTIONS: { value: string; label: TranslationKey }[] = [
 
 const SEARCH_DELAY_MS = 300;
 
-/** Store tabs, search, sort and the grid/list switch. */
 export function ShoppingToolbar({
     stores,
     filters,

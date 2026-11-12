@@ -11,7 +11,6 @@ type SessionProgressInput = {
     now: Date;
 };
 
-/** Pages gained and the estimated finish, derived from the timer and the reading pace. */
 export function useSessionProgress({
     reading,
     timer,

@@ -21,7 +21,6 @@ export type Saved = {
     /** The session reached the last page: the book was marked as read. */
     finished: boolean;
     days: number | null;
-    /** Next in the queue, to start from here. */
     next: AvailableBook | null;
 };
 

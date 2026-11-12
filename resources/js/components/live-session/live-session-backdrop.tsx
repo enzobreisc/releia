@@ -1,4 +1,3 @@
-/** Blurred cover behind the session, purely decorative. */
 export function LiveSessionBackdrop({ coverUrl }: { coverUrl: string | null }) {
     if (!coverUrl) {
         return null;

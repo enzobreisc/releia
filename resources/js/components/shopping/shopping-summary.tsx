@@ -8,7 +8,6 @@ import { preference } from '@/routes/shopping';
 
 export type ShoppingTotals = { pending_count: number; pending_cents: number };
 
-/** Pending total, the "on buy" preference and the button that opens the form. */
 export function ShoppingSummary({
     totals,
     queueOnBuy,

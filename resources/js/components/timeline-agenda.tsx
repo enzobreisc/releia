@@ -14,7 +14,6 @@ function endOf(reading: TimelineReading, today: string): string {
     return reading.finished_at ?? today;
 }
 
-/** Newest month first; inside a month, the latest ending first. */
 function groupByEndMonth(readings: TimelineReading[], today: string) {
     const months = new Map<number, TimelineReading[]>();
 
@@ -105,7 +104,6 @@ function AgendaRow({
     );
 }
 
-/** Every reading with the day it started and ended, grouped by the month it ended. */
 export function TimelineAgenda({
     groups,
     today,

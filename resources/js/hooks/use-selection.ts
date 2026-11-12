@@ -1,6 +1,5 @@
 import { useState } from 'react';
 
-/** A set of selected ids, toggled one by one or added in batches. */
 export function useSelection() {
     const [selectedIds, setSelectedIds] = useState<ReadonlySet<number>>(
         () => new Set(),

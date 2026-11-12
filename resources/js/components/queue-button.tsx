@@ -4,10 +4,7 @@ import { cn } from '@/lib/utils';
 import { store } from '@/routes/queue';
 import { destroy as removeBook } from '@/routes/queue/books';
 
-/**
- * Toggles the book in the queue. Outside it: "+ queue" puts it at the end. Inside: shows the
- * position ("in queue · 2nd") and clicking removes it; the notice offers undo.
- */
+/** Removing a book from the queue shows a notice that offers undo. */
 export function QueueButton({
     bookId,
     position,

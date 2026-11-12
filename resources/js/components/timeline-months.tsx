@@ -116,7 +116,6 @@ function MonthBlock({
     );
 }
 
-/** One month at a time on a day-by-day axis, newest month first. */
 export function TimelineMonths({
     years,
     today,

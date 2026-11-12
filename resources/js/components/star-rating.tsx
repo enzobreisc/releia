@@ -1,7 +1,6 @@
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 
-/** Rating from 1 to 5. Clicking the current rating clears it. */
 export function StarRating({
     value,
     onChange,

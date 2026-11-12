@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 
-/** Open state of a popover that closes on a click outside it or on Escape. */
 export function usePopover<T extends HTMLElement = HTMLDivElement>() {
     const [isOpen, setIsOpen] = useState(false);
     const ref = useRef<T>(null);

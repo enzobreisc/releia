@@ -61,7 +61,6 @@ export function Dialog({
     );
 }
 
-/** "What goes with it" list of a destructive dialog. */
 export function DialogList({ items }: { items: string[] }) {
     return (
         <ul className="flex flex-col gap-1 rounded-sm bg-bg px-3.5 py-3 font-mono text-xs text-secondary inset-ring inset-ring-border">
@@ -72,7 +71,6 @@ export function DialogList({ items }: { items: string[] }) {
     );
 }
 
-/** Large option of a choice dialog (e.g. "Read again" or "Fix"). */
 export function DialogChoice({
     title,
     badge,

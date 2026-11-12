@@ -1,4 +1,4 @@
-/** Leitura concluída (ou fixada) com os dados do livro, como o Inertia envia. */
+/** A finished (or pinned) reading with its book data, as Inertia sends it. */
 export type ReadingRef = {
     id: number;
     title: string;
@@ -29,7 +29,7 @@ export type MonthlyBar = {
 
 export type Indicators = {
     books_read: number;
-    /** Releituras já contadas em books_read. */
+    /** Rereads already included in books_read. */
     rereads: number;
     pages_read: number;
     pages_per_day: number | null;

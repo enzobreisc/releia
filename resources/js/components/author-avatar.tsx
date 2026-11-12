@@ -12,7 +12,7 @@ function initialsOf(name: string): string {
         .toUpperCase();
 }
 
-/** Round author photo, or the initials when there is none. Decorative: the name is always next to it. */
+/** Decorative: the name is always next to it. */
 export function AuthorAvatar({
     name,
     photoUrl,

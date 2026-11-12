@@ -7,7 +7,6 @@ import { SelectCheckbox } from '@/components/shopping/select-checkbox';
 import { useTranslation } from '@/hooks/use-translation';
 import type { ShoppingEntry } from '@/types/queue';
 
-/** Item to buy in the list view. */
 export function ShoppingRow({
     item,
     isSelected,

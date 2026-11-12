@@ -92,7 +92,6 @@ function GanttRow({
     );
 }
 
-/** The year's axis with one row per reading, its dates written beside the bar. */
 export function TimelineGantt({
     years,
     today,

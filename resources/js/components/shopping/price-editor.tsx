@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 import { update as updateShopping } from '@/routes/shopping';
 import type { ShoppingEntry } from '@/types/queue';
 
-/** Noted price, with the date it was checked. Clicking opens editing. */
 export function PriceEditor({
     item,
     className,

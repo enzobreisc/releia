@@ -5,8 +5,8 @@ import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 
 /**
- * "⋯" button opening a menu of secondary actions. With `fitToParent`, the menu spans
- * the nearest positioned ancestor, for narrow spots where a wide menu would be clipped.
+ * With `fitToParent`, the menu spans the nearest positioned ancestor, for narrow spots
+ * where a wide menu would be clipped.
  */
 export function MoreMenu({
     label,

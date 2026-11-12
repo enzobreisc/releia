@@ -7,7 +7,6 @@ import {
     resume,
 } from '@/routes/live-session';
 
-/** Server commands of the reading session, plus the "finish the book too?" prompt state. */
 export function useLiveSessionActions(isOnLastPage: boolean) {
     const [isFinishing, setFinishing] = useState(false);
     const [isAskingToFinishBook, setAskingToFinishBook] = useState(false);

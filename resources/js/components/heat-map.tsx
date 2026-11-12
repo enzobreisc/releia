@@ -36,12 +36,6 @@ export function heatClass(level: number): string {
     return HEAT_CLASSES[level] ?? HEAT_CLASSES[0];
 }
 
-/**
- * Heat map of reading days.
- *
- * Default: GitHub style, one column per week and one row per weekday.
- * `compact`: a single row, no labels and no padding (e.g. 7 days in the sidebar).
- */
 export function HeatMap({
     days,
     showLegend = false,
@@ -89,7 +83,6 @@ export function HeatMap({
         );
     }
 
-    // Pads the start of the first week with empty cells to align the days.
     const firstWeekday =
         days.length > 0
             ? (new Date(`${days[0].date}T00:00:00`).getDay() + 6) % 7

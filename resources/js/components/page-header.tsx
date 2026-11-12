@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 
 type PageHeaderProps = {
     title: string;
-    /** Window title. Defaults to the title itself. */
     headTitle?: string;
     description?: string;
     actions?: ReactNode;
@@ -35,7 +34,6 @@ export function PageHeader({
     );
 }
 
-/** Small uppercase label that opens a section ("LENDO AGORA"). */
 export function SectionTitle({ children }: { children: string }) {
     return (
         <h2 className="text-xs font-extrabold tracking-widest text-muted uppercase">
@@ -44,7 +42,6 @@ export function SectionTitle({ children }: { children: string }) {
     );
 }
 
-/** Oversized title for pages about one thing (a book, an author). */
 export function DisplayTitle({ children }: { children: ReactNode }) {
     return (
         <h1 className="text-[clamp(48px,6vw,76px)] leading-[0.92] font-extrabold tracking-[-0.045em]">

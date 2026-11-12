@@ -3,7 +3,6 @@ import { useTranslation } from '@/hooks/use-translation';
 
 export type IconProps = SVGProps<SVGSVGElement>;
 
-/** Line icons, 16 px, 1.5 px stroke. */
 function LineIcon({ children, ...props }: IconProps) {
     return (
         <svg
@@ -135,7 +134,6 @@ export function ClockIcon(props: IconProps) {
     );
 }
 
-/** Drag handle: six filled dots. */
 export function GripIcon(props: IconProps) {
     return (
         <svg
@@ -176,7 +174,6 @@ export function SidebarExpandIcon(props: IconProps) {
     );
 }
 
-/** The releia mark: a 3×3 grid in the heat map's blues. */
 export function LogoMark({ size = 24 }: { size?: number }) {
     const { t } = useTranslation();
     const cells = [
@@ -232,7 +229,6 @@ export function TimelineIcon(props: IconProps) {
     );
 }
 
-/** Five-point star; pass `fill="currentColor"` for the filled state. */
 export function StarIcon(props: IconProps) {
     return (
         <LineIcon {...props}>
@@ -249,7 +245,6 @@ export function ArrowLeftIcon(props: IconProps) {
     );
 }
 
-/** Two filled bars, sized by the caller (the session screen draws it large). */
 export function PauseIcon(props: IconProps) {
     return (
         <svg

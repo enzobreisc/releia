@@ -2,7 +2,6 @@ import { heatClass } from '@/components/heat-map';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 
-/** The last seven days, oldest first, with today outlined and each weekday's initial. */
 export function WeekSquares({ week }: { week: number[] }) {
     const { t, weekdayInitial } = useTranslation();
     const today = new Date();

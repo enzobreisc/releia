@@ -5,8 +5,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { amazonCover } from '@/routes/books';
 
 /**
- * Gets the cover from an Amazon product link. It only finds the image; the caller
- * decides what to do with it (the cover is downloaded when the book is saved).
+ * The caller decides what to do with the image: the cover is downloaded only when the book is saved.
  */
 export function AmazonCoverField({
     onFound,

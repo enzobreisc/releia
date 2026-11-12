@@ -109,7 +109,6 @@ const iconButtonVariants: Record<IconButtonVariant, string> = {
     plain: 'bg-transparent text-muted hover:bg-elevated hover:text-text',
 };
 
-/** Round 40px button holding only an icon or glyph; `label` names it for screen readers. */
 export function IconButton({
     label,
     variant = 'filled',
@@ -135,7 +134,6 @@ export function IconButton({
     );
 }
 
-/** Side-by-side options with one selected (shelf, store, view). */
 export function Segmented({
     options,
     value,

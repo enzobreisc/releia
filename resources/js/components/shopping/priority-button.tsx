@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { priority } from '@/routes/shopping';
 import type { ShoppingEntry } from '@/types/queue';
 
-/** Star that moves the item between "buy now" and the wishlist. */
 export function PriorityButton({
     item,
     className,

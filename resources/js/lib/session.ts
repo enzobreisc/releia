@@ -13,7 +13,6 @@ export function formatStopwatch(totalSeconds: number): string {
     return hours > 0 ? `${hours}:${clock}` : clock;
 }
 
-/** Whole minutes needed to read `pagesLeft` pages at `pagesPerHour`. */
 export function minutesToRead(pagesLeft: number, pagesPerHour: number): number {
     return Math.ceil((pagesLeft / pagesPerHour) * MINUTES_PER_HOUR);
 }

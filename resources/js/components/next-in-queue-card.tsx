@@ -7,7 +7,6 @@ import { index as queueIndex } from '@/routes/queue';
 import { start } from '@/routes/books';
 import type { NextInQueue } from '@/types';
 
-/** The next book to read, with a way to begin it; points to the queue when it is empty. */
 export function NextInQueueCard({
     next,
     pagesPerDay,

@@ -6,7 +6,6 @@ import { RATING_STAR_SIZE } from './constants';
 import { startBook } from './session-requests';
 import type { Saved } from './types';
 
-/** Session that reached the last page: the book ends here, with a rating and the next in the queue. */
 export function FinishedPhase({
     saved,
     onClose,

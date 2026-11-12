@@ -1,9 +1,9 @@
-/** Progresso de uma leitura, calculado no servidor (ReadingService::progress). */
+/** Reading progress, computed on the server by ReadingService::progress. */
 export type ReadingProgress = {
     current_page: number;
     pages: number | null;
     percent: number | null;
-    /** Páginas por dia em que houve leitura. */
+    /** Pages per day, counting only the days with reading. */
     pace: number | null;
     days_left: number | null;
     finish_suggested: boolean;
@@ -17,9 +17,9 @@ export type ReadingSummary = ReadingProgress & {
     cover_url: string | null;
 };
 
-/** Mini cartão "lendo agora" da barra lateral (dado compartilhado). */
+/** Compact "reading now" card for the sidebar, from shared Inertia data. */
 export type SidebarReading = ReadingSummary & {
-    /** Níveis 0 a 4 dos últimos sete dias, do mais antigo ao de hoje. */
+    /** Levels 0 to 4 for the last seven days, oldest to today. */
     week: number[];
     streak: number;
 };
@@ -41,10 +41,9 @@ export type YearGoal = {
     projected: number;
 };
 
-/** Uma leitura do histórico do livro (aba Leituras). */
 export type ReadingHistory = {
     id: number;
-    /** 1 para a primeira leitura, 2 para a releitura… */
+    /** 1 for the first reading, 2 for the reread, and so on. */
     number: number;
     status: string;
     status_label: string;

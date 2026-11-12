@@ -1,7 +1,6 @@
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 
-/** The book cover, or a dark block with the title when there is no image. */
 export function BookCover({
     src,
     title,

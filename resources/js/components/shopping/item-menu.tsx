@@ -9,7 +9,6 @@ import {
 } from '@/routes/shopping';
 import type { ShoppingEntry } from '@/types/queue';
 
-/** Secondary actions of a shopping item, behind "⋯". */
 export function ItemMenu({
     item,
     fitToParent = false,

@@ -76,14 +76,12 @@ export default function Library({
         );
     }
 
-    // Searches while typing, with a short delay.
     function onSearch(value: string) {
         setSearch(value);
         clearTimeout(searchTimer.current);
         searchTimer.current = setTimeout(() => apply({ q: value }), 250);
     }
 
-    // ⌘F: search the current screen.
     useEffect(() => {
         function onKeyDown(event: KeyboardEvent) {
             if (event.metaKey && event.key.toLowerCase() === 'f') {

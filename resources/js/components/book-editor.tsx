@@ -58,7 +58,6 @@ function initialFields(book: BookDetail): Fields {
     };
 }
 
-/** What the source has that differs from what is saved. */
 function diffsFrom(
     fields: Fields,
     candidate: Candidate,
@@ -101,10 +100,7 @@ function diffsFrom(
         }));
 }
 
-/**
- * "Edit data" panel (drawer on the right). Fixes what came wrong from the registration:
- * title, authors, pages, cover… Esc with changes asks to discard right there.
- */
+/** Fixes what came wrong from the registration. */
 export function BookEditor({
     book,
     genres,

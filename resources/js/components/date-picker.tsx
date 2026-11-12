@@ -54,7 +54,6 @@ export function DatePicker({
     const root = useRef<HTMLDivElement>(null);
     const trigger = useRef<HTMLButtonElement>(null);
     const [open, setOpen] = useState(false);
-    // Day with keyboard focus; the displayed month follows.
     const [focused, setFocused] = useState(value || today());
 
     const view = parse(focused);

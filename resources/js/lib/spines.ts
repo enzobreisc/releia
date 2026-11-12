@@ -384,7 +384,6 @@ function custom(
     return sections;
 }
 
-/** Splits a shelf into rows that fit the width. */
 export function chunkRows(books: SpineBook[], width: number): SpineBook[][] {
     const rows: SpineBook[][] = [];
     let row: SpineBook[] = [];

@@ -7,7 +7,6 @@ import { sumPrices } from '@/lib/shopping';
 import { buyMany, destroyMany } from '@/routes/shopping';
 import type { ShoppingEntry } from '@/types/queue';
 
-/** Floating bar with the selection's total and the actions applied to all of it at once. */
 export function SelectionBar({
     items,
     onClear,

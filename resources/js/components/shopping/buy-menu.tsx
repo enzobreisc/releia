@@ -8,9 +8,8 @@ import { open as openShopping } from '@/routes/shopping';
 import type { ShoppingEntry } from '@/types/queue';
 
 /**
- * "Buy ▾": a ready-made search in each store. In the native app the link opens in the
- * browser through the server (the window does not open tabs); in the browser, in a new tab.
- * With `fitToParent`, the menu spans the nearest positioned ancestor (see MoreMenu).
+ * In the native app the link opens in the browser through the server, because the
+ * window does not open tabs; in the browser it opens in a new tab.
  */
 export function BuyMenu({
     item,

@@ -11,7 +11,6 @@ type SessionStatsProps = {
     dailyGoal: number | null;
     streak: number;
     week: number[];
-    /** Null when the book has no page count. */
     pagesLeft: number | null;
     /** Reading time left at the reader's pace, if there is a pace to go by. */
     minutesLeft: number | null;
@@ -21,7 +20,6 @@ type SessionStatsProps = {
 
 const MINUTES_PER_HOUR = 60;
 
-/** The day's numbers: pages today against the average, streak and what is left to finish. */
 export function SessionStats({
     pagesToday,
     averagePages,

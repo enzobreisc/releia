@@ -12,10 +12,6 @@ import type { Option } from '@/types';
 import type { Candidate } from '@/types/library';
 import type { ShoppingMatches } from '@/types/queue';
 
-/**
- * New item. The search accepts an ISBN, title or Amazon link and shows the
- * matches; picking one fills the form with title, author, ISBN and cover.
- */
 export function ShoppingForm({
     stores,
     storeFilter,

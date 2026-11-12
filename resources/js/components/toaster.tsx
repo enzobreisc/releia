@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 import { undo } from '@/routes';
 import type { Toast } from '@/types';
 
-/** At most three notices on screen; the oldest leaves first. */
 const MAX_VISIBLE = 3;
 
 /** ⌘Z undoes the last undoable action for up to a minute (UndoService::TTL_SECONDS). */

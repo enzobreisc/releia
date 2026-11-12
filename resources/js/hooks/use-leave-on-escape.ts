@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 
 const ESCAPE_KEY = 'Escape';
 
-/** Visits the given URL when the reader presses Escape. */
 export function useLeaveOnEscape(url: string) {
     useEffect(() => {
         function leaveOnEscape(event: KeyboardEvent) {

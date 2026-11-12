@@ -13,7 +13,6 @@ export const MIN_SESSION_MINUTES = 1;
 
 export const RATING_STAR_SIZE = 28;
 
-/** Quick page jumps offered when saving a session. */
 export const PAGE_JUMPS = [5, 10, 20];
 
 /** Option value that starts a book from the "want to read" shelf. */

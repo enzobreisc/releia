@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 import { show } from '@/routes/live-session';
 import type { HomeLiveSession } from '@/types';
 
-/** The running session at a glance, with a way back to its screen. */
 export function LiveSessionPill({ session }: { session: HomeLiveSession }) {
     const { t } = useTranslation();
     const seconds = useElapsed(session.timer);

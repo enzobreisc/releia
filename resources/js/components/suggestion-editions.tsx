@@ -20,13 +20,8 @@ type Edition = {
     library_id: number | null;
 };
 
-/** Editions of the work: picking one creates exactly that edition in the library. */
 export type Choosing = 'want' | 'read';
 
-/**
- * Editions of the work. With `mode` (came from "Want to read" or "Already read"), each edition has a single
- * "Add" button that does that action; without `mode`, you just browse and pick one of the two.
- */
 export function SuggestionEditions({
     id,
     disabled,
@@ -96,7 +91,6 @@ export function SuggestionEditions({
         );
     }
 
-    // Brazilian ones first and alone, without duplicates; with none, the others.
     const {
         items: choosable,
         foreign,

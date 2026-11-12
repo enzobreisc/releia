@@ -7,7 +7,6 @@ import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import type { ShoppingEntry } from '@/types/queue';
 
-/** Item to buy in the cover grid. Clicking the cover selects it. */
 export function ShoppingCard({
     item,
     isSelected,

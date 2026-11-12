@@ -2,7 +2,6 @@ import type { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import type { ReadingProgress } from '@/types';
 
-/** Progress bar: dark track, light fill. */
 export function ProgressBar({
     percent,
     className,
@@ -25,7 +24,6 @@ export function ProgressBar({
     );
 }
 
-/** "p. 40 of 300 · 13% · 8 days left at your pace". */
 export function progressText(
     progress: ReadingProgress,
     { t, plural }: Pick<ReturnType<typeof useTranslation>, 't' | 'plural'>,

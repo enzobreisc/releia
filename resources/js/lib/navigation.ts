@@ -24,7 +24,6 @@ import { show as wrappedShow } from '@/routes/wrapped';
 import { index as suggestionsIndex } from '@/routes/suggestions';
 import type { NavGroup, NavItem } from '@/types';
 
-/** Sidebar groups, in display order. */
 export const navGroups: NavGroup[] = [
     { items: [{ title: 'Início', href: home.url(), icon: HomeIcon }] },
     {

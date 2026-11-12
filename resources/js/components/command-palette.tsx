@@ -10,7 +10,6 @@ type CommandPaletteProps = {
     onClose: () => void;
 };
 
-/** "Go to" (⌘P): quick search for screens. */
 export function CommandPalette({ onClose }: CommandPaletteProps) {
     const [query, setQuery] = useState('');
     const [selected, setSelected] = useState(0);

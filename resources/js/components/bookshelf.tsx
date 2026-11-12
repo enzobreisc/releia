@@ -26,7 +26,6 @@ import {
 } from '@/routes/bookshelves';
 import type { Bookshelf as BookshelfModel, SpineBook } from '@/types';
 
-/** Usable width of the bookcase, to split the spines into rows. */
 function useWidth() {
     const ref = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState(900);
@@ -49,10 +48,6 @@ function useWidth() {
     return [ref, width] as const;
 }
 
-/**
- * Flat, graphic bookcase: thickness comes from the pages, color and mark from the title.
- * On the custom shelf books can be dragged between shelves.
- */
 export function Bookshelf({
     books,
     group,
