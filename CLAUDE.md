@@ -10,7 +10,7 @@ This project doubles as a portfolio piece. Every change must meet the standards 
 ## Comments
 
 - Do not write unnecessary comments. Code must explain itself through naming and structure.
-- Allowed: a short comment explaining *why* something non-obvious is done (workaround, external API quirk, business rule). Never *what* the code does.
+- Allowed: a short comment explaining _why_ something non-obvious is done (workaround, external API quirk, business rule). Never _what_ the code does.
 - When touching a file, **delete** any comment that restates the code, is stale, is commented-out code, or is in another language (translate the rare ones worth keeping).
 - No `TODO`/`FIXME` left behind without an issue reference.
 
@@ -45,7 +45,7 @@ This project doubles as a portfolio piece. Every change must meet the standards 
 
 - Conventional Commits: `type(scope): imperative English subject` (`feat`, `fix`, `refactor`, `test`, `docs`, `style`, `build`, `chore`, `perf`, `ci`). Subject ≤ 72 chars, no trailing period.
 - Small, logical commits: one concern per commit; never mix refactors with features.
-- Body (when needed) explains *why*, not *what*.
+- Body (when needed) explains _why_, not _what_.
 - Never commit secrets, `.env`, or generated artifacts.
 - Commit and push only when asked.
 
