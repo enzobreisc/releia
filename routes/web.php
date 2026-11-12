@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Library and books
 Route::get('/library', [LibraryController::class, 'index'])->name('library.index');
 Route::get('/library/add', [BookController::class, 'create'])->name('books.create');
 Route::post('/library', [BookController::class, 'store'])->name('books.store');
@@ -44,13 +45,14 @@ Route::patch('/library/{book}/bookshelf', [BookshelfController::class, 'move'])-
 Route::post('/library/{book}/start', [ReadingController::class, 'start'])->whereNumber('book')->name('books.start');
 Route::post('/library/{book}/reread', [ReadingController::class, 'reread'])->whereNumber('book')->name('books.reread');
 
+// Authors
 Route::get('/authors', [AuthorController::class, 'index'])->name('authors.index');
 Route::get('/authors/{author}', [AuthorController::class, 'show'])->whereNumber('author')->name('authors.show');
 Route::get('/authors/{author}/works', [AuthorController::class, 'works'])->whereNumber('author')->name('authors.works');
 Route::get('/authors/{author}/photo', [AuthorPhotoController::class, 'show'])->whereNumber('author')->name('authors.photo');
 Route::get('/authors/{author}/look-up-photo', [AuthorPhotoController::class, 'lookUp'])->whereNumber('author')->name('authors.lookUpPhoto');
 
-// Lifecycle of each reading, and undo
+// Readings and undo
 Route::post('/readings/{reading}/finish', [ReadingController::class, 'finish'])->whereNumber('reading')->name('readings.finish');
 Route::post('/readings/{reading}/abandon', [ReadingController::class, 'abandon'])->whereNumber('reading')->name('readings.abandon');
 Route::post('/readings/{reading}/reopen', [ReadingController::class, 'reopen'])->whereNumber('reading')->name('readings.reopen');
@@ -58,8 +60,7 @@ Route::patch('/readings/{reading}/dates', [ReadingController::class, 'dates'])->
 Route::delete('/readings/{reading}', [ReadingController::class, 'destroy'])->whereNumber('reading')->name('readings.destroy');
 Route::post('/undo/{token}', UndoController::class)->where('token', '[A-Za-z0-9]+')->name('undo');
 
-// Fase 2
-Route::put('/goal', [GoalController::class, 'update'])->name('goal.update');
+// Reading sessions and live session
 Route::post('/library/{book}/sessions', [ReadingSessionController::class, 'store'])->whereNumber('book')->name('sessions.store');
 Route::patch('/sessions/{session}', [ReadingSessionController::class, 'update'])->whereNumber('session')->name('sessions.update');
 Route::delete('/sessions/{session}', [ReadingSessionController::class, 'destroy'])->whereNumber('session')->name('sessions.destroy');
@@ -70,6 +71,8 @@ Route::post('/live-session/pause', [LiveSessionController::class, 'pause'])->nam
 Route::post('/live-session/resume', [LiveSessionController::class, 'resume'])->name('live-session.resume');
 Route::post('/live-session/finish', [LiveSessionController::class, 'finish'])->name('live-session.finish');
 Route::delete('/live-session', [LiveSessionController::class, 'discard'])->name('live-session.discard');
+
+// Quick log
 Route::get('/quick-log', [QuickLogController::class, 'show'])->name('quick-log');
 Route::post('/quick-log', [QuickLogController::class, 'store'])->name('quick-log.store');
 Route::get('/quick-log/timer', [QuickLogController::class, 'status'])->name('quick-log.timer.status');
@@ -80,7 +83,7 @@ Route::post('/quick-log/timer/finish', [QuickLogController::class, 'finish'])->n
 Route::delete('/quick-log/timer', [QuickLogController::class, 'discard'])->name('quick-log.timer.discard');
 Route::post('/quick-log/books', [QuickLogController::class, 'startBook'])->name('quick-log.books');
 
-// Fase 4
+// Profile, locale, timeline and stats
 Route::put('/locale', [LocaleController::class, 'update'])->name('locale.update');
 Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
 Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -90,16 +93,19 @@ Route::get('/timeline', [TimelineController::class, 'index'])->name('timeline.in
 Route::get('/stats', [StatsController::class, 'index'])->name('stats.index');
 Route::get('/wrapped', [WrappedController::class, 'show'])->name('wrapped.show');
 
-// Fase 3
+// Notes
 Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');
 Route::patch('/notes/{note}', [NoteController::class, 'update'])->whereNumber('note')->name('notes.update');
 Route::delete('/notes/{note}', [NoteController::class, 'destroy'])->whereNumber('note')->name('notes.destroy');
 
+// Queue
 Route::get('/queue', [QueueController::class, 'index'])->name('queue.index');
 Route::post('/queue/books', [QueueController::class, 'store'])->name('queue.store');
 Route::patch('/queue/order', [QueueController::class, 'reorder'])->name('queue.reorder');
 Route::delete('/queue/{queueItem}', [QueueController::class, 'destroy'])->whereNumber('queueItem')->name('queue.destroy');
 Route::delete('/queue/books/{book}', [QueueController::class, 'destroyBook'])->whereNumber('book')->name('queue.books.destroy');
+
+// Shopping
 Route::get('/shopping', [ShoppingController::class, 'index'])->name('shopping.index');
 Route::post('/shopping', [ShoppingController::class, 'store'])->name('shopping.store');
 Route::post('/shopping/buy', [ShoppingController::class, 'buyMany'])->name('shopping.buy-many');
@@ -115,10 +121,13 @@ Route::post('/shopping/{shoppingItem}/unbuy', [ShoppingController::class, 'unbuy
 Route::patch('/shopping/{shoppingItem}/priority', [ShoppingController::class, 'priority'])->whereNumber('shoppingItem')->name('shopping.priority');
 Route::put('/shopping/preference', [ShoppingController::class, 'preference'])->name('shopping.preference');
 
-// Fase 5
+// Suggestions
 Route::get('/suggestions', [SuggestionController::class, 'index'])->name('suggestions.index');
 Route::post('/suggestions/generate', [SuggestionController::class, 'generate'])->name('suggestions.generate');
 Route::get('/suggestions/{recommendation}/editions', [SuggestionController::class, 'editions'])->whereNumber('recommendation')->name('suggestions.editions');
 Route::patch('/suggestions/{recommendation}/accept', [SuggestionController::class, 'accept'])->whereNumber('recommendation')->name('suggestions.accept');
 Route::patch('/suggestions/{recommendation}/already-read', [SuggestionController::class, 'alreadyRead'])->whereNumber('recommendation')->name('suggestions.already-read');
 Route::patch('/suggestions/{recommendation}/dismiss', [SuggestionController::class, 'dismiss'])->whereNumber('recommendation')->name('suggestions.dismiss');
+
+// Goal
+Route::put('/goal', [GoalController::class, 'update'])->name('goal.update');
