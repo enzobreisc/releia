@@ -91,7 +91,7 @@ return [
         '.claude/*',
         '.git',
         '.github',
-        'material-marca',
+        'brand',
         'storage/framework/testing',
         // Aponta para o Vite de desenvolvimento; empacotado, o app ficaria sem CSS e JS.
         'public/hot',

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="material-marca/releia-logo-pack/png/app-icon/app-icon-escuro-macos-512.png" alt="releia" width="112">
+  <img src="brand/releia-logo-pack/png/app-icon/app-icon-dark-macos-512.png" alt="releia" width="112">
 </p>
 
 <h1 align="center">releia</h1>
