@@ -13,8 +13,7 @@ class LookupBook extends Command
 {
     public function handle(BookLookupService $lookup): int
     {
-        $query = $this->argument('query');
-        $results = is_string($query) ? $lookup->search($query) : [];
+        $results = $lookup->search($this->argument('query'));
 
         if ($results === []) {
             $this->warn('Nenhum resultado.');
