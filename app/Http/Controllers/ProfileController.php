@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\Locale;
 use App\Enums\ReadingStatus;
 use App\Http\Presenters\BookPresenter;
+use App\Http\Requests\PinBookRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Models\Book;
 use App\Models\Reading;
 use App\Services\ProfileService;
@@ -76,12 +78,9 @@ class ProfileController extends Controller
     }
 
     /** The reader's name and tagline. */
-    public function update(Request $request): RedirectResponse
+    public function update(UpdateProfileRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'name' => ['nullable', 'string', 'max:60'],
-            'bio' => ['nullable', 'string', 'max:160'],
-        ]);
+        $data = $request->validated();
 
         $this->profile->updateReader($data['name'] ?? null, $data['bio'] ?? null);
 
@@ -91,11 +90,9 @@ class ProfileController extends Controller
     }
 
     /** Pins a book to the "Pinned books" section. */
-    public function pin(Request $request): RedirectResponse
+    public function pin(PinBookRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'book_id' => ['required', 'integer', 'exists:books,id'],
-        ]);
+        $data = $request->validated();
 
         $book = Book::query()->whereKey($data['book_id'])->firstOrFail();
 

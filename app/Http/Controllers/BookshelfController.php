@@ -2,28 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\MoveBookRequest;
+use App\Http\Requests\StoreBookshelfRequest;
+use App\Http\Requests\UpdateBookshelfRequest;
 use App\Models\Book;
 use App\Models\Bookshelf;
 use App\Support\Toast;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /** Custom bookcase shelves: create, rename, delete and move books. */
 class BookshelfController extends Controller
 {
-    public function store(Request $request): RedirectResponse
+    public function store(StoreBookshelfRequest $request): RedirectResponse
     {
-        $data = $request->validate(['name' => ['required', 'string', 'max:60']]);
+        $data = $request->validated();
 
         Bookshelf::create(['name' => trim($data['name']), 'position' => (int) Bookshelf::max('position') + 1]);
 
         return back();
     }
 
-    public function update(Request $request, Bookshelf $bookshelf): RedirectResponse
+    public function update(UpdateBookshelfRequest $request, Bookshelf $bookshelf): RedirectResponse
     {
-        $data = $request->validate(['name' => ['required', 'string', 'max:60']]);
+        $data = $request->validated();
 
         $bookshelf->update(['name' => trim($data['name'])]);
 
@@ -44,12 +46,9 @@ class BookshelfController extends Controller
      * Puts the book on a shelf (or takes it off, with a null `bookshelf_id`), before another
      * book when `before_book_id` is given, otherwise at the end.
      */
-    public function move(Request $request, Book $book): RedirectResponse
+    public function move(MoveBookRequest $request, Book $book): RedirectResponse
     {
-        $data = $request->validate([
-            'bookshelf_id' => ['nullable', 'integer', 'exists:bookshelves,id'],
-            'before_book_id' => ['nullable', 'integer', 'exists:books,id'],
-        ]);
+        $data = $request->validated();
 
         DB::transaction(function () use ($book, $data) {
             $shelfId = $data['bookshelf_id'] ?? null;
