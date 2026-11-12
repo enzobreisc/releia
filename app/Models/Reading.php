@@ -13,9 +13,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Uma passagem por um livro. Um livro pode ter várias (releitura).
+ * A single pass through a book. A book can have several (rereads).
  *
  * @property int $id
  * @property int $book_id
@@ -72,7 +73,7 @@ class Reading extends Model
     }
 
     /**
-     * Só a leitura mais recente de cada livro (releituras não contam duas vezes).
+     * Only each book's most recent reading, so a reread does not count twice.
      *
      * @param  Builder<Reading>  $query
      */
@@ -80,5 +81,31 @@ class Reading extends Model
     protected function current(Builder $query): void
     {
         $query->whereIn('id', static::query()->selectRaw('max(id)')->groupBy('book_id'));
+    }
+
+    /**
+     * Rating of each book's most recent reading, as a correlated subquery on `books`.
+     *
+     * @return Builder<Reading>
+     */
+    public static function currentRatingOfBook(): Builder
+    {
+        return Reading::query()
+            ->select('rating')
+            ->whereColumn('readings.book_id', 'books.id')
+            ->latest('id')
+            ->limit(1);
+    }
+
+    /**
+     * @return Collection<string, int>
+     */
+    public static function countByCurrentStatus(): Collection
+    {
+        return static::query()
+            ->current()
+            ->select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status');
     }
 }

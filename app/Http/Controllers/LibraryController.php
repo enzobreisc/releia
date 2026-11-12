@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\LibrarySort;
 use App\Enums\ReadingStatus;
 use App\Http\Presenters\BookPresenter;
 use App\Models\Book;
@@ -10,25 +11,22 @@ use App\Models\QueueItem;
 use App\Models\Reading;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class LibraryController extends Controller
 {
-    private const SORTS = ['recent', 'title', 'rating'];
-
     public function index(Request $request): Response
     {
         $search = Book::normalizeSearch((string) $request->string('q'));
         $genre = $request->string('genre')->toString();
         $shelf = ReadingStatus::tryFrom($request->string('shelf')->toString());
-        $sort = in_array($request->input('sort'), self::SORTS, true) ? $request->input('sort') : 'recent';
+        $sort = LibrarySort::tryFrom($request->string('sort')->toString()) ?? LibrarySort::Recent;
 
-        $books = Book::query()
+        $query = Book::query()
             ->with(['authors', 'currentReading'])
             ->withCount('readings')
-            ->addSelect(['current_rating' => $this->latestReading('rating')])
+            ->addSelect(['current_rating' => Reading::currentRatingOfBook()])
             ->when($search !== '', function (Builder $query) use ($search) {
                 foreach (explode(' ', $search) as $term) {
                     $query->where('search_text', 'like', '%'.$term.'%');
@@ -37,12 +35,10 @@ class LibraryController extends Controller
             ->when($genre !== '', fn (Builder $query) => $query->where('genre', $genre))
             ->when($shelf, fn (Builder $query, ReadingStatus $shelf) => $query->whereIn(
                 'books.id',
-                $this->latestReadings()->where('status', $shelf->value)->select('book_id'),
-            ))
-            ->when($sort === 'title', fn (Builder $query) => $query->orderByRaw('title COLLATE NOCASE'))
-            ->when($sort === 'rating', fn (Builder $query) => $query->orderByRaw('current_rating IS NULL, current_rating DESC'))
-            ->latest('id')
-            ->get();
+                Reading::query()->current()->where('status', $shelf->value)->select('book_id'),
+            ));
+
+        $books = $sort->applyTo($query)->latest('id')->get();
 
         /** @var array<int, int> $positions */
         $positions = QueueItem::query()->pluck('position', 'book_id')->map(fn ($position) => (int) $position)->all();
@@ -56,7 +52,7 @@ class LibraryController extends Controller
                 'q' => (string) $request->string('q'),
                 'genre' => $genre,
                 'shelf' => $shelf?->value,
-                'sort' => $sort,
+                'sort' => $sort->value,
             ],
         ]);
     }
@@ -69,10 +65,7 @@ class LibraryController extends Controller
      */
     private function shelves(): array
     {
-        $counts = $this->latestReadings()
-            ->select('status', DB::raw('count(*) as total'))
-            ->groupBy('status')
-            ->pluck('total', 'status');
+        $counts = Reading::countByCurrentStatus();
 
         $shelves = [['value' => null, 'label' => __('Todos'), 'count' => Book::count()]];
 
@@ -85,27 +78,5 @@ class LibraryController extends Controller
         }
 
         return $shelves;
-    }
-
-    /**
-     * Only the most recent reading of each book.
-     *
-     * @return Builder<Reading>
-     */
-    private function latestReadings(): Builder
-    {
-        return Reading::query()->whereIn('id', Reading::query()->selectRaw('max(id)')->groupBy('book_id'));
-    }
-
-    /**
-     * @return Builder<Reading>
-     */
-    private function latestReading(string $column): Builder
-    {
-        return Reading::query()
-            ->select($column)
-            ->whereColumn('readings.book_id', 'books.id')
-            ->latest('id')
-            ->limit(1);
     }
 }

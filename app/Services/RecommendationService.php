@@ -489,7 +489,7 @@ class RecommendationService
     private function sourceReadings(): Builder
     {
         return Reading::query()
-            ->whereIn('id', Reading::query()->selectRaw('max(id)')->groupBy('book_id'))
+            ->current()
             ->whereIn('rating', [4, 5]);
     }
 
