@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\BookSource;
 use App\Enums\ReadingStatus;
+use App\Enums\ShoppingSort;
 use App\Enums\StoreType;
 use App\Models\Book;
 use App\Models\Note;
@@ -13,6 +14,9 @@ use App\Models\ShoppingItem;
 use App\Services\BookLookup\BookCandidate;
 use App\Services\PriceLookup\EstanteVirtualProvider;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -28,6 +32,35 @@ class ShoppingService
         private readonly QueueService $queue,
         private readonly EstanteVirtualProvider $prices,
     ) {}
+
+    /**
+     * @return EloquentCollection<int, ShoppingItem>
+     */
+    public function list(?StoreType $store, string $search, ?ShoppingSort $sort): EloquentCollection
+    {
+        return ShoppingItem::query()
+            ->when($store, fn (Builder $query, StoreType $store) => $query->where('store_type', $store->value))
+            ->when($search !== '', fn (Builder $query) => $this->whereTitleOrAuthorContains($query, $search))
+            ->orderByRaw('bought_at IS NOT NULL')
+            ->orderByDesc('is_priority')
+            ->when($sort, fn (Builder $query, ShoppingSort $sort) => $sort->apply($query))
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * Pending items per store, for the tabs (ignores the current filter).
+     *
+     * @return Collection<string, int|string>
+     */
+    public function pendingCountsByStore(): Collection
+    {
+        return ShoppingItem::query()
+            ->whereNull('bought_at')
+            ->selectRaw('store_type, count(*) as total')
+            ->groupBy('store_type')
+            ->pluck('total', 'store_type');
+    }
 
     /**
      * @param  array{title: string, author?: string, isbn?: string|null, cover_url?: string|null, url?: string|null, store_type: string, estimated_price_cents?: int|null, price_checked_at?: CarbonInterface|null}  $data
@@ -183,6 +216,19 @@ class ShoppingService
     public static function setQueueOnBuy(bool $value): void
     {
         Setting::put(self::QUEUE_ON_BUY, $value);
+    }
+
+    /**
+     * @param  Builder<ShoppingItem>  $query
+     * @return Builder<ShoppingItem>
+     */
+    private function whereTitleOrAuthorContains(Builder $query, string $search): Builder
+    {
+        $like = '%'.addcslashes($search, '%_\\').'%';
+
+        return $query->where(function (Builder $query) use ($like) {
+            $query->where('title', 'like', $like)->orWhere('author', 'like', $like);
+        });
     }
 
     /** Gives the book the cover stored on the item, if the book has none yet. */

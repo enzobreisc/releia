@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ShoppingSort;
 use App\Enums\StoreType;
 use App\Http\Presenters\BookPresenter;
 use App\Http\Presenters\QueuePresenter;
@@ -30,6 +31,11 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ShoppingController extends Controller
 {
+    /** Matches shown in the shopping list search. */
+    private const MATCH_LIMIT = 5;
+
+    public function __construct(private readonly ShoppingService $shopping) {}
+
     /** Takes the book off the "want to read" shelf and moves it to the shopping list. */
     public function fromBook(Book $book): RedirectResponse
     {
@@ -46,42 +52,17 @@ class ShoppingController extends Controller
         return to_route('shopping.index');
     }
 
-    /** Matches shown in the shopping list search. */
-    private const MATCH_LIMIT = 5;
-
-    public function __construct(private readonly ShoppingService $shopping) {}
-
     /** Shopping list (filtered by store) and estimated total of pending items. */
     public function index(Request $request, BookLookupService $lookup): Response
     {
         $store = StoreType::tryFrom($request->string('store')->toString());
         $search = $request->string('q')->trim()->toString();
-        $sort = $request->string('sort')->toString();
+        $sort = ShoppingSort::tryFrom($request->string('sort')->toString());
 
-        $shopping = ShoppingItem::query()
-            ->when($store, fn ($query, StoreType $store) => $query->where('store_type', $store->value))
-            ->when($search !== '', fn ($query) => $query->where(function ($query) use ($search) {
-                $like = '%'.addcslashes($search, '%_\\').'%';
-                $query->where('title', 'like', $like)->orWhere('author', 'like', $like);
-            }))
-            ->orderByRaw('bought_at IS NOT NULL')
-            ->orderByDesc('is_priority')
-            ->when($sort === 'price_asc', fn ($query) => $query->orderByRaw('estimated_price_cents IS NULL')->orderBy('estimated_price_cents'))
-            ->when($sort === 'price_desc', fn ($query) => $query->orderByRaw('estimated_price_cents IS NULL')->orderByDesc('estimated_price_cents'))
-            ->when($sort === 'title', fn ($query) => $query->orderBy('title'))
-            ->when($sort === 'recent', fn ($query) => $query->orderByDesc('id'))
-            ->orderBy('id')
-            ->get();
-
+        $shopping = $this->shopping->list($store, $search, $sort);
         $pending = $shopping->whereNull('bought_at');
         $queuedBookIds = QueueItem::query()->pluck('book_id');
-
-        // Items to buy in each store, for the tabs (without the current filter).
-        $storeCounts = ShoppingItem::query()
-            ->whereNull('bought_at')
-            ->selectRaw('store_type, count(*) as total')
-            ->groupBy('store_type')
-            ->pluck('total', 'store_type');
+        $storeCounts = $this->shopping->pendingCountsByStore();
 
         return Inertia::render('shopping', [
             'shopping' => $shopping->map(fn (ShoppingItem $item) => QueuePresenter::shoppingItem($item, $queuedBookIds))->values(),
@@ -92,9 +73,8 @@ class ShoppingController extends Controller
             'filters' => [
                 'store' => $store?->value,
                 'q' => $search !== '' ? $search : null,
-                'sort' => in_array($sort, ['price_asc', 'price_desc', 'title', 'recent'], true) ? $sort : null,
+                'sort' => $sort?->value,
             ],
-            // "On buy": does it go to want to read and also to the queue? It is saved.
             'queue_on_buy' => ShoppingService::queueOnBuy(),
             // Match search (ISBN, title or Amazon link), only via partial reload.
             'matches' => Inertia::optional(fn () => $this->matches($request->string('match')->trim()->toString(), $lookup)),
