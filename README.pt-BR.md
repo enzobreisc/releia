@@ -20,7 +20,7 @@
   <a href="README.md">English</a> · Português
 </p>
 
-![Início](docs/screenshots/home.png)
+![Demonstração do releia: buscar um livro, adicioná-lo à biblioteca, ver a estante e abrir as estatísticas](docs/demo.gif)
 
 ## Funcionalidades
 
@@ -46,9 +46,9 @@
 | ------------------------------------------- | ---------------------------------------- |
 | ![Estatísticas](docs/screenshots/stats.png) | ![Wrapped](docs/screenshots/wrapped.png) |
 
-| Perfil                                  |
-| --------------------------------------- |
-| ![Perfil](docs/screenshots/profile.png) |
+| Início                               | Perfil                                  |
+| ------------------------------------ | --------------------------------------- |
+| ![Início](docs/screenshots/home.png) | ![Perfil](docs/screenshots/profile.png) |
 
 <sub>As telas usam a biblioteca de demonstração (`php artisan db:seed --class=DemoSeeder`).</sub>
 

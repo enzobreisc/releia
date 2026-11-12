@@ -20,7 +20,7 @@
   English · <a href="README.pt-BR.md">Português</a>
 </p>
 
-![Home](docs/screenshots/home.png)
+![releia demo: search a book, add it to the library, browse the shelf and open the statistics](docs/demo.gif)
 
 ## Features
 
@@ -46,9 +46,9 @@
 | ----------------------------------------- | ---------------------------------------- |
 | ![Statistics](docs/screenshots/stats.png) | ![Wrapped](docs/screenshots/wrapped.png) |
 
-| Profile                                  |
-| ---------------------------------------- |
-| ![Profile](docs/screenshots/profile.png) |
+| Home                               | Profile                                  |
+| ---------------------------------- | ---------------------------------------- |
+| ![Home](docs/screenshots/home.png) | ![Profile](docs/screenshots/profile.png) |
 
 <sub>Screenshots use the bundled demo library (`php artisan db:seed --class=DemoSeeder`).</sub>
 
