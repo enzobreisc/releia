@@ -11,6 +11,7 @@ import { IsbnField } from './book-editor/isbn-field';
 import { LookupSuggestions } from './book-editor/lookup-suggestions';
 import { PagesGenreFields } from './book-editor/pages-genre-fields';
 import { PublisherYearFields } from './book-editor/publisher-year-fields';
+import { SeriesFields } from './book-editor/series-fields';
 import { TitleSection } from './book-editor/title-section';
 import { useBookEditorForm } from './book-editor/use-book-editor-form';
 import { useLookupSuggestions } from './book-editor/use-lookup-suggestions';
@@ -85,6 +86,8 @@ export function BookEditor({
                     />
 
                     <PublisherYearFields form={form} />
+
+                    <SeriesFields form={form} />
 
                     <IsbnField
                         form={form}

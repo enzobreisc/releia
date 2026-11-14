@@ -9,6 +9,8 @@ export type Fields = {
     genre: string;
     publisher: string;
     published_year: string;
+    series: string;
+    series_position: string;
     isbn_13: string;
     description: string;
     cover_url: string;

@@ -24,7 +24,7 @@ export function YearShelf({
                 })}
             </SectionTitle>
             {books.length > 0 ? (
-                <Bookshelf books={books} group="given" bookshelves={[]} />
+                <Bookshelf books={books} />
             ) : (
                 <p className="font-mono text-xs text-faint">
                     {t('nenhum livro terminado em :year', { year })}

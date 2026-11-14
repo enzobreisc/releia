@@ -51,6 +51,8 @@ class StoreBookRequest extends FormRequest
             'published_year' => ['nullable', 'integer', 'between:1000,2100'],
             'pages' => ['nullable', 'integer', 'between:1,20000'],
             'genre' => ['nullable', 'string', 'max:255'],
+            'series' => ['nullable', 'string', 'max:255'],
+            'series_position' => ['nullable', 'integer', 'between:1,999'],
             'description' => ['nullable', 'string', 'max:20000'],
             'cover_url' => ['nullable', 'url:http,https', 'max:2048'],
             'source' => ['nullable', Rule::enum(BookSource::class)],
@@ -71,6 +73,7 @@ class StoreBookRequest extends FormRequest
             'isbn_13.unique' => __('Esse livro já está na biblioteca.'),
             'pages.between' => __('Número de páginas inválido.'),
             'published_year.between' => __('Ano inválido.'),
+            'series_position.between' => __('Volume inválido.'),
             'finished_on.before_or_equal' => __('O término não pode ser depois de hoje.'),
         ];
     }

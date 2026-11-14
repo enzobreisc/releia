@@ -18,7 +18,7 @@ class LibraryService
     ) {}
 
     /**
-     * @param  array{title: string, subtitle?: string|null, authors?: list<string>, isbn_13?: string|null, isbn_10?: string|null, publisher?: string|null, published_year?: int|null, pages?: int|null, genre?: string|null, description?: string|null, cover_url?: string|null, source?: string|null, status: string, finished_on?: string|null, undated?: bool}  $data
+     * @param  array{title: string, subtitle?: string|null, authors?: list<string>, isbn_13?: string|null, isbn_10?: string|null, publisher?: string|null, published_year?: int|null, pages?: int|null, genre?: string|null, series?: string|null, series_position?: int|null, description?: string|null, cover_url?: string|null, source?: string|null, status: string, finished_on?: string|null, undated?: bool}  $data
      */
     public function add(array $data): Book
     {
@@ -32,6 +32,8 @@ class LibraryService
                 'published_year' => $data['published_year'] ?? null,
                 'pages' => $data['pages'] ?? null,
                 'genre' => $data['genre'] ?? null,
+                'series' => $data['series'] ?? null,
+                'series_position' => $data['series_position'] ?? null,
                 'description' => $data['description'] ?? null,
                 'source' => BookSource::tryFrom($data['source'] ?? '') ?? BookSource::Manual,
             ]);
@@ -76,7 +78,7 @@ class LibraryService
      * Corrects the book's data. A new cover (file or link) only replaces the current one when given.
      * Returns true if the cover changed, since that change cannot be undone.
      *
-     * @param  array{title: string, subtitle?: string|null, authors?: list<string>, isbn_13?: string|null, isbn_10?: string|null, publisher?: string|null, published_year?: int|null, pages?: int|null, genre?: string|null, description?: string|null}  $data
+     * @param  array{title: string, subtitle?: string|null, authors?: list<string>, isbn_13?: string|null, isbn_10?: string|null, publisher?: string|null, published_year?: int|null, pages?: int|null, genre?: string|null, series?: string|null, series_position?: int|null, description?: string|null}  $data
      */
     public function update(Book $book, array $data, ?UploadedFile $coverFile = null, ?string $coverUrl = null): bool
     {
@@ -90,6 +92,8 @@ class LibraryService
                 'published_year' => $data['published_year'] ?? null,
                 'pages' => $data['pages'] ?? null,
                 'genre' => $data['genre'] ?? null,
+                'series' => $data['series'] ?? null,
+                'series_position' => $data['series_position'] ?? null,
                 'description' => $data['description'] ?? null,
             ]);
 

@@ -12,7 +12,6 @@ class MoveBookRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'bookshelf_id' => ['nullable', 'integer', 'exists:bookshelves,id'],
             'before_book_id' => ['nullable', 'integer', 'exists:books,id'],
         ];
     }

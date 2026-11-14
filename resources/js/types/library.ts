@@ -17,20 +17,20 @@ export type BookCard = {
     readings_count: number | null;
 };
 
-/** Book fields the spine shelf needs to sort, group and draw. */
+/** Book fields the spine shelf needs to draw. */
 export type SpineBook = BookCard & {
     author: string | null;
-    genre: string | null;
+    /** Last name as printed on a spine. */
+    author_surname: string;
+    publisher: string | null;
+    /** The publisher's name normalized, so spellings of one publisher group together. */
+    publisher_key: string;
     pages: number | null;
-    published_year: number | null;
-    bookshelf_id: number | null;
-    shelf_position: number;
 };
 
-/** Custom shelf; not to be confused with `Shelf`, which groups by status. */
-export type Bookshelf = {
-    id: number;
-    name: string;
+/** Library book with its slot in the shelf order, which the server computes. */
+export type LibraryBook = SpineBook & {
+    shelf_rank: number;
 };
 
 export type Shelf = {
@@ -50,6 +50,8 @@ export type BookDetail = {
     published_year: number | null;
     pages: number | null;
     genre: string | null;
+    series: string | null;
+    series_position: number | null;
     description: string | null;
     cover_url: string | null;
     source_label: string;

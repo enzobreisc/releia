@@ -57,7 +57,7 @@ class BookController extends Controller
 
     public function store(StoreBookRequest $request): RedirectResponse
     {
-        /** @var array{title: string, subtitle?: string|null, authors?: list<string>, isbn_13?: string|null, isbn_10?: string|null, publisher?: string|null, published_year?: int|null, pages?: int|null, genre?: string|null, description?: string|null, cover_url?: string|null, source?: string|null, status: string} $data */
+        /** @var array{title: string, subtitle?: string|null, authors?: list<string>, isbn_13?: string|null, isbn_10?: string|null, publisher?: string|null, published_year?: int|null, pages?: int|null, genre?: string|null, series?: string|null, series_position?: int|null, description?: string|null, cover_url?: string|null, source?: string|null, status: string} $data */
         $data = $request->validated();
 
         $book = $this->library->add($data);
@@ -115,7 +115,7 @@ class BookController extends Controller
 
     public function update(UpdateBookRequest $request, Book $book, UndoService $undo): RedirectResponse
     {
-        /** @var array{title: string, subtitle?: string|null, authors?: list<string>, isbn_13?: string|null, isbn_10?: string|null, publisher?: string|null, published_year?: int|null, pages?: int|null, genre?: string|null, description?: string|null, cover_url?: string|null} $data */
+        /** @var array{title: string, subtitle?: string|null, authors?: list<string>, isbn_13?: string|null, isbn_10?: string|null, publisher?: string|null, published_year?: int|null, pages?: int|null, genre?: string|null, series?: string|null, series_position?: int|null, description?: string|null, cover_url?: string|null} $data */
         $data = $request->validated();
         $pagesBefore = $book->pages;
 

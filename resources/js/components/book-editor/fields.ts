@@ -12,6 +12,8 @@ export function initialFields(book: BookDetail): Fields {
         genre: book.genre ?? '',
         publisher: book.publisher ?? '',
         published_year: book.published_year?.toString() ?? '',
+        series: book.series ?? '',
+        series_position: book.series_position?.toString() ?? '',
         isbn_13: book.isbn_13 ?? '',
         description: book.description ?? '',
         cover_url: '',

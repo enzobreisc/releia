@@ -18,12 +18,10 @@ import { StatusBadge } from '@/components/status';
 import { useStored } from '@/hooks/use-stored';
 import { useTranslation } from '@/hooks/use-translation';
 import type { TranslationKey } from '@/lib/i18n';
-import { SHELF_GROUPS } from '@/lib/spines';
-import type { ShelfGroup } from '@/lib/spines';
 import { cn } from '@/lib/utils';
-import { create as addBook, show } from '@/routes/books';
+import { create as addBook, move, show } from '@/routes/books';
 import { index as libraryIndex } from '@/routes/library';
-import type { Bookshelf as BookshelfModel, Shelf, SpineBook } from '@/types';
+import type { LibraryBook, Shelf } from '@/types';
 
 type Filters = {
     q: string;
@@ -33,12 +31,13 @@ type Filters = {
 };
 
 type LibraryProps = {
-    books: SpineBook[];
+    books: LibraryBook[];
     shelves: Shelf[];
-    bookshelves: BookshelfModel[];
     genres: string[];
     filters: Filters;
 };
+
+const LIBRARY_ROWS_PER_PAGE = 3;
 
 const SORTS: { value: string; label: TranslationKey }[] = [
     { value: 'recent', label: 'Adicionados recentemente' },
@@ -49,13 +48,11 @@ const SORTS: { value: string; label: TranslationKey }[] = [
 export default function Library({
     books,
     shelves,
-    bookshelves,
     genres,
     filters,
 }: LibraryProps) {
     const { t, plural, translateText } = useTranslation();
     const [view, setView] = useStored<'grid' | 'shelf'>('library.view', 'grid');
-    const [group, setGroup] = useStored<ShelfGroup>('library.group', 'genre');
     const [search, setSearch] = useState(filters.q);
     const searchRef = useRef<HTMLInputElement>(null);
     const searchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -73,6 +70,14 @@ export default function Library({
                 sort: next.sort === 'recent' ? undefined : next.sort,
             },
             { preserveState: true, preserveScroll: true, replace: true },
+        );
+    }
+
+    function moveBook(bookId: number, beforeBookId: number | null) {
+        router.patch(
+            move(bookId).url,
+            { before_book_id: beforeBookId },
+            { preserveScroll: true },
         );
     }
 
@@ -148,25 +153,7 @@ export default function Library({
                         ))}
                     </Select>
                 </Field>
-                {view === 'shelf' ? (
-                    <Field
-                        label={t('Organizar por')}
-                        className="flex-[1_1_160px]"
-                    >
-                        <Select
-                            value={group}
-                            onChange={(event) =>
-                                setGroup(event.target.value as ShelfGroup)
-                            }
-                        >
-                            {SHELF_GROUPS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {t(option.label)}
-                                </option>
-                            ))}
-                        </Select>
-                    </Field>
-                ) : (
+                {view === 'grid' && (
                     <Field
                         label={t('Ordenar por')}
                         className="flex-[1_1_160px]"
@@ -218,11 +205,13 @@ export default function Library({
                 })}
             </div>
 
-            {view === 'shelf' && (books.length > 0 || group === 'custom') ? (
+            {view === 'shelf' && books.length > 0 ? (
                 <Bookshelf
-                    books={books}
-                    group={group}
-                    bookshelves={bookshelves}
+                    books={[...books].sort(
+                        (a, b) => a.shelf_rank - b.shelf_rank,
+                    )}
+                    onMove={moveBook}
+                    rowsPerPage={LIBRARY_ROWS_PER_PAGE}
                 />
             ) : books.length > 0 ? (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-x-5.5 gap-y-8">

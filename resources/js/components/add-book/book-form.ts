@@ -9,6 +9,8 @@ export type BookForm = {
     isbn_13: string;
     publisher: string;
     published_year: string;
+    series: string;
+    series_position: string;
     pages: string;
     genre: string;
     description: string;
@@ -34,6 +36,8 @@ export const emptyForm: BookForm = {
     isbn_13: '',
     publisher: '',
     published_year: '',
+    series: '',
+    series_position: '',
     pages: '',
     genre: '',
     description: '',
@@ -58,6 +62,8 @@ export function toForm(candidate: Candidate): BookDetails {
         isbn_13: candidate.isbn_13 ?? '',
         publisher: candidate.publisher ?? '',
         published_year: candidate.published_year?.toString() ?? '',
+        series: '',
+        series_position: '',
         pages: candidate.pages?.toString() ?? '',
         genre: candidate.genre ?? '',
         description: candidate.description ?? '',

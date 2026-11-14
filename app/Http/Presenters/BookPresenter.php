@@ -4,6 +4,8 @@ namespace App\Http\Presenters;
 
 use App\Models\Book;
 use App\Services\BookLookup\BookCandidate;
+use App\Support\AuthorName;
+use App\Support\PublisherKey;
 
 final class BookPresenter
 {
@@ -26,7 +28,7 @@ final class BookPresenter
     }
 
     /**
-     * Pages set the spine thickness; genre, author and year group the shelves.
+     * Pages set the spine thickness; the publisher sets its height and look.
      *
      * @return array<string, mixed>
      */
@@ -35,11 +37,10 @@ final class BookPresenter
         return [
             ...self::card($book, $queuePosition),
             'author' => $book->authors->first()?->name,
-            'genre' => $book->genre,
+            'author_surname' => AuthorName::lastName($book->authors->first()?->name),
+            'publisher' => $book->publisher,
+            'publisher_key' => PublisherKey::of($book->publisher),
             'pages' => $book->pages,
-            'published_year' => $book->published_year,
-            'bookshelf_id' => $book->bookshelf_id,
-            'shelf_position' => $book->shelf_position,
         ];
     }
 
@@ -61,6 +62,8 @@ final class BookPresenter
             'published_year' => $book->published_year,
             'pages' => $book->pages,
             'genre' => $book->genre,
+            'series' => $book->series,
+            'series_position' => $book->series_position,
             'description' => $book->description,
             'cover_url' => self::coverUrl($book),
             'source_label' => $book->source->label(),

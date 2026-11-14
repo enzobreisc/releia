@@ -22,6 +22,9 @@ export default defineConfig({
                 bunny('Geist Mono', {
                     weights: [400, 500],
                 }),
+                bunny('Cormorant Garamond', {
+                    weights: [600, 700],
+                }),
                 bunny('JetBrains Mono', {
                     weights: [700],
                 }),

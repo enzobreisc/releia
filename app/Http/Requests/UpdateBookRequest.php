@@ -48,6 +48,8 @@ class UpdateBookRequest extends FormRequest
             'published_year' => ['nullable', 'integer', 'between:1450,'.(Carbon::today()->year + 1)],
             'pages' => ['nullable', 'integer', 'between:1,20000'],
             'genre' => ['nullable', 'string', 'max:255'],
+            'series' => ['nullable', 'string', 'max:255'],
+            'series_position' => ['nullable', 'integer', 'between:1,999'],
             'description' => ['nullable', 'string', 'max:20000'],
             'cover_url' => ['nullable', 'url:http,https', 'max:2048'],
             'cover_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120'],
@@ -62,6 +64,7 @@ class UpdateBookRequest extends FormRequest
         return [
             'title.required' => __('Informe o título.'),
             'pages.between' => __('Número de páginas inválido.'),
+            'series_position.between' => __('Volume inválido.'),
             'published_year.between' => __('Use um ano entre 1450 e :year.', ['year' => Carbon::today()->year + 1]),
             'cover_file.image' => __('Escolha uma imagem (JPG, PNG, WebP ou GIF).'),
             'cover_file.max' => __('A imagem pode ter até 5 MB.'),

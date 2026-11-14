@@ -23,7 +23,8 @@ export function MoreFieldsSection({
                 aria-expanded={expanded}
                 className="self-start text-[13px] font-bold text-link hover:text-text"
             >
-                {expanded ? '−' : '+'} {t('editora, ano, ISBN e descrição')}
+                {expanded ? '−' : '+'}{' '}
+                {t('editora, ano, série, ISBN e descrição')}
             </button>
             {expanded && <MoreFields form={form} />}
         </div>
@@ -66,6 +67,34 @@ function MoreFields({ form }: { form: BookFormHandle }) {
                         value={form.data.published_year}
                         onChange={(event) =>
                             form.setData('published_year', event.target.value)
+                        }
+                    />
+                </Field>
+            </div>
+            <div className="flex flex-wrap gap-3">
+                <Field
+                    label={t('Série')}
+                    error={form.errors.series}
+                    className="flex-[2_1_160px]"
+                >
+                    <Input
+                        value={form.data.series}
+                        onChange={(event) =>
+                            form.setData('series', event.target.value)
+                        }
+                    />
+                </Field>
+                <Field
+                    label={t('Volume')}
+                    error={form.errors.series_position}
+                    className="flex-[1_1_80px]"
+                >
+                    <Input
+                        type="number"
+                        min={1}
+                        value={form.data.series_position}
+                        onChange={(event) =>
+                            form.setData('series_position', event.target.value)
                         }
                     />
                 </Field>

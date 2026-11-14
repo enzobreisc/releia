@@ -25,6 +25,9 @@ use Illuminate\Support\Str;
  * @property int|null $published_year
  * @property int|null $pages
  * @property string|null $genre
+ * @property string|null $series
+ * @property int|null $series_position
+ * @property int|null $shelf_position
  * @property string|null $description
  * @property string|null $cover_path
  * @property BookSource $source
@@ -37,7 +40,7 @@ use Illuminate\Support\Str;
  */
 #[Fillable([
     'isbn_13', 'isbn_10', 'title', 'subtitle', 'publisher', 'published_year',
-    'pages', 'genre', 'description', 'cover_path', 'source',
+    'pages', 'genre', 'series', 'series_position', 'description', 'cover_path', 'source',
 ])]
 class Book extends Model
 {
@@ -57,6 +60,8 @@ class Book extends Model
             'source' => BookSource::class,
             'published_year' => 'integer',
             'pages' => 'integer',
+            'series_position' => 'integer',
+            'shelf_position' => 'integer',
         ];
     }
 

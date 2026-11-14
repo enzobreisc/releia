@@ -5,7 +5,6 @@ use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\AuthorPhotoController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookCoverController;
-use App\Http\Controllers\BookshelfController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryController;
@@ -17,6 +16,7 @@ use App\Http\Controllers\QueueController;
 use App\Http\Controllers\QuickLogController;
 use App\Http\Controllers\ReadingController;
 use App\Http\Controllers\ReadingSessionController;
+use App\Http\Controllers\ShelfOrderController;
 use App\Http\Controllers\ShoppingController;
 use App\Http\Controllers\ShoppingCoverController;
 use App\Http\Controllers\StatsController;
@@ -37,11 +37,8 @@ Route::get('/library/{book}', [BookController::class, 'show'])->whereNumber('boo
 Route::patch('/library/{book}', [BookController::class, 'update'])->whereNumber('book')->name('books.update');
 Route::delete('/library/{book}', [BookController::class, 'destroy'])->whereNumber('book')->name('books.destroy');
 Route::patch('/library/{book}/reading', [ReadingController::class, 'update'])->whereNumber('book')->name('books.reading');
+Route::patch('/library/{book}/position', [ShelfOrderController::class, 'move'])->whereNumber('book')->name('books.move');
 Route::get('/library/{book}/cover', BookCoverController::class)->whereNumber('book')->name('books.cover');
-Route::post('/bookshelves', [BookshelfController::class, 'store'])->name('bookshelves.store');
-Route::patch('/bookshelves/{bookshelf}', [BookshelfController::class, 'update'])->whereNumber('bookshelf')->name('bookshelves.update');
-Route::delete('/bookshelves/{bookshelf}', [BookshelfController::class, 'destroy'])->whereNumber('bookshelf')->name('bookshelves.destroy');
-Route::patch('/library/{book}/bookshelf', [BookshelfController::class, 'move'])->whereNumber('book')->name('books.bookshelf');
 Route::post('/library/{book}/start', [ReadingController::class, 'start'])->whereNumber('book')->name('books.start');
 Route::post('/library/{book}/reread', [ReadingController::class, 'reread'])->whereNumber('book')->name('books.reread');
 

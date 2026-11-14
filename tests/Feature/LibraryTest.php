@@ -3,7 +3,6 @@
 use App\Enums\ReadingStatus;
 use App\Models\Author;
 use App\Models\Book;
-use App\Models\Bookshelf;
 use App\Models\Reading;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
@@ -51,6 +50,30 @@ test('cadastra um livro com autores, leitura e capa', function () {
 
     Storage::disk('local')->assertExists('covers/1.jpg');
     Http::assertSent(fn ($request) => str_contains($request->url(), 'default=false'));
+});
+
+test('stores the series and volume when adding and editing a book', function () {
+    Http::fake(['*' => Http::response('', 404)]);
+
+    $this->post(route('books.store'), bookPayload(['series' => 'Duna', 'series_position' => '2']))->assertRedirect();
+
+    $book = Book::sole();
+
+    expect($book->series)->toBe('Duna')->and($book->series_position)->toBe(2);
+
+    $this->patch(route('books.update', $book), [
+        'title' => $book->title,
+        'authors' => ['Frank Herbert'],
+        'series' => 'Duna',
+        'series_position' => '3',
+    ])->assertRedirect();
+
+    expect($book->refresh()->series_position)->toBe(3);
+});
+
+test('rejects a series volume outside the valid range', function () {
+    $this->post(route('books.store'), bookPayload(['series' => 'Duna', 'series_position' => '0']))
+        ->assertSessionHasErrors('series_position');
 });
 
 test('o cadastro não falha quando a capa não baixa', function () {
@@ -256,43 +279,12 @@ test('avisa quando a Amazon não tem a capa', function () {
         ->assertJsonPath('message', 'A Amazon não tem capa para esse produto.');
 });
 
-test('prateleiras personalizadas: criar, mover livros, ordenar e apagar', function () {
-    $a = Book::factory()->create();
-    $b = Book::factory()->create();
-    $c = Book::factory()->create();
-
-    $this->post(route('bookshelves.store'), ['name' => 'Favoritos'])->assertRedirect();
-    $shelf = Bookshelf::sole();
-
-    foreach ([$a, $b] as $book) {
-        $this->patch(route('books.bookshelf', $book), ['bookshelf_id' => $shelf->id])->assertRedirect();
-    }
-
-    // Before another book: the new one goes first.
-    $this->patch(route('books.bookshelf', $c), ['bookshelf_id' => $shelf->id, 'before_book_id' => $a->id]);
-
-    expect($shelf->books()->pluck('id')->all())->toBe([$c->id, $a->id, $b->id]);
-
-    $this->patch(route('books.bookshelf', $a), ['bookshelf_id' => null]);
-    expect($a->refresh()->bookshelf_id)->toBeNull();
-
-    $this->patch(route('bookshelves.update', $shelf), ['name' => 'Releituras']);
-    expect($shelf->refresh()->name)->toBe('Releituras');
-
-    $this->delete(route('bookshelves.destroy', $shelf))->assertRedirect();
-    expect(Bookshelf::count())->toBe(0)->and($b->refresh()->bookshelf_id)->toBeNull();
-});
-
-test('a biblioteca envia as prateleiras e os dados da lombada', function () {
-    $book = Book::factory()->withAuthors(['Clarice Lispector'])->create(['pages' => 120, 'published_year' => 1977]);
-    $shelf = Bookshelf::create(['name' => 'Clássicos', 'position' => 1]);
-    $book->forceFill(['bookshelf_id' => $shelf->id])->save();
+test('a biblioteca envia os dados da lombada', function () {
+    Book::factory()->withAuthors(['Clarice Lispector'])->create(['pages' => 120, 'published_year' => 1977]);
 
     $this->get(route('library.index'))->assertInertia(fn ($page) => $page
-        ->where('bookshelves.0.name', 'Clássicos')
         ->where('books.0.author', 'Clarice Lispector')
-        ->where('books.0.pages', 120)
-        ->where('books.0.bookshelf_id', $shelf->id));
+        ->where('books.0.pages', 120));
 });
 
 test('autor escrito com outro acento ou caixa reaproveita o autor existente', function () {
