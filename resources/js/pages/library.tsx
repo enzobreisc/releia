@@ -1,7 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { BookCover } from '@/components/book-cover';
-import { Bookshelf } from '@/components/bookshelf';
 import { Kbd } from '@/components/app-sidebar';
 import { cardClass } from '@/components/card';
 import {
@@ -12,6 +11,7 @@ import {
     Select,
 } from '@/components/form';
 import { PlusIcon } from '@/components/icons';
+import { LibraryBookcase } from '@/components/library/library-bookcase';
 import { PageHeader } from '@/components/page-header';
 import { QueueButton } from '@/components/queue-button';
 import { StatusBadge } from '@/components/status';
@@ -19,9 +19,9 @@ import { useStored } from '@/hooks/use-stored';
 import { useTranslation } from '@/hooks/use-translation';
 import type { TranslationKey } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import { create as addBook, move, show } from '@/routes/books';
+import { create as addBook, show } from '@/routes/books';
 import { index as libraryIndex } from '@/routes/library';
-import type { LibraryBook, Shelf } from '@/types';
+import type { BookcaseShelf, LibraryBook, Shelf } from '@/types';
 
 type Filters = {
     q: string;
@@ -32,12 +32,11 @@ type Filters = {
 
 type LibraryProps = {
     books: LibraryBook[];
+    bookcase: BookcaseShelf[];
     shelves: Shelf[];
     genres: string[];
     filters: Filters;
 };
-
-const LIBRARY_ROWS_PER_PAGE = 3;
 
 const SORTS: { value: string; label: TranslationKey }[] = [
     { value: 'recent', label: 'Adicionados recentemente' },
@@ -47,6 +46,7 @@ const SORTS: { value: string; label: TranslationKey }[] = [
 
 export default function Library({
     books,
+    bookcase,
     shelves,
     genres,
     filters,
@@ -70,14 +70,6 @@ export default function Library({
                 sort: next.sort === 'recent' ? undefined : next.sort,
             },
             { preserveState: true, preserveScroll: true, replace: true },
-        );
-    }
-
-    function moveBook(bookId: number, beforeBookId: number | null) {
-        router.patch(
-            move(bookId).url,
-            { before_book_id: beforeBookId },
-            { preserveScroll: true },
         );
     }
 
@@ -206,12 +198,14 @@ export default function Library({
             </div>
 
             {view === 'shelf' && books.length > 0 ? (
-                <Bookshelf
-                    books={[...books].sort(
-                        (a, b) => a.shelf_rank - b.shelf_rank,
-                    )}
-                    onMove={moveBook}
-                    rowsPerPage={LIBRARY_ROWS_PER_PAGE}
+                <LibraryBookcase
+                    books={books}
+                    shelves={bookcase}
+                    isFiltered={
+                        filters.q !== '' ||
+                        filters.genre !== '' ||
+                        filters.shelf !== null
+                    }
                 />
             ) : books.length > 0 ? (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-x-5.5 gap-y-8">

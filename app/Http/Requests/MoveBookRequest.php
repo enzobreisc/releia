@@ -13,6 +13,7 @@ class MoveBookRequest extends FormRequest
     {
         return [
             'before_book_id' => ['nullable', 'integer', 'exists:books,id'],
+            'bookshelf_id' => ['sometimes', 'nullable', 'integer', 'exists:bookshelves,id'],
         ];
     }
 }

@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/use-translation';
 import { index as libraryIndex } from '@/routes/library';
 
-export function LibraryBreadcrumb() {
+export function LibraryBreadcrumb({ current }: { current: string }) {
     const { t } = useTranslation();
 
     return (
@@ -11,7 +11,7 @@ export function LibraryBreadcrumb() {
             className="-mb-3 self-start text-[13px] font-semibold text-secondary hover:text-text"
         >
             {t('Biblioteca')}
-            <span className="text-muted"> / {t('adicionar')}</span>
+            <span className="text-muted"> / {current}</span>
         </Link>
     );
 }

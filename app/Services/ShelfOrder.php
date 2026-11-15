@@ -19,12 +19,25 @@ class ShelfOrder
     public function ids(): array
     {
         $books = $this->load();
-        $keys = $books->mapWithKeys(fn (Book $book) => [$book->id => $this->sortKey($book)])->all();
+        $keys = $this->sortKeys($books);
 
-        $unplaced = array_values($books->whereNull('shelf_position')->map(fn (Book $book) => $book->id)->all());
-        usort($unplaced, fn (int $a, int $b) => $keys[$a] <=> $keys[$b]);
+        return $this->mergeBySortKey(
+            $this->placedIds($books),
+            $this->sortByKey($books->whereNull('shelf_position'), $keys),
+            $keys,
+        );
+    }
 
-        return $this->mergeBySortKey($this->placedIds($books), $unplaced, $keys);
+    /**
+     * The line as it stands when nobody has placed a book by hand.
+     *
+     * @return list<int>
+     */
+    public function sortedIds(): array
+    {
+        $books = $this->load();
+
+        return $this->sortByKey($books, $this->sortKeys($books));
     }
 
     public function move(Book $book, ?int $beforeBookId): void
@@ -48,6 +61,28 @@ class ShelfOrder
     private function load(): Collection
     {
         return Book::query()->with('authors')->get(['id', 'title', 'series', 'series_position', 'shelf_position']);
+    }
+
+    /**
+     * @param  Collection<int, Book>  $books
+     * @return array<int, array<int, int|string>> book id => sort key
+     */
+    private function sortKeys(Collection $books): array
+    {
+        return $books->mapWithKeys(fn (Book $book) => [$book->id => $this->sortKey($book)])->all();
+    }
+
+    /**
+     * @param  Collection<int, Book>  $books
+     * @param  array<int, array<int, int|string>>  $keys
+     * @return list<int>
+     */
+    private function sortByKey(Collection $books, array $keys): array
+    {
+        $ids = array_values($books->map(fn (Book $book) => $book->id)->all());
+        usort($ids, fn (int $a, int $b) => $keys[$a] <=> $keys[$b]);
+
+        return $ids;
     }
 
     /**

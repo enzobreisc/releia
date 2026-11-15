@@ -31,6 +31,34 @@ export type SpineBook = BookCard & {
 /** Library book with its slot in the shelf order, which the server computes. */
 export type LibraryBook = SpineBook & {
     shelf_rank: number;
+    /** The shelf the book sits on, placed by hand or claimed by the shelf's group. */
+    bookshelf_id: number | null;
+};
+
+/** A named shelf of the bookcase view. */
+export type BookcaseShelf = {
+    id: number;
+    name: string;
+    is_catch_all: boolean;
+};
+
+export type ShelfGroupingValue = 'publisher' | 'author' | 'genre' | 'series';
+
+export type ShelfGroup = {
+    key: string;
+    label: string;
+    count: number;
+};
+
+export type ShelfGroupingOption = {
+    value: ShelfGroupingValue;
+    label: string;
+    groups: ShelfGroup[];
+};
+
+/** Book in the bookcase setup, with its group under each grouping. */
+export type SetupBook = SpineBook & {
+    group_keys: Record<ShelfGroupingValue, string | null>;
 };
 
 export type Shelf = {

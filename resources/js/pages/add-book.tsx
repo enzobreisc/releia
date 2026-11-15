@@ -1,11 +1,11 @@
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import { LibraryBreadcrumb } from '@/components/add-book/library-breadcrumb';
 import { ReviewPanel } from '@/components/add-book/review-panel';
 import { SearchPanel } from '@/components/add-book/search-panel';
 import { Steps } from '@/components/add-book/steps';
 import { emptyForm } from '@/components/add-book/book-form';
 import type { BookForm } from '@/components/add-book/book-form';
+import { LibraryBreadcrumb } from '@/components/library-breadcrumb';
 import { PageHeader } from '@/components/page-header';
 import { useAddBookEditions } from '@/hooks/use-add-book-editions';
 import { useAddBookPreview } from '@/hooks/use-add-book-preview';
@@ -68,7 +68,7 @@ export default function AddBook({
 
     return (
         <>
-            <LibraryBreadcrumb />
+            <LibraryBreadcrumb current={t('adicionar')} />
             <PageHeader
                 title={t('Adicionar livro')}
                 actions={<Steps editing={editing} />}

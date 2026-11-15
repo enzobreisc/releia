@@ -3,8 +3,10 @@
 use App\Http\Controllers\AmazonCoverController;
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\AuthorPhotoController;
+use App\Http\Controllers\BookcaseSetupController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookCoverController;
+use App\Http\Controllers\BookshelfController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryController;
@@ -41,6 +43,14 @@ Route::patch('/library/{book}/position', [ShelfOrderController::class, 'move'])-
 Route::get('/library/{book}/cover', BookCoverController::class)->whereNumber('book')->name('books.cover');
 Route::post('/library/{book}/start', [ReadingController::class, 'start'])->whereNumber('book')->name('books.start');
 Route::post('/library/{book}/reread', [ReadingController::class, 'reread'])->whereNumber('book')->name('books.reread');
+
+// Bookcase
+Route::get('/library/bookcase/setup', [BookcaseSetupController::class, 'create'])->name('bookcase.setup');
+Route::post('/library/bookcase/setup', [BookcaseSetupController::class, 'store'])->name('bookcase.organize');
+Route::post('/bookshelves', [BookshelfController::class, 'store'])->name('bookshelves.store');
+Route::patch('/bookshelves/{bookshelf}', [BookshelfController::class, 'update'])->whereNumber('bookshelf')->name('bookshelves.update');
+Route::post('/bookshelves/{bookshelf}/merge', [BookshelfController::class, 'merge'])->whereNumber('bookshelf')->name('bookshelves.merge');
+Route::delete('/bookshelves/{bookshelf}', [BookshelfController::class, 'destroy'])->whereNumber('bookshelf')->name('bookshelves.destroy');
 
 // Authors
 Route::get('/authors', [AuthorController::class, 'index'])->name('authors.index');

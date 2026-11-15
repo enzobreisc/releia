@@ -28,6 +28,7 @@ use Illuminate\Support\Str;
  * @property string|null $series
  * @property int|null $series_position
  * @property int|null $shelf_position
+ * @property int|null $bookshelf_id
  * @property string|null $description
  * @property string|null $cover_path
  * @property BookSource $source
@@ -62,6 +63,7 @@ class Book extends Model
             'pages' => 'integer',
             'series_position' => 'integer',
             'shelf_position' => 'integer',
+            'bookshelf_id' => 'integer',
         ];
     }
 

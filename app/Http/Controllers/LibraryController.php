@@ -6,8 +6,10 @@ use App\Enums\LibrarySort;
 use App\Enums\ReadingStatus;
 use App\Http\Presenters\BookPresenter;
 use App\Models\Book;
+use App\Models\Bookshelf;
 use App\Models\QueueItem;
 use App\Models\Reading;
+use App\Services\Bookcase;
 use App\Services\ShelfOrder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -16,7 +18,7 @@ use Inertia\Response;
 
 class LibraryController extends Controller
 {
-    public function index(Request $request, ShelfOrder $shelfOrder): Response
+    public function index(Request $request, ShelfOrder $shelfOrder, Bookcase $bookcase): Response
     {
         $search = Book::normalizeSearch((string) $request->string('q'));
         $genre = $request->string('genre')->toString();
@@ -44,11 +46,18 @@ class LibraryController extends Controller
         $positions = QueueItem::query()->pluck('position', 'book_id')->map(fn ($position) => (int) $position)->all();
 
         $ranks = array_flip($shelfOrder->ids());
+        $shelfIds = $bookcase->shelfIds($books);
 
         return Inertia::render('library', [
             'books' => $books->map(fn (Book $book) => [
                 ...BookPresenter::spine($book, $positions[$book->id] ?? null),
                 'shelf_rank' => $ranks[$book->id],
+                'bookshelf_id' => $shelfIds[$book->id],
+            ]),
+            'bookcase' => $bookcase->shelves()->map(fn (Bookshelf $shelf) => [
+                'id' => $shelf->id,
+                'name' => $shelf->name,
+                'is_catch_all' => $shelf->is_catch_all,
             ]),
             'shelves' => $this->shelves(),
             'genres' => Book::query()->whereNotNull('genre')->distinct()->orderBy('genre')->pluck('genre'),

@@ -1,6 +1,7 @@
-import { Bookshelf } from '@/components/bookshelf';
+import { Bookcase } from '@/components/bookcase';
 import { SectionTitle } from '@/components/page-header';
 import { useTranslation } from '@/hooks/use-translation';
+import { unshelvedSection } from '@/lib/shelf/sections';
 import type { SpineBook } from '@/types';
 
 export function YearShelf({
@@ -24,7 +25,7 @@ export function YearShelf({
                 })}
             </SectionTitle>
             {books.length > 0 ? (
-                <Bookshelf books={books} />
+                <Bookcase sections={[unshelvedSection(books)]} />
             ) : (
                 <p className="font-mono text-xs text-faint">
                     {t('nenhum livro terminado em :year', { year })}
