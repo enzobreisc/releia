@@ -2,9 +2,9 @@ import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import type { BookMove } from '@/components/bookcase';
 import type { ShelfSection } from '@/lib/shelf/sections';
-import { move } from '@/routes/books';
+import { move, posture } from '@/routes/books';
 import { destroy } from '@/routes/bookshelves';
-import type { LibraryBook } from '@/types';
+import type { LibraryBook, SpineBook } from '@/types';
 
 type NamedShelf = { id: number; name: string };
 
@@ -25,6 +25,14 @@ export function useBookcaseEditing(books: LibraryBook[]) {
                 before_book_id: beforeBookId,
                 ...(shelfId === current ? {} : { bookshelf_id: shelfId }),
             },
+            { preserveScroll: true },
+        );
+    }
+
+    function toggleBookPosture(book: SpineBook) {
+        router.patch(
+            posture(book.id).url,
+            { is_lying_down: !book.is_lying_down },
             { preserveScroll: true },
         );
     }
@@ -57,6 +65,7 @@ export function useBookcaseEditing(books: LibraryBook[]) {
         mergeShelf,
         closeMergeDialog: () => setMergingShelf(null),
         moveBook,
+        toggleBookPosture,
         removeShelf,
         renameShelf,
         addShelf: () => setNameDialog({ shelf: null }),

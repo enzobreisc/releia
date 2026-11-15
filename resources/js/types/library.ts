@@ -26,6 +26,8 @@ export type SpineBook = BookCard & {
     /** The publisher's name normalized, so spellings of one publisher group together. */
     publisher_key: string;
     pages: number | null;
+    /** Lying books are piled on the shelf instead of standing in line. */
+    is_lying_down: boolean;
 };
 
 /** Library book with its slot in the shelf order, which the server computes. */

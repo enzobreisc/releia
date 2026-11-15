@@ -19,10 +19,15 @@ export function spineSize(book: SpineBook, scale: number): SpineSize {
     const width = BASE_WIDTH + pages * PIXELS_PER_PAGE;
     const height = identityFor(book.publisher_key).heightCm * PIXELS_PER_CM;
 
-    return {
-        width: Math.round(
-            Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, width)) * scale,
-        ),
-        height: Math.round(height * scale),
-    };
+    const thickness = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, width));
+
+    return book.is_lying_down
+        ? {
+              width: Math.round(height * scale),
+              height: Math.round(thickness * scale),
+          }
+        : {
+              width: Math.round(thickness * scale),
+              height: Math.round(height * scale),
+          };
 }

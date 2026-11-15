@@ -23,6 +23,17 @@ function LineIcon({ children, ...props }: IconProps) {
     );
 }
 
+export function RotateBookIcon(props: IconProps) {
+    return (
+        <LineIcon {...props}>
+            <rect x="2" y="2" width="4.5" height="9" rx="1" />
+            <path d="M9 14h5" />
+            <path d="M11.5 14v-4" />
+            <path d="M9.5 11.5 11.5 9.5l2 2" />
+        </LineIcon>
+    );
+}
+
 export function HomeIcon(props: IconProps) {
     return (
         <LineIcon {...props}>

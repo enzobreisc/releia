@@ -41,6 +41,7 @@ final class BookPresenter
             'publisher' => $book->publisher,
             'publisher_key' => PublisherKey::of($book->publisher),
             'pages' => $book->pages,
+            'is_lying_down' => $book->is_lying_down,
         ];
     }
 

@@ -29,6 +29,7 @@ use Illuminate\Support\Str;
  * @property int|null $series_position
  * @property int|null $shelf_position
  * @property int|null $bookshelf_id
+ * @property bool $is_lying_down
  * @property string|null $description
  * @property string|null $cover_path
  * @property BookSource $source
@@ -42,6 +43,7 @@ use Illuminate\Support\Str;
 #[Fillable([
     'isbn_13', 'isbn_10', 'title', 'subtitle', 'publisher', 'published_year',
     'pages', 'genre', 'series', 'series_position', 'description', 'cover_path', 'source',
+    'is_lying_down',
 ])]
 class Book extends Model
 {
@@ -64,6 +66,7 @@ class Book extends Model
             'series_position' => 'integer',
             'shelf_position' => 'integer',
             'bookshelf_id' => 'integer',
+            'is_lying_down' => 'boolean',
         ];
     }
 

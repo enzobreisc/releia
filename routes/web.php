@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthorPhotoController;
 use App\Http\Controllers\BookcaseSetupController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookCoverController;
+use App\Http\Controllers\BookPostureController;
 use App\Http\Controllers\BookshelfController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\HomeController;
@@ -40,6 +41,7 @@ Route::patch('/library/{book}', [BookController::class, 'update'])->whereNumber(
 Route::delete('/library/{book}', [BookController::class, 'destroy'])->whereNumber('book')->name('books.destroy');
 Route::patch('/library/{book}/reading', [ReadingController::class, 'update'])->whereNumber('book')->name('books.reading');
 Route::patch('/library/{book}/position', [ShelfOrderController::class, 'move'])->whereNumber('book')->name('books.move');
+Route::patch('/library/{book}/posture', [BookPostureController::class, 'update'])->whereNumber('book')->name('books.posture');
 Route::get('/library/{book}/cover', BookCoverController::class)->whereNumber('book')->name('books.cover');
 Route::post('/library/{book}/start', [ReadingController::class, 'start'])->whereNumber('book')->name('books.start');
 Route::post('/library/{book}/reread', [ReadingController::class, 'reread'])->whereNumber('book')->name('books.reread');

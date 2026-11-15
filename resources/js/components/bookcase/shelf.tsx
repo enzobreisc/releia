@@ -3,10 +3,11 @@ import type { ReactNode } from 'react';
 import { Spine } from '@/components/bookcase/spine';
 import { cardClass } from '@/components/card';
 import { useTranslation } from '@/hooks/use-translation';
-import { packRows } from '@/lib/shelf/layout';
+import { packRows, shelfItemKey } from '@/lib/shelf/layout';
 import type { ShelfSection } from '@/lib/shelf/sections';
 import { SHELF_BOOK_MAX_HEIGHT } from '@/lib/shelf/spine-size';
 import { cn } from '@/lib/utils';
+import type { SpineBook } from '@/types';
 
 const CARD_PADDING = 20;
 const RAIL_INSET = 8;
@@ -24,6 +25,7 @@ export function Shelf({
     width,
     scale,
     drag,
+    onTogglePosture,
     actions,
 }: {
     section: ShelfSection;
@@ -31,6 +33,8 @@ export function Shelf({
     scale: number;
     /** Without it the shelf is read-only. */
     drag?: ShelfDrag;
+    /** Without it the books cannot be laid down or stood up. */
+    onTogglePosture?: (book: SpineBook) => void;
     actions?: ReactNode;
 }) {
     const { t, plural, translateText } = useTranslation();
@@ -41,6 +45,26 @@ export function Shelf({
         scale,
     );
     const rowHeight = Math.round(SHELF_BOOK_MAX_HEIGHT * scale);
+
+    function renderSpine(book: SpineBook) {
+        return (
+            <Spine
+                key={book.id}
+                book={book}
+                scale={scale}
+                drag={
+                    drag && {
+                        onStart: () => drag.onStart(book.id),
+                        onEnd: drag.onEnd,
+                        onDropBefore: () => drag.onDrop(book.id),
+                    }
+                }
+                onTogglePosture={
+                    onTogglePosture && (() => onTogglePosture(book))
+                }
+            />
+        );
+    }
 
     return (
         <section
@@ -77,24 +101,22 @@ export function Shelf({
             )}
             {rows.map((row) => (
                 <div
-                    key={row[0].id}
+                    key={shelfItemKey(row[0])}
                     className="flex items-end border-b-2 border-strong"
                     style={{ minHeight: rowHeight, paddingInline: RAIL_INSET }}
                 >
-                    {row.map((book) => (
-                        <Spine
-                            key={book.id}
-                            book={book}
-                            scale={scale}
-                            drag={
-                                drag && {
-                                    onStart: () => drag.onStart(book.id),
-                                    onEnd: drag.onEnd,
-                                    onDropBefore: () => drag.onDrop(book.id),
-                                }
-                            }
-                        />
-                    ))}
+                    {row.map((item) =>
+                        item.kind === 'book' ? (
+                            renderSpine(item.book)
+                        ) : (
+                            <div
+                                key={shelfItemKey(item)}
+                                className="flex flex-col-reverse"
+                            >
+                                {item.books.map(renderSpine)}
+                            </div>
+                        ),
+                    )}
                 </div>
             ))}
             {rows.length === 0 && (

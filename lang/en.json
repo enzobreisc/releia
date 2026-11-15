@@ -917,5 +917,7 @@
     "Marque os grupos que vão dividir a mesma prateleira.": "Select the groups that will share one shelf.",
     "Unir com :name": "Merge with :name",
     "Unir com outra prateleira": "Merge with another shelf",
-    "Os livros da prateleira escolhida passam para esta, e os próximos livros do mesmo grupo também.": "The books on the shelf you pick move to this one, and so will future books of the same group."
+    "Os livros da prateleira escolhida passam para esta, e os próximos livros do mesmo grupo também.": "The books on the shelf you pick move to this one, and so will future books of the same group.",
+    "Deitar o livro": "Lay the book down",
+    "Colocar em pé": "Stand the book up"
 }

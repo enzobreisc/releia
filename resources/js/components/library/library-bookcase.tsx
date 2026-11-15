@@ -110,6 +110,7 @@ export function LibraryBookcase({
             <Bookcase
                 sections={sections}
                 onMove={editing.moveBook}
+                onTogglePosture={editing.toggleBookPosture}
                 renderActions={renderActions}
             />
             {editing.nameDialog && (

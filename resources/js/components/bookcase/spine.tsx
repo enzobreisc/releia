@@ -1,7 +1,9 @@
 import { Link } from '@inertiajs/react';
 import { useState } from 'react';
+import { RotateBookIcon } from '@/components/icons';
 import { PublisherMark } from '@/components/bookcase/publisher-mark';
 import { StatusMark } from '@/components/bookcase/status-mark';
+import { useTranslation } from '@/hooks/use-translation';
 import { SPINE_GAP } from '@/lib/shelf/layout';
 import { identityFor } from '@/lib/shelf/publisher-identity';
 import { spineSize } from '@/lib/shelf/spine-size';
@@ -37,12 +39,16 @@ export function Spine({
     book,
     scale,
     drag,
+    onTogglePosture,
 }: {
     book: SpineBook;
     scale: number;
     /** Without it the spine cannot be dragged or dropped on. */
     drag?: SpineDrag;
+    /** Without it the book cannot be laid down or stood up. */
+    onTogglePosture?: () => void;
 }) {
+    const { t } = useTranslation();
     const [isDropTarget, setIsDropTarget] = useState(false);
     const identity = identityFor(book.publisher_key);
     const tone = spineTone(identity.hue);
@@ -52,63 +58,103 @@ export function Spine({
         .join(' — ');
 
     return (
-        <Link
-            href={show.url(book.id)}
-            title={tip}
-            aria-label={tip}
-            draggable={drag !== undefined}
-            onDragStart={drag?.onStart}
-            onDragEnd={drag?.onEnd}
-            onDragOver={(event) => {
-                if (drag) {
-                    event.preventDefault();
-                    setIsDropTarget(true);
-                }
-            }}
-            onDragLeave={() => setIsDropTarget(false)}
-            onDrop={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                setIsDropTarget(false);
-                drag?.onDropBefore();
-            }}
-            style={{
-                width,
-                height,
-                marginRight: SPINE_GAP,
-                backgroundColor: tone.ground,
-                color: tone.mark,
-            }}
-            className={cn(
-                'relative isolate flex shrink-0 flex-col items-center gap-2.5 overflow-hidden rounded-cover py-3 transition-[translate] duration-150 hover:-translate-y-1.5 focus-visible:-translate-y-1.5 motion-reduce:transition-none',
-                isDropTarget && 'outline-2 outline-offset-1 outline-accent',
-            )}
+        <div
+            className="group/spine relative shrink-0"
+            style={{ width, height, marginRight: SPINE_GAP }}
         >
-            {book.cover_url && <CoverWash coverUrl={book.cover_url} />}
-            <span
-                aria-hidden
-                className="pointer-events-none absolute inset-0 -z-10 rounded-cover"
-                style={{ boxShadow: `inset 0 0 0 1px ${tone.edge}` }}
-            />
-            <PublisherMark device={identity.device} />
-            <span
-                className="line-clamp-2 min-h-0 flex-1 font-sans text-[13px] leading-[1.2] font-bold text-text"
-                style={{ writingMode: 'vertical-rl' }}
+            <Link
+                href={show.url(book.id)}
+                title={tip}
+                aria-label={tip}
+                draggable={drag !== undefined}
+                onDragStart={drag?.onStart}
+                onDragEnd={drag?.onEnd}
+                onDragOver={(event) => {
+                    if (drag) {
+                        event.preventDefault();
+                        setIsDropTarget(true);
+                    }
+                }}
+                onDragLeave={() => setIsDropTarget(false)}
+                onDrop={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setIsDropTarget(false);
+                    drag?.onDropBefore();
+                }}
+                style={{ backgroundColor: tone.ground, color: tone.mark }}
+                className={cn(
+                    'relative isolate flex size-full items-center overflow-hidden rounded-cover transition-[translate] duration-150 hover:-translate-y-1.5 focus-visible:-translate-y-1.5 motion-reduce:transition-none',
+                    book.is_lying_down
+                        ? 'flex-row gap-2.5 px-3'
+                        : 'flex-col gap-2.5 py-3',
+                    isDropTarget && 'outline-2 outline-offset-1 outline-accent',
+                )}
             >
-                {book.title}
-            </span>
-            {book.author_surname !== '' && (
+                {book.cover_url && <CoverWash coverUrl={book.cover_url} />}
+                <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 -z-10 rounded-cover"
+                    style={{ boxShadow: `inset 0 0 0 1px ${tone.edge}` }}
+                />
                 <span
                     className={cn(
-                        'max-h-16 shrink-0 overflow-hidden font-mono text-[10px] tracking-wide text-ellipsis whitespace-nowrap uppercase',
-                        book.cover_url && 'text-text/75',
+                        book.is_lying_down ? 'w-6 shrink-0' : 'w-full',
                     )}
-                    style={{ writingMode: 'vertical-rl' }}
                 >
-                    {book.author_surname}
+                    <PublisherMark device={identity.device} />
                 </span>
+                <span
+                    className={cn(
+                        'min-h-0 font-sans text-[13px] leading-[1.2] font-bold text-text',
+                        'line-clamp-2 flex-1',
+                        book.is_lying_down && 'min-w-0',
+                    )}
+                    style={
+                        book.is_lying_down
+                            ? undefined
+                            : { writingMode: 'vertical-rl' }
+                    }
+                >
+                    {book.title}
+                </span>
+                {book.author_surname !== '' && (
+                    <span
+                        className={cn(
+                            'shrink-0 overflow-hidden font-mono text-[10px] tracking-wide text-ellipsis whitespace-nowrap uppercase',
+                            book.is_lying_down ? 'max-w-20' : 'max-h-16',
+                            book.cover_url && 'text-text/75',
+                        )}
+                        style={
+                            book.is_lying_down
+                                ? undefined
+                                : { writingMode: 'vertical-rl' }
+                        }
+                    >
+                        {book.author_surname}
+                    </span>
+                )}
+                <StatusMark status={book.status} />
+            </Link>
+            {onTogglePosture && (
+                <button
+                    type="button"
+                    onClick={onTogglePosture}
+                    aria-label={
+                        book.is_lying_down
+                            ? t('Colocar em pé')
+                            : t('Deitar o livro')
+                    }
+                    title={
+                        book.is_lying_down
+                            ? t('Colocar em pé')
+                            : t('Deitar o livro')
+                    }
+                    className="absolute top-1 right-1 z-10 inline-flex size-6 items-center justify-center rounded-full bg-elevated text-secondary opacity-0 shadow-float transition-opacity group-focus-within/spine:opacity-100 group-hover/spine:opacity-100 hover:text-text focus-visible:opacity-100 motion-reduce:transition-none"
+                >
+                    <RotateBookIcon width={12} height={12} />
+                </button>
             )}
-            <StatusMark status={book.status} />
-        </Link>
+        </div>
     );
 }

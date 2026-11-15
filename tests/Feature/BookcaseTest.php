@@ -203,3 +203,33 @@ test('the catch-all shelf cannot be merged, nor a shelf with itself', function (
 
     expect(Bookshelf::query()->count())->toBe(2);
 });
+
+test('a book stands on the shelf until it is laid down', function () {
+    $book = bookcaseBook('A', 'Ana Alves');
+
+    expect($book->fresh()->is_lying_down)->toBeFalse();
+
+    $this->patch(route('books.posture', $book), ['is_lying_down' => true])->assertRedirect();
+    expect($book->fresh()->is_lying_down)->toBeTrue();
+
+    $this->patch(route('books.posture', $book), ['is_lying_down' => false])->assertRedirect();
+    expect($book->fresh()->is_lying_down)->toBeFalse();
+});
+
+test('laying a book down keeps its cover version', function () {
+    $book = bookcaseBook('A', 'Ana Alves');
+    $updatedAt = $book->fresh()->updated_at;
+
+    $this->travel(1)->minutes();
+    $this->patch(route('books.posture', $book), ['is_lying_down' => true]);
+
+    expect($book->fresh()->updated_at->equalTo($updatedAt))->toBeTrue();
+});
+
+test('the library tells the shelf which books are lying down', function () {
+    $book = bookcaseBook('A', 'Ana Alves', ['is_lying_down' => true]);
+
+    $this->get(route('library.index', ['view' => 'bookcase']))->assertInertia(fn (Assert $page) => $page
+        ->where('books.0.id', $book->id)
+        ->where('books.0.is_lying_down', true));
+});
