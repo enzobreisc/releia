@@ -45,4 +45,11 @@ return [
         'key' => env('GOOGLE_BOOKS_API_KEY'),
     ],
 
+    'ollama' => [
+        'url' => env('OLLAMA_URL', 'http://127.0.0.1:11434'),
+        'embedding_model' => env('OLLAMA_EMBEDDING_MODEL', 'nomic-embed-text'),
+        'embedding_prefix' => env('OLLAMA_EMBEDDING_PREFIX', 'clustering: '),
+        'timeout' => (int) env('OLLAMA_TIMEOUT', 5),
+    ],
+
 ];
