@@ -11,7 +11,7 @@ final class ScoredRanker implements CandidateRanker
 {
     private const JITTER = 0.8;
 
-    public function rank(array $suggestions): array
+    public function rank(array $suggestions, float $deadline): array
     {
         $scored = array_map(
             fn (Suggestion $suggestion) => [$suggestion, $suggestion->score() + self::JITTER * mt_rand() / mt_getrandmax()],

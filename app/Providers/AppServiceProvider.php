@@ -7,7 +7,12 @@ use App\Native\ShowQuickLogWindow;
 use App\Services\Ai\BookEmbeddingIndexer;
 use App\Services\Ai\EmbeddingProvider;
 use App\Services\Ai\OllamaEmbeddingProvider;
+use App\Services\Recommendation\CandidateEmbeddings;
+use App\Services\Recommendation\CandidateRanker;
+use App\Services\Recommendation\EmbeddingRanker;
+use App\Services\Recommendation\ScoredRanker;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -30,6 +35,14 @@ class AppServiceProvider extends ServiceProvider
             prefix: config()->string('services.ollama.embedding_prefix'),
         ));
 
+        $this->app->bind(CandidateEmbeddings::class, fn (): CandidateEmbeddings => new CandidateEmbeddings(
+            provider: $this->app->make(EmbeddingProvider::class),
+            prefix: config()->string('services.ollama.embedding_prefix'),
+        ));
+
+        $this->app->bind(CandidateRanker::class, fn (Application $app): CandidateRanker => EmbeddingRanker::isEnabled()
+            ? $app->make(EmbeddingRanker::class)
+            : $app->make(ScoredRanker::class));
     }
 
     public function boot(): void

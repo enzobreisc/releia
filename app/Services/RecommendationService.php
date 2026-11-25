@@ -4,33 +4,42 @@ namespace App\Services;
 
 use App\Enums\ReadingStatus;
 use App\Enums\RecommendationStatus;
+use App\Models\Book;
 use App\Models\Recommendation;
+use App\Services\Ai\BookEmbeddingIndexer;
+use App\Services\Ai\EmbeddingUnavailable;
 use App\Services\BookLookup\BookCandidate;
+use App\Services\Recommendation\EmbeddingRanker;
 use App\Services\Recommendation\LibraryIntake;
 use App\Services\Recommendation\SourceBooks;
 use App\Services\Recommendation\SuggestionGenerator;
 use App\Services\Recommendation\TodaySuggestion;
 use App\Services\Recommendation\WorkEditions;
 use App\Services\Recommendation\WorkSearch;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Facades\Log;
 
 /**
- * Suggestion layer 1: from the books rated 4 or 5, finds others by the
+ * Suggests books you have not read yet: from the books rated 4 or 5, finds others by the
  * same author and on the same subject in Open Library.
  *
  * When to generate: only when the user asks (the "Find new suggestions" button or
  * `php artisan releia:suggestions`). There is no queue or cron, because the app is local.
  * Opening the screen and today() never touch the network.
  *
- * Only works with a Brazilian edition count (ISBN 978-85/65, confirmed by ISBN to bring
- * the Portuguese title). The same candidate pointed to by several of your books rises in the list,
- * and popularity on Open Library separates the well-known from the obscure.
+ * Only Brazilian editions are suggested (ISBN 978-85/65), and the Portuguese title comes from the
+ * edition found by ISBN. A candidate pointed to by several of your books rises in the list, and
+ * popularity on Open Library separates the well-known from the obscure. With Ollama enabled, the
+ * candidates are also ordered by how close they are to the books you liked.
  *
- * Limits: at most six books per search (at most two calls per book,
- * with a 10s timeout each). Each query is cached for 7 days; empty or
- * failed responses are not stored, so they can be retried later.
+ * Limits: at most six source books per search, with two Open Library searches each (by author and
+ * by subject), each with an 8s timeout. A search stops after 20s and keeps what it found. Each query
+ * is cached for 7 days; empty or failed responses are not stored, so they can be retried later.
  */
 class RecommendationService
 {
+    private const INDEXING_BUDGET_SECONDS = 5;
+
     public function __construct(
         private readonly SourceBooks $sources,
         private readonly SuggestionGenerator $generator,
@@ -38,6 +47,7 @@ class RecommendationService
         private readonly WorkSearch $workSearch,
         private readonly WorkEditions $workEditions,
         private readonly LibraryIntake $intake,
+        private readonly BookEmbeddingIndexer $embeddingIndexer,
     ) {}
 
     public function hasSources(): bool
@@ -50,6 +60,10 @@ class RecommendationService
      */
     public function generate(): int
     {
+        if (EmbeddingRanker::isEnabled()) {
+            $this->indexLikedBookEmbeddings();
+        }
+
         return $this->generator->generate();
     }
 
@@ -106,5 +120,23 @@ class RecommendationService
     public function dismiss(Recommendation $recommendation): void
     {
         $recommendation->update(['status' => RecommendationStatus::Dismissed]);
+    }
+
+    /**
+     * Indexing happens before the search so the search keeps its full budget, and it is capped
+     * so the request cannot hang. Without Ollama, the search still runs and orders by score.
+     */
+    private function indexLikedBookEmbeddings(): void
+    {
+        $deadline = microtime(true) + self::INDEXING_BUDGET_SECONDS;
+        $likedBooks = new EloquentCollection(
+            $this->sources->liked()->map(fn (array $entry): Book => $entry[0])->all(),
+        );
+
+        try {
+            $this->embeddingIndexer->index($likedBooks, $deadline);
+        } catch (EmbeddingUnavailable $exception) {
+            Log::warning('Embedding indexing unavailable, ordering by score', ['error' => $exception->getMessage()]);
+        }
     }
 }

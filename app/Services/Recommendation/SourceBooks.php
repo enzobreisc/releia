@@ -27,12 +27,17 @@ final class SourceBooks
      */
     public function pick(): Collection
     {
-        return $this->readings()
-            ->with('book.authors')
-            ->inRandomOrder()
-            ->limit(self::MAX_SOURCES)
-            ->get()
-            ->map(fn (Reading $reading) => [$reading->book, self::ratingWeight($reading)]);
+        return $this->weighted($this->readings()->inRandomOrder()->limit(self::MAX_SOURCES));
+    }
+
+    /**
+     * Every book rated 4 or 5, with the same weights as pick().
+     *
+     * @return Collection<int, array{0: Book, 1: float}>
+     */
+    public function liked(): Collection
+    {
+        return $this->weighted($this->readings());
     }
 
     /**
@@ -46,6 +51,18 @@ final class SourceBooks
         return Reading::query()
             ->current()
             ->whereIn('rating', [4, 5]);
+    }
+
+    /**
+     * @param  Builder<Reading>  $query
+     * @return Collection<int, array{0: Book, 1: float}>
+     */
+    private function weighted(Builder $query): Collection
+    {
+        return $query
+            ->with('book.authors')
+            ->get()
+            ->map(fn (Reading $reading) => [$reading->book, self::ratingWeight($reading)]);
     }
 
     private static function ratingWeight(Reading $reading): float

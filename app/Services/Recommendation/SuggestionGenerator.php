@@ -34,7 +34,7 @@ final class SuggestionGenerator
         $blocked = $this->blockedKeys->all();
 
         $found = $this->collector->collect($this->sources->pick(), $blocked, $round % self::PAGES + 1, $deadline);
-        $created = $this->verify($this->ranker->rank($found), $blocked, $deadline);
+        $created = $this->verify($this->ranker->rank($found, $deadline), $blocked, $deadline);
 
         // Nothing new on this page: the next search already reads another.
         if ($created === []) {
