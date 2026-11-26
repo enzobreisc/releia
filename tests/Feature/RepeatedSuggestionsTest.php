@@ -91,17 +91,17 @@ test('a suggestion pushed out of the pending list is kept as expired', function 
         ->and(Recommendation::where('status', RecommendationStatus::New)->count())->toBe(60);
 });
 
-test('a search brings back at most two expired suggestions and keeps the new ones', function () {
+test('a search brings back at most one expired suggestion and keeps the new ones', function () {
     fakeOneWorkPerAuthor();
     rateOneBookPerAuthor();
     expireSuggestionsOf('Autora Um', 'Autora Dois', 'Autora Tres');
 
-    expect(app(RecommendationService::class)->generate())->toBe(3);
+    expect(app(RecommendationService::class)->generate())->toBe(2);
 
     $pending = Recommendation::where('status', RecommendationStatus::New)->pluck('title');
 
     expect($pending)->toContain('Quarto Vento')
-        ->and($pending->intersect(['Primeiro Rio', 'Segunda Ponte', 'Terceira Casa']))->toHaveCount(2);
+        ->and($pending->intersect(['Primeiro Rio', 'Segunda Ponte', 'Terceira Casa']))->toHaveCount(1);
 });
 
 test('a dismissed suggestion stays out even if it had expired before', function () {

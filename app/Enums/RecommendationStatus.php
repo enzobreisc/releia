@@ -4,7 +4,7 @@ namespace App\Enums;
 
 /**
  * Dismissed suggestions are kept so they never come back; expired ones, pushed out of the pending
- * list, so only a few come back per search.
+ * list, so they come back one at a time.
  */
 enum RecommendationStatus: string
 {

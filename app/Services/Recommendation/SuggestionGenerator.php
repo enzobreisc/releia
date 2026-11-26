@@ -17,8 +17,8 @@ final class SuggestionGenerator
 
     private const PAGES = 3;
 
-    /** Ignored suggestions may come back, but only a few: more than this and the list looks unchanged. */
-    private const MAX_RETURNING = 2;
+    /** Ignored suggestions may come back, but rarely: more than this and the list looks unchanged. */
+    private const MAX_RETURNING = 1;
 
     public function __construct(
         private readonly SourceBooks $sources,
