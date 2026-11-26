@@ -1,0 +1,31 @@
+{
+    "books": {
+        "A Hora da Estrela": "https://covers.openlibrary.org/b/id/650866-L.jpg",
+        "Clean Code": "https://covers.openlibrary.org/b/id/8065615-L.jpg",
+        "Dom Casmurro": "https://covers.openlibrary.org/b/id/647501-L.jpg",
+        "Duna": "https://covers.openlibrary.org/b/id/10210554-L.jpg",
+        "Ensaio sobre a cegueira": "https://covers.openlibrary.org/b/id/10482411-L.jpg",
+        "Histórias Extraordinárias": "https://covers.openlibrary.org/b/id/10828889-L.jpg",
+        "Memórias Póstumas de Brás Cubas": "https://covers.openlibrary.org/b/id/123152-L.jpg",
+        "O Alquimista": "https://covers.openlibrary.org/b/id/7414780-L.jpg",
+        "O Hobbit": "https://covers.openlibrary.org/b/id/15121777-L.jpg",
+        "Pequeno Manual Antirracista": null,
+        "Refactoring": "https://covers.openlibrary.org/b/id/7087623-L.jpg",
+        "Sapiens": "https://covers.openlibrary.org/b/id/8634250-L.jpg",
+        "Torto Arado": "https://covers.openlibrary.org/b/id/12369648-L.jpg",
+        "Vidas Secas": "https://covers.openlibrary.org/b/id/12369687-L.jpg"
+    },
+    "recommendations": {
+        "Homo Deus": "https://covers.openlibrary.org/b/id/8846275-L.jpg",
+        "Messias de Duna": "https://covers.openlibrary.org/b/id/980253-L.jpg",
+        "O Silmarillion": "https://covers.openlibrary.org/b/id/14627042-L.jpg",
+        "Quem tem medo do feminismo negro?": null,
+        "Salvar o fogo": "https://covers.openlibrary.org/b/id/14834499-L.jpg"
+    },
+    "shopping_items": {
+        "Grande Sertão: Veredas": "https://covers.openlibrary.org/b/id/13909068-L.jpg",
+        "O Silmarillion": "https://covers.openlibrary.org/b/id/14627042-L.jpg",
+        "Quincas Borba": "https://covers.openlibrary.org/b/id/123420-L.jpg",
+        "Salvar o fogo": "https://covers.openlibrary.org/b/id/14834499-L.jpg"
+    }
+}
