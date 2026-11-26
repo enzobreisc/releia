@@ -84,30 +84,7 @@ class BookLookupService
      */
     public function editions(string $workKey, array $authors = [], ?string $publisher = null): array
     {
-        /** @var list<CandidateArray> $cached */
-        $cached = $this->remember("editions:{$workKey}", function () use ($workKey) {
-            $unique = [];
-
-            foreach ($this->openLibrary->editions($workKey) as $edition) {
-                if ($edition->isbn13 !== null) {
-                    $unique[$edition->isbn13] ??= $edition;
-                }
-            }
-
-            $editions = array_values($unique);
-
-            usort($editions, fn (BookCandidate $a, BookCandidate $b) => [
-                Isbn::isBrazilian((string) $b->isbn13),
-                $b->coverUrl !== null,
-                $b->publishedYear ?? 0,
-            ] <=> [
-                Isbn::isBrazilian((string) $a->isbn13),
-                $a->coverUrl !== null,
-                $a->publishedYear ?? 0,
-            ]);
-
-            return array_map(fn (BookCandidate $edition) => $edition->toArray(), $editions);
-        });
+        $cached = $this->cachedEditions($workKey);
 
         $publisher = self::normalize($publisher ?? '');
 
@@ -123,6 +100,63 @@ class BookLookupService
             fn (array $edition) => BookCandidate::fromArray(['authors' => $authors] + $edition),
             $cached,
         ));
+    }
+
+    /**
+     * A list cut short is not cached, so the missing editions are asked for again.
+     *
+     * @return list<CandidateArray>
+     */
+    private function cachedEditions(string $workKey): array
+    {
+        $key = "book-lookup:editions:v2:{$workKey}";
+
+        /** @var list<CandidateArray>|null $cached */
+        $cached = Cache::get($key);
+
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        $list = $this->openLibrary->editions($workKey);
+        $editions = array_map(fn (BookCandidate $edition) => $edition->toArray(), self::distinctInOrder($list->editions));
+
+        if ($list->isComplete && $editions !== []) {
+            Cache::put($key, $editions, now()->addDays(self::CACHE_DAYS));
+        }
+
+        return $editions;
+    }
+
+    /**
+     * One per ISBN: Brazilian first, then with a cover, then the most recent.
+     *
+     * @param  list<BookCandidate>  $editions
+     * @return list<BookCandidate>
+     */
+    private static function distinctInOrder(array $editions): array
+    {
+        $unique = [];
+
+        foreach ($editions as $edition) {
+            if ($edition->isbn13 !== null) {
+                $unique[$edition->isbn13] ??= $edition;
+            }
+        }
+
+        $distinct = array_values($unique);
+
+        usort($distinct, fn (BookCandidate $a, BookCandidate $b) => [
+            Isbn::isBrazilian((string) $b->isbn13),
+            $b->coverUrl !== null,
+            $b->publishedYear ?? 0,
+        ] <=> [
+            Isbn::isBrazilian((string) $a->isbn13),
+            $a->coverUrl !== null,
+            $a->publishedYear ?? 0,
+        ]);
+
+        return $distinct;
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Recommendation;
+use App\Services\BookLookupService;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -39,6 +40,11 @@ function fakeEditionPages(array $pagesByOffset): void
 
         return Http::response([], 404);
     });
+}
+
+function editionRequests(): int
+{
+    return Http::recorded(fn (Request $request) => str_contains($request->url(), 'editions.json'))->count();
 }
 
 /**
@@ -82,4 +88,42 @@ test('the suggested edition is offered when Open Library fails', function () {
     fakeEditionPages([0 => null]);
 
     expect(array_column(editionsOfSuggestion(), 'isbn_13'))->toBe([SUGGESTED_ISBN]);
+});
+
+test('editions beyond the first page are listed', function () {
+    fakeEditionPages([0 => foreignEntries(200), 200 => [['title' => 'O castelo', 'isbn_13' => ['9788573260014']]]]);
+
+    $editions = app(BookLookupService::class)->editions('OL1W');
+
+    expect($editions)->toHaveCount(201)
+        ->and($editions[0]->isbn13)->toBe('9788573260014')
+        ->and(editionRequests())->toBe(2);
+});
+
+test('at most five pages of editions are read', function () {
+    fakeEditionPages(array_fill_keys([0, 200, 400, 600, 800, 1000], foreignEntries(200)));
+
+    app(BookLookupService::class)->editions('OL1W');
+
+    expect(editionRequests())->toBe(5);
+});
+
+test('a complete list of editions is cached', function () {
+    fakeEditionPages([0 => foreignEntries(2)]);
+
+    app(BookLookupService::class)->editions('OL1W');
+    app(BookLookupService::class)->editions('OL1W');
+
+    expect(editionRequests())->toBe(1);
+});
+
+test('a list cut short by a failure is shown but asked for again', function () {
+    fakeEditionPages([0 => foreignEntries(200), 200 => null]);
+
+    expect(app(BookLookupService::class)->editions('OL1W'))->toHaveCount(200);
+
+    app()->forgetScopedInstances();
+    app(BookLookupService::class)->editions('OL1W');
+
+    expect(editionRequests())->toBe(4);
 });

@@ -25,8 +25,13 @@ class OpenLibraryProvider implements MetadataProvider
 
     private const SEARCH_RESULTS_LIMIT = 40;
 
-    /** Popular works have dozens of editions; 200 covers almost all of them in one call. */
-    private const EDITIONS_LIMIT = 200;
+    private const EDITIONS_PER_PAGE = 200;
+
+    /** Classics have hundreds of editions, in no useful order, so Brazilian ones may sit far down. */
+    private const EDITION_PAGES = 5;
+
+    /** No further page is asked for past this, so the request ends before PHP's time limit. */
+    private const EDITIONS_SECONDS = 12;
 
     public function __construct(private readonly OpenLibraryAvailability $availability) {}
 
@@ -121,15 +126,46 @@ class OpenLibraryProvider implements MetadataProvider
     /**
      * Editions of a work. Editions carry author references but not names, so the caller
      * fills in the work's authors.
-     *
-     * @return list<BookCandidate>
      */
-    public function editions(string $workKey): array
+    public function editions(string $workKey): EditionList
     {
-        $entries = $this->get("/works/{$workKey}/editions.json", ['limit' => self::EDITIONS_LIMIT])['entries'] ?? [];
+        $deadline = microtime(true) + self::EDITIONS_SECONDS;
         $editions = [];
 
-        foreach (is_array($entries) ? $entries : [] as $entry) {
+        for ($page = 0; $page < self::EDITION_PAGES; $page++) {
+            if ($page > 0 && microtime(true) > $deadline) {
+                return new EditionList($editions, isComplete: false);
+            }
+
+            $entries = $this->get("/works/{$workKey}/editions.json", [
+                'limit' => self::EDITIONS_PER_PAGE,
+                'offset' => $page * self::EDITIONS_PER_PAGE,
+            ])['entries'] ?? [];
+
+            if ($this->availability->hasJustFailed()) {
+                return new EditionList($editions, isComplete: false);
+            }
+
+            $entries = is_array($entries) ? $entries : [];
+            $editions = [...$editions, ...$this->editionsFrom($entries, $workKey)];
+
+            if (count($entries) < self::EDITIONS_PER_PAGE) {
+                break;
+            }
+        }
+
+        return new EditionList($editions, isComplete: true);
+    }
+
+    /**
+     * @param  array<mixed>  $entries
+     * @return list<BookCandidate>
+     */
+    private function editionsFrom(array $entries, string $workKey): array
+    {
+        $editions = [];
+
+        foreach ($entries as $entry) {
             if (! is_array($entry) || ! is_string($entry['title'] ?? null)) {
                 continue;
             }
