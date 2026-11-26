@@ -373,9 +373,10 @@ class OpenLibraryProvider implements MetadataProvider
      * comes with the ISBNs of all its editions, to check against the library.
      *
      * @param  list<string>  $keys
+     * @param  string|null  $language  only works with an edition in it, so the result limit is not spent on others
      * @return list<array{candidate: BookCandidate, isbns: list<string>, portuguese: bool}>
      */
-    public function worksByAuthorKeys(array $keys): array
+    public function worksByAuthorKeys(array $keys, ?string $language = null): array
     {
         $keys = array_values(array_filter($keys, fn (string $key) => preg_match('/^OL\d+A$/', $key) === 1));
 
@@ -383,12 +384,13 @@ class OpenLibraryProvider implements MetadataProvider
             return [];
         }
 
-        $docs = $this->get('/search.json', [
+        $docs = $this->get('/search.json', array_filter([
             'q' => implode(' OR ', array_map(fn (string $key) => "author_key:{$key}", $keys)),
+            'language' => $language,
             'sort' => 'want_to_read',
             'fields' => self::SEARCH_FIELDS.',language',
             'limit' => 100,
-        ])['docs'] ?? [];
+        ]))['docs'] ?? [];
 
         $works = [];
 

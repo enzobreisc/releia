@@ -36,7 +36,7 @@ export function OtherWorksBody({
         return (
             <p className={cardClass('p-4 text-sm text-muted')}>
                 {t(
-                    'Não foi possível identificar este autor com segurança (há homônimos), então não mostramos obras que poderiam ser de outra pessoa.',
+                    'Não foi possível identificar este autor com segurança (há homônimos ou a busca falhou), então não mostramos obras que poderiam ser de outra pessoa.',
                 )}
             </p>
         );
@@ -45,7 +45,11 @@ export function OtherWorksBody({
     if (works.items.length === 0) {
         return (
             <p className="text-sm text-muted">
-                {t('Você já tem todas as obras que encontramos.')}
+                {works.owns_all
+                    ? t('Você já tem todas as obras que encontramos.')
+                    : t(
+                          'Não encontramos outras obras em português com edição brasileira.',
+                      )}
             </p>
         );
     }

@@ -11,7 +11,11 @@ export type Work = {
     portuguese: boolean;
 };
 
-export type Works = { verified: boolean; items: Work[] };
+export type Works = {
+    verified: boolean;
+    owns_all: boolean;
+    items: Work[];
+};
 
 /** Works missing from the library, from Open Library by the author's keys. */
 export function useAuthorWorks(authorId: number): {

@@ -26,6 +26,8 @@ class AuthorService
 
     private const ISBN_TRIES = 3;
 
+    private const WORKS_LANGUAGE = 'por';
+
     public function __construct(
         private readonly OpenLibraryProvider $openLibrary,
         private readonly BrasilApiProvider $brasilApi,
@@ -131,14 +133,14 @@ class AuthorService
     }
 
     /**
-     * @return array{verified: bool, items: list<array<string, mixed>>}
+     * @return array{verified: bool, owns_all: bool, items: list<array<string, mixed>>}
      */
     public function works(Author $author): array
     {
         $keys = $this->keys($author);
 
         if ($keys === []) {
-            return ['verified' => false, 'items' => []];
+            return ['verified' => false, 'owns_all' => false, 'items' => []];
         }
 
         $works = $this->cachedWorks($keys);
@@ -146,6 +148,8 @@ class AuthorService
         $owned = $this->ownedKeys($this->sameAuthors($author));
         $seen = [];
         $items = [];
+        $ownedWorks = 0;
+        $missingWorks = 0;
 
         foreach ($works as $work) {
             if (count($items) >= self::MAX_WORKS) {
@@ -162,8 +166,12 @@ class AuthorService
             $original = BookIdentity::normalizeTitle($work['candidate']->title);
 
             if (array_intersect(['title:'.$original, ...array_map(fn (string $isbn) => 'isbn:'.$isbn, $work['isbns'])], $owned) !== []) {
+                $ownedWorks++;
+
                 continue;
             }
+
+            $missingWorks++;
 
             $edition = $this->portugueseEdition($brazilian);
 
@@ -173,7 +181,7 @@ class AuthorService
 
             $title = BookIdentity::normalizeTitle($edition->title);
 
-            if ($title === '' || isset($seen[$title]) || in_array('title:'.$title, $owned, true) || in_array($title, array_map(BookIdentity::normalize(...), $work['candidate']->authors), true)) {
+            if ($title === '' || isset($seen[$title]) || in_array('title:'.$title, $owned, true) || BookIdentity::isAuthorName($edition->title, [...$work['candidate']->authors, $author->name])) {
                 continue;
             }
 
@@ -189,7 +197,7 @@ class AuthorService
             ];
         }
 
-        return ['verified' => true, 'items' => $items];
+        return ['verified' => true, 'owns_all' => $ownedWorks > 0 && $missingWorks === 0, 'items' => $items];
     }
 
     /**
@@ -201,14 +209,14 @@ class AuthorService
      */
     private function cachedWorks(array $keys): array
     {
-        $cacheKey = 'author-works:v3:'.implode(',', $keys);
+        $cacheKey = 'author-works:v4:'.implode(',', $keys);
         $cached = Cache::get($cacheKey);
 
         if (is_array($cached)) {
             return array_values(array_map(fn (array $work) => ['candidate' => BookCandidate::fromArray($work['candidate']), 'isbns' => $work['isbns'], 'portuguese' => $work['portuguese']], $cached));
         }
 
-        $works = $this->openLibrary->worksByAuthorKeys($keys);
+        $works = $this->openLibrary->worksByAuthorKeys($keys, self::WORKS_LANGUAGE);
 
         // Empty may be a network failure: do not cache it.
         if ($works !== []) {

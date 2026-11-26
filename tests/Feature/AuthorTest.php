@@ -234,3 +234,41 @@ test('o ISBN listado só num cadastro com grafia errada também traz o cadastro 
 
     expect($author->refresh()->open_library_key)->toBe('OL14308067A,OL93286A');
 });
+
+function brazilianWork(string $title, string $isbn): array
+{
+    return ['key' => '/works/OL1W', 'title' => $title, 'author_name' => ['Itamar Vieira Junior'], 'isbn' => [$isbn], 'language' => ['por']];
+}
+
+test('the author page asks Open Library only for works in Portuguese', function () {
+    fakeAuthorApi([]);
+
+    $this->getJson(route('authors.works', authorWithBook()))->assertOk();
+
+    Http::assertSent(fn (Request $request) => str_contains($request->data()['q'] ?? '', 'author_key:')
+        && ($request->data()['language'] ?? null) === 'por');
+});
+
+test('it says you own every work only when the works found are all yours', function () {
+    fakeAuthorApi([brazilianWork('Torto Arado', '9786580309313')]);
+
+    $this->getJson(route('authors.works', authorWithBook()))
+        ->assertJson(['verified' => true, 'owns_all' => true, 'items' => []]);
+});
+
+test('finding no work in Portuguese is not reported as owning them all', function (array $works) {
+    fakeAuthorApi($works);
+
+    $this->getJson(route('authors.works', authorWithBook()))
+        ->assertJson(['verified' => true, 'owns_all' => false, 'items' => []]);
+})->with([
+    'no works' => [[]],
+    'only a foreign edition' => [[['key' => '/works/OL2W', 'title' => 'Crooked Plow', 'isbn' => ['9781839763410'], 'language' => ['eng']]]],
+]);
+
+test('a work titled with just the author surname is not listed', function () {
+    fakeAuthorApi([brazilianWork('Junior', '9786580309320')]);
+    Cache::put('author-edition:9786580309320', ['title' => 'Junior', 'authors' => [], 'isbn_13' => '9786580309320', 'isbn_10' => null, 'subtitle' => null, 'publisher' => null, 'published_year' => null, 'pages' => null, 'genre' => null, 'description' => null, 'cover_url' => null, 'source' => 'brasil_api']);
+
+    $this->getJson(route('authors.works', authorWithBook()))->assertJson(['items' => []]);
+});
