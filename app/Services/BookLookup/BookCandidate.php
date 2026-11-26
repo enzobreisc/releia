@@ -61,6 +61,11 @@ final readonly class BookCandidate
         );
     }
 
+    public function withCover(string $coverUrl): self
+    {
+        return self::fromArray(['cover_url' => $coverUrl] + $this->toArray());
+    }
+
     public function isComplete(): bool
     {
         return $this->pages !== null && $this->coverUrl !== null && $this->description !== null && $this->genre !== null;

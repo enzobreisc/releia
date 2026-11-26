@@ -137,7 +137,9 @@ final class SuggestionGenerator
                 $worksByAuthor[$authorKey] = ($worksByAuthor[$authorKey] ?? 0) + 1;
             }
 
-            $created[] = $verified;
+            $created[] = SearchBudget::isExceeded($deadline)
+                ? $verified
+                : $this->editions->withOwnCover($verified, $suggestion->candidate->coverUrl);
         }
 
         return $created;
