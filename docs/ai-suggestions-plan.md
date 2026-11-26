@@ -79,12 +79,54 @@ Migração: apenas a da etapa 2 (nova tabela, sem alterar `books`). Melhoria fut
 - Ao gerar sugestões, só os livros com nota 4–5 são indexados, com limite de 5 s; `releia:embed` indexa a biblioteca toda.
 - Os vetores dos candidatos ficam no cache do Laravel por 30 dias.
 
-**Próximos passos:**
+## Validação com Ollama real (25/11/2026)
 
-1. Instalar o Ollama, baixar o `nomic-embed-text` e validar numa cópia do banco; comparar com `bge-m3` se o resultado em pt-BR for ruim.
-2. Etapa 5: botão para `ai.enabled` (decidir entre a página de configurações e a de sugestões) e indicador de disponibilidade.
-3. Decidir se a etapa 6 (justificativa com LLM) será feita.
-4. Etapa 7: `README.md` e `README.pt-BR.md`.
-5. Publicar uma nova versão: o app empacotado só cria `book_embeddings` após o bump.
+Feita numa cópia do banco, com Ollama 0.40.18 e `nomic-embed-text`.
+
+- A API responde no formato esperado (768 dimensões; modelo ausente retorna 404).
+- Os 29 livros foram indexados em menos de 1 s. Ordenar 34 candidatos levou 0,66 s sem cache e 0,04 s com cache.
+- **Bug:** a similaridade é multiplicada pelo peso da nota. Como os cossenos ficam entre 0,63 e 0,94, os livros 4★ são praticamente ignorados.
+- A discriminação é baixa: em _O Tatuador de Auschwitz_, um terror sem relação ficou acima de outro livro sobre a mesma época. A causa provável é o tema não estar no texto analisado.
+- Candidatos com título em russo tiveram similaridade baixa, mesmo sendo de autores curtidos.
+- A ordem das sugestões mudou pouco em relação à pontuação atual.
+- Não medido: tempo da busca completa e comparação com `bge-m3`.
+
+## Desenho fechado
+
+Substitui, onde houver conflito, a recomendação e as etapas 5 e 6 acima.
+
+**Escala do leitor:** 5 = apaixonou; 4 = muito bom; 3 = bom; 2 = indica pouco; 1 = repele.
+
+| Tema                            | Decisão                                                                     |
+| ------------------------------- | --------------------------------------------------------------------------- |
+| Prioridade                      | Não perder um livro que o leitor amaria                                     |
+| Acerto                          | Um livro que seria avaliado com 3 ou mais                                   |
+| Autor lido                      | Busca a partir de 4★ e 5★, valendo a melhor nota no autor                   |
+| Interesse                       | "Quero ler" e lista de compras disparam buscas, com peso de 4★              |
+| Variedade                       | No máximo 3 obras por autor em cada busca                                   |
+| Motivo                          | Toda sugestão diz por que apareceu e permite pesquisar em fontes reais      |
+| Nota na similaridade            | Vale o melhor vizinho; a proximidade é medida acima do piso antes do peso   |
+| Pesos iniciais                  | 5 = 1,0; 4 = 0,6; 3 = 0,3; 2 = 0,1; sem repulsão enquanto não houver nota 1 |
+| Tema                            | Incluir os assuntos da Open Library no texto analisado                      |
+| Justificativa por LLM (etapa 6) | Descartada, pelo risco de inventar fatos                                    |
+| Botão da IA (etapa 5)           | Página de sugestões, com indicador de disponibilidade                       |
+
+O peso de 4★ para o interesse e o local do botão são padrões propostos, ainda revisáveis.
+
+**Proximidade:** `(cosseno − piso) / (teto − piso)`, limitada entre 0 e 1. Piso 0,63 e teto 0,94 foram observados com `nomic-embed-text` e precisam ser recalibrados se o modelo mudar.
+
+**Condição para a IA permanecer:** com ela, os livros que o leitor amaria precisam aparecer mais entre os 20 primeiros.
+
+## Próximos passos
+
+1. Confirmar se a Open Library traz assuntos úteis para os livros da biblioteca.
+2. Medir a cobertura (esconder um livro 4★ ou 5★ entre candidatos reais e ver se fica entre os 20 primeiros): só pontuação, `nomic-embed-text` e `bge-m3`.
+3. Implementar: correção do peso, buscas por interesse, limite por autor e, se a medição justificar, assuntos no embedding.
+4. Verificar por que _Metamorfose_ é sugerida com _A Metamorfose_ já na biblioteca.
+5. Botão `ai.enabled` na página de sugestões (etapa 5).
+6. `README.md` e `README.pt-BR.md` (etapa 7).
+7. Publicar uma nova versão: o app empacotado só cria `book_embeddings` após o bump.
 
 **Melhorias opcionais:** guardar os vetores em cache empacotados (`Vector::pack`) e pular o ranker quando a indexação acabou de falhar.
+
+**Antes de medir:** confirmar se `database/nativephp.sqlite` é a biblioteca real.
