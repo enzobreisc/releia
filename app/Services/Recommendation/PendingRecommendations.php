@@ -7,7 +7,7 @@ use App\Models\Recommendation;
 
 final class PendingRecommendations
 {
-    /** Pending suggestions kept: above this the oldest ones drop out. */
+    /** Pending suggestions kept: above this the oldest ones expire. */
     private const MAX_PENDING = 60;
 
     /**
@@ -33,10 +33,10 @@ final class PendingRecommendations
         }
     }
 
-    public function trim(): void
+    public function expireOverflow(): void
     {
         $keep = Recommendation::query()->where('status', RecommendationStatus::New)->latest('id')->limit(self::MAX_PENDING)->pluck('id');
 
-        Recommendation::query()->where('status', RecommendationStatus::New)->whereNotIn('id', $keep)->delete();
+        Recommendation::query()->where('status', RecommendationStatus::New)->whereNotIn('id', $keep)->update(['status' => RecommendationStatus::Expired]);
     }
 }

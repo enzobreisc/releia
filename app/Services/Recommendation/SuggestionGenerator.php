@@ -17,6 +17,9 @@ final class SuggestionGenerator
 
     private const PAGES = 3;
 
+    /** Ignored suggestions may come back, but only a few: more than this and the list looks unchanged. */
+    private const MAX_RETURNING = 2;
+
     public function __construct(
         private readonly SourceBooks $sources,
         private readonly BlockedKeys $blockedKeys,
@@ -49,7 +52,7 @@ final class SuggestionGenerator
 
         $this->pending->store($created);
         Setting::put(self::ROUND_KEY, $round + 1);
-        $this->pending->trim();
+        $this->pending->expireOverflow();
 
         return count($created);
     }
@@ -63,6 +66,8 @@ final class SuggestionGenerator
     {
         $created = [];
         $lookups = 0;
+        $returning = 0;
+        $expired = $this->blockedKeys->expired();
         $worksByAuthor = [];
 
         foreach ($ranked as $suggestion) {
@@ -74,6 +79,13 @@ final class SuggestionGenerator
             $authorKey = $suggestion->authorKey();
 
             if ($authorKey !== null && ($worksByAuthor[$authorKey] ?? 0) >= self::MAX_WORKS_PER_AUTHOR) {
+                continue;
+            }
+
+            // Checked before the lookup too, so a skipped return does not spend one.
+            $isReturning = self::matchesAny(SuggestionCollector::keysOf($suggestion->candidate), $expired);
+
+            if ($isReturning && $returning >= self::MAX_RETURNING) {
                 continue;
             }
 
@@ -91,9 +103,18 @@ final class SuggestionGenerator
             ];
 
             // The Portuguese title may be a book you already have under another ISBN.
-            if (array_intersect_key(array_flip($keys), $blocked) !== []) {
+            if (self::matchesAny($keys, $blocked)) {
                 continue;
             }
+
+            // The Portuguese edition may be the one that expired.
+            $isReturning = $isReturning || self::matchesAny($keys, $expired);
+
+            if ($isReturning && $returning >= self::MAX_RETURNING) {
+                continue;
+            }
+
+            $returning += (int) $isReturning;
 
             foreach ($keys as $key) {
                 $blocked[$key] = true;
@@ -107,5 +128,14 @@ final class SuggestionGenerator
         }
 
         return $created;
+    }
+
+    /**
+     * @param  list<string>  $keys
+     * @param  array<string, true>  $known
+     */
+    private static function matchesAny(array $keys, array $known): bool
+    {
+        return array_intersect_key(array_flip($keys), $known) !== [];
     }
 }

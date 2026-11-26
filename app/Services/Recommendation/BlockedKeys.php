@@ -2,31 +2,41 @@
 
 namespace App\Services\Recommendation;
 
+use App\Enums\RecommendationStatus;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Recommendation;
 use App\Support\BookIdentity;
 use App\Support\Isbn;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 final class BlockedKeys
 {
     /**
-     * Keys of everything that must not come back as a suggestion: the collection, suggestions already made
-     * (pending and dismissed) and the shopping list.
+     * Keys of everything that must not come back as a suggestion: the collection, suggestions that did not
+     * expire and the shopping list.
      *
      * @return array<string, true>
      */
     public function all(): array
     {
-        $keys = [];
+        $blocking = Recommendation::query()->where('status', '!=', RecommendationStatus::Expired);
 
-        foreach ([...$this->libraryKeys(), ...$this->recommendationKeys(), ...$this->shoppingKeys()] as $key) {
-            $keys[$key] = true;
-        }
+        return array_fill_keys([...$this->libraryKeys(), ...$this->recommendationKeys($blocking), ...$this->shoppingKeys()], true);
+    }
 
-        return $keys;
+    /**
+     * Keys of the suggestions that left the pending list unanswered, which may come back in small numbers.
+     *
+     * @return array<string, true>
+     */
+    public function expired(): array
+    {
+        $expired = Recommendation::query()->where('status', RecommendationStatus::Expired);
+
+        return array_fill_keys($this->recommendationKeys($expired), true);
     }
 
     /** @return list<string> */
@@ -52,10 +62,13 @@ final class BlockedKeys
         );
     }
 
-    /** @return list<string> */
-    private function recommendationKeys(): array
+    /**
+     * @param  Builder<Recommendation>  $recommendations
+     * @return list<string>
+     */
+    private function recommendationKeys(Builder $recommendations): array
     {
-        return array_values(Recommendation::query()->get()
+        return array_values($recommendations->get()
             ->flatMap(fn (Recommendation $recommendation) => $this->keysOf($recommendation))
             ->all());
     }
