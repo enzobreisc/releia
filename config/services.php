@@ -50,6 +50,10 @@ return [
         'embedding_model' => env('OLLAMA_EMBEDDING_MODEL', 'nomic-embed-text'),
         'embedding_prefix' => env('OLLAMA_EMBEDDING_PREFIX', 'clustering: '),
         'timeout' => (int) env('OLLAMA_TIMEOUT', 5),
+        // Cosine similarity of unrelated books already sits near the floor for this model, so only the
+        // part between floor and ceiling carries information. Recalibrate when the model changes.
+        'similarity_floor' => env('OLLAMA_SIMILARITY_FLOOR'),
+        'similarity_ceiling' => env('OLLAMA_SIMILARITY_CEILING'),
     ],
 
 ];

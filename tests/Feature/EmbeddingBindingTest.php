@@ -1,8 +1,10 @@
 <?php
 
+use App\Models\Book;
 use App\Models\BookEmbedding;
 use App\Models\Recommendation;
 use App\Models\Setting;
+use App\Services\Ai\EmbeddingText;
 use App\Services\Recommendation\CandidateRanker;
 use App\Services\Recommendation\EmbeddingRanker;
 use App\Services\Recommendation\ScoredRanker;
@@ -52,17 +54,39 @@ test('does not call Ollama while the setting is off', function () {
     Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/api/embed'));
 });
 
-test('indexes only the liked books before searching when the setting is on', function () {
+test('indexes the profile books before searching when the setting is on', function () {
     fakeOllamaEmbeddings();
     fakeOpenLibrary();
-    $liked = ratedBook('Torto Arado', 'Itamar Vieira Junior', 5, 'Magic realism (Literature)');
-    ratedBook('Sem gosto', 'Autor Qualquer', 2);
+    $fiveStar = ratedBook('Torto Arado', 'Itamar Vieira Junior', 5, 'Magic realism (Literature)');
+    $threeStar = ratedBook('Mediano', 'Autor Qualquer', 3);
+    ratedBook('Ruim', 'Autor Qualquer', 1);
+    Book::factory()->create();
     Setting::put(EmbeddingRanker::SETTING, true);
 
     app(RecommendationService::class)->generate();
 
     expect(BookEmbedding::query()->where('model', configuredEmbeddingModel())->pluck('book_id')->all())
-        ->toBe([$liked->id]);
+        ->toEqualCanonicalizing([$fiveStar->id, $threeStar->id]);
+});
+
+test('embeds the heaviest profile books in the first request when the books exceed one batch', function () {
+    fakeOllamaEmbeddings();
+    fakeOpenLibrary();
+    $fiveStars = [ratedBook('Cinco A', 'Autor', 5), ratedBook('Cinco B', 'Autor', 5)];
+    foreach (range(1, 33) as $number) {
+        ratedBook("Dois {$number}", 'Autor', 2);
+    }
+    Setting::put(EmbeddingRanker::SETTING, true);
+
+    app(RecommendationService::class)->generate();
+
+    $firstRequest = Http::recorded(fn (Request $request): bool => str_contains($request->url(), '/api/embed'))
+        ->first()[0];
+    $prefix = config()->string('services.ollama.embedding_prefix');
+
+    expect($firstRequest['input'])->toContain(
+        ...array_map(fn (Book $book): string => $prefix.EmbeddingText::forBook($book), $fiveStars),
+    );
 });
 
 test('still creates suggestions when Ollama is down and the setting is on', function () {

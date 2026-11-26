@@ -20,17 +20,17 @@ const FAR_TITLE = 'Longe';
 beforeEach(fn () => mt_srand(1));
 
 /**
- * Candidates whose text mentions "Perto" get the vector of the liked book; the others point the opposite way.
+ * Candidates whose text mentions "Perto" get the vector of the profile book; the others point the opposite way.
  */
 function nearAndFarVector(string $input): array
 {
     return str_contains($input, CLOSE_TITLE) ? [1.0, 0.0] : [0.0, 1.0];
 }
 
-function rankerLikedBook(): Book
+function profileBook(int $rating = 5): Book
 {
     $book = Book::factory()->create();
-    $book->readings()->create(['status' => ReadingStatus::Read, 'rating' => 5]);
+    $book->readings()->create(['status' => ReadingStatus::Read, 'rating' => $rating]);
 
     BookEmbedding::query()->create([
         'book_id' => $book->id,
@@ -60,9 +60,9 @@ function titlesOf(array $suggestions): array
     return array_map(fn (Suggestion $suggestion): string => $suggestion->candidate->title, $suggestions);
 }
 
-test('the candidate closer to a liked book comes first when the scores are equal', function () {
+test('the candidate closer to a profile book comes first when the scores are equal', function () {
     fakeOllamaEmbeddings(vectorFor: nearAndFarVector(...));
-    $source = rankerLikedBook();
+    $source = profileBook();
 
     $ranked = app(EmbeddingRanker::class)->rank(
         [rankerSuggestion(FAR_TITLE, $source), rankerSuggestion(CLOSE_TITLE, $source)],
@@ -74,7 +74,7 @@ test('the candidate closer to a liked book comes first when the scores are equal
 
 test('returns every suggestion exactly once, only reordered', function () {
     fakeOllamaEmbeddings(vectorFor: nearAndFarVector(...));
-    $source = rankerLikedBook();
+    $source = profileBook();
     $suggestions = [
         rankerSuggestion(FAR_TITLE, $source),
         rankerSuggestion(CLOSE_TITLE, $source),
@@ -89,7 +89,7 @@ test('returns every suggestion exactly once, only reordered', function () {
 test('keeps every suggestion and logs a warning when Ollama fails', function () {
     Log::spy();
     fakeOllamaEmbeddings(status: 500);
-    $source = rankerLikedBook();
+    $source = profileBook();
     $suggestions = [rankerSuggestion(FAR_TITLE, $source), rankerSuggestion(CLOSE_TITLE, $source)];
 
     $ranked = app(EmbeddingRanker::class)->rank($suggestions, SearchBudget::deadline());
@@ -98,7 +98,7 @@ test('keeps every suggestion and logs a warning when Ollama fails', function () 
     Log::shouldHaveReceived('warning')->once();
 });
 
-test('does not call Ollama when no liked book has a vector', function () {
+test('does not call Ollama when no profile book has a vector', function () {
     fakeOllamaEmbeddings(vectorFor: nearAndFarVector(...));
     $source = ratedBook('Sem vetor', 'Autor', 5);
 
@@ -109,7 +109,7 @@ test('does not call Ollama when no liked book has a vector', function () {
 
 test('does not call Ollama again for candidates whose vectors are cached', function () {
     fakeOllamaEmbeddings(vectorFor: nearAndFarVector(...));
-    $source = rankerLikedBook();
+    $source = profileBook();
     $suggestions = [rankerSuggestion(CLOSE_TITLE, $source), rankerSuggestion(FAR_TITLE, $source)];
 
     app(EmbeddingRanker::class)->rank($suggestions, SearchBudget::deadline());
@@ -120,7 +120,7 @@ test('does not call Ollama again for candidates whose vectors are cached', funct
 
 test('sends only the candidates that are not cached yet', function () {
     fakeOllamaEmbeddings(vectorFor: nearAndFarVector(...));
-    $source = rankerLikedBook();
+    $source = profileBook();
     $cached = rankerSuggestion(CLOSE_TITLE, $source);
     $missing = rankerSuggestion(FAR_TITLE, $source);
 
@@ -135,7 +135,7 @@ test('sends only the candidates that are not cached yet', function () {
 
 test('sends an identical candidate text only once and still ranks both', function () {
     fakeOllamaEmbeddings(vectorFor: nearAndFarVector(...));
-    $source = rankerLikedBook();
+    $source = profileBook();
     $suggestions = [rankerSuggestion(CLOSE_TITLE, $source), rankerSuggestion(CLOSE_TITLE, $source)];
 
     $ranked = app(EmbeddingRanker::class)->rank($suggestions, SearchBudget::deadline());
@@ -144,9 +144,29 @@ test('sends an identical candidate text only once and still ranks both', functio
     expect($ranked)->toHaveCount(2);
 });
 
+test('a candidate matching only a 2-star book does not outrank a clearly higher-scored candidate', function () {
+    fakeOllamaEmbeddings(vectorFor: nearAndFarVector(...));
+    $source = profileBook(rating: 2);
+    $suggest = fn (string $title, string $kind, float $affinity): Suggestion => new Suggestion(
+        new BookCandidate(title: $title, source: BookSource::OpenLibrary, authors: ['Autor'], genre: 'Romance'),
+        'mesmo autor',
+        $source,
+        $kind,
+        $affinity,
+    );
+
+    $ranked = app(EmbeddingRanker::class)->rank([
+        $suggest('Outro', Suggestion::BY_SUBJECT, 1.0),
+        $suggest(CLOSE_TITLE, Suggestion::BY_SUBJECT, 2.0),
+        $suggest(FAR_TITLE, Suggestion::BY_AUTHOR, 1.0),
+    ], SearchBudget::deadline());
+
+    expect(titlesOf($ranked))->toBe([FAR_TITLE, CLOSE_TITLE, 'Outro']);
+});
+
 test('skips Ollama when the search deadline is too close', function () {
     fakeOllamaEmbeddings(vectorFor: nearAndFarVector(...));
-    $source = rankerLikedBook();
+    $source = profileBook();
     $suggestions = [rankerSuggestion(FAR_TITLE, $source), rankerSuggestion(CLOSE_TITLE, $source)];
 
     $ranked = app(EmbeddingRanker::class)->rank($suggestions, microtime(true) + 1);
@@ -158,7 +178,7 @@ test('skips Ollama when the search deadline is too close', function () {
 test('skips Ollama when the configured timeout does not fit before the deadline', function () {
     fakeOllamaEmbeddings(vectorFor: nearAndFarVector(...));
     config()->set('services.ollama.timeout', 15);
-    $source = rankerLikedBook();
+    $source = profileBook();
     $suggestions = [rankerSuggestion(FAR_TITLE, $source), rankerSuggestion(CLOSE_TITLE, $source)];
 
     $ranked = app(EmbeddingRanker::class)->rank($suggestions, microtime(true) + 10);

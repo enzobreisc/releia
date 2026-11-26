@@ -31,16 +31,6 @@ final class SourceBooks
     }
 
     /**
-     * Every book rated 4 or 5, with the same weights as pick().
-     *
-     * @return Collection<int, array{0: Book, 1: float}>
-     */
-    public function liked(): Collection
-    {
-        return $this->weighted($this->readings());
-    }
-
-    /**
      * Books rated 4 or 5 on each book's most recent reading (rereads:
      * the latest pass counts, not the first).
      *

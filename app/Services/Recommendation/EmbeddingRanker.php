@@ -5,11 +5,12 @@ namespace App\Services\Recommendation;
 use App\Models\Setting;
 use App\Services\Ai\EmbeddingProvider;
 use App\Services\Ai\EmbeddingUnavailable;
+use App\Services\Ai\SimilarityScale;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Blends the candidate's own score with how close it is to the books you liked (embeddings).
- * Falls back to ScoredRanker when there is no time, no liked book with a vector, or Ollama is down.
+ * Blends the candidate's own score with how close it is to the books that shape your taste (embeddings).
+ * Falls back to ScoredRanker when there is no time, no profile book with a vector, or Ollama is down.
  */
 final readonly class EmbeddingRanker implements CandidateRanker
 {
@@ -31,7 +32,8 @@ final readonly class EmbeddingRanker implements CandidateRanker
     public function __construct(
         private CandidateEmbeddings $embeddings,
         private EmbeddingProvider $provider,
-        private SourceBooks $sources,
+        private ProfileReadings $profileReadings,
+        private SimilarityScale $scale,
         private ScoredRanker $fallback,
     ) {}
 
@@ -50,7 +52,7 @@ final readonly class EmbeddingRanker implements CandidateRanker
             return $this->fallback->rank($suggestions, $deadline);
         }
 
-        $profile = TasteProfile::fromLiked($this->sources->liked(), $this->provider->model());
+        $profile = TasteProfile::fromReadings($this->profileReadings->get(), $this->provider->model(), $this->scale);
 
         if ($profile->isEmpty()) {
             return $this->fallback->rank($suggestions, $deadline);
@@ -64,10 +66,11 @@ final readonly class EmbeddingRanker implements CandidateRanker
             return $this->fallback->rank($suggestions, $deadline);
         }
 
+        // Similarities stay absolute: they already carry the model's scale and the rating weights,
+        // which rescaling within the batch would undo.
         $similarities = array_map(fn (array $vector): float => $profile->similarityTo($vector), $vectors);
         $scores = array_map(fn (Suggestion $suggestion): float => $suggestion->score(), $suggestions);
         $normalizedScores = self::normalize($scores);
-        $normalizedSimilarities = self::normalize($similarities);
 
         $blended = [];
 
@@ -75,7 +78,7 @@ final readonly class EmbeddingRanker implements CandidateRanker
             $blended[] = [
                 $suggestion,
                 self::SCORE_WEIGHT * $normalizedScores[$position]
-                + self::SIMILARITY_WEIGHT * $normalizedSimilarities[$position]
+                + self::SIMILARITY_WEIGHT * $similarities[$position]
                 + self::JITTER_WEIGHT * mt_rand() / mt_getrandmax(),
             ];
         }
@@ -86,7 +89,7 @@ final readonly class EmbeddingRanker implements CandidateRanker
     }
 
     /**
-     * Min-max scaling to 0..1 within the batch; when every value is equal, they all become 1.
+     * Min-max scaling of the candidate scores to 0..1 within the batch; when every value is equal, they all become 1.
      *
      * @param  list<float>  $values
      * @return list<float>
