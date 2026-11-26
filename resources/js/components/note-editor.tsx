@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { Dialog } from '@/components/dialog';
 import { Markdown } from '@/components/markdown';
@@ -18,31 +18,29 @@ type NoteEditorProps = {
 
 export function NoteEditor({ note, bookId, kinds, onClose }: NoteEditorProps) {
     const { t } = useTranslation();
-    const [kind, setKind] = useState(note?.kind ?? kinds[0]?.value ?? '');
-    const [page, setPage] = useState(note?.page ? String(note.page) : '');
-    const [body, setBody] = useState(note?.body_md ?? '');
-    const [tab, setTab] = useState<'edit' | 'preview'>('edit');
-    const [saving, setSaving] = useState(false);
-
-    const data = {
+    const form = useForm({
         book_id: bookId,
-        kind,
-        page: page === '' ? null : Number(page),
-        body_md: body,
-    };
+        kind: note?.kind ?? kinds[0]?.value ?? '',
+        page: note?.page ? String(note.page) : '',
+        body_md: note?.body_md ?? '',
+    });
+    const [tab, setTab] = useState<'edit' | 'preview'>('edit');
 
     function save() {
+        form.transform((data) => ({
+            ...data,
+            page: data.page === '' ? null : Number(data.page),
+        }));
+
         const options = {
             preserveScroll: true,
-            onStart: () => setSaving(true),
-            onFinish: () => setSaving(false),
             onSuccess: onClose,
         };
 
         if (note) {
-            router.patch(update.url(note.id), data, options);
+            form.patch(update.url(note.id), options);
         } else {
-            router.post(store.url(), data, options);
+            form.post(store.url(), options);
         }
     }
 
@@ -63,10 +61,16 @@ export function NoteEditor({ note, bookId, kinds, onClose }: NoteEditorProps) {
             className="max-w-160"
         >
             <div className="flex flex-wrap items-end gap-3">
-                <Field label={t('Tipo')} className="flex-[2_1_180px]">
+                <Field
+                    label={t('Tipo')}
+                    error={form.errors.kind}
+                    className="flex-[2_1_180px]"
+                >
                     <Select
-                        value={kind}
-                        onChange={(event) => setKind(event.target.value)}
+                        value={form.data.kind}
+                        onChange={(event) =>
+                            form.setData('kind', event.target.value)
+                        }
                     >
                         {kinds.map((option) => (
                             <option key={option.value} value={option.value}>
@@ -75,13 +79,19 @@ export function NoteEditor({ note, bookId, kinds, onClose }: NoteEditorProps) {
                         ))}
                     </Select>
                 </Field>
-                <Field label={t('Página')} className="flex-[1_1_100px]">
+                <Field
+                    label={t('Página')}
+                    error={form.errors.page}
+                    className="flex-[1_1_100px]"
+                >
                     <Input
                         type="number"
                         min={1}
                         inputMode="numeric"
-                        value={page}
-                        onChange={(event) => setPage(event.target.value)}
+                        value={form.data.page}
+                        onChange={(event) =>
+                            form.setData('page', event.target.value)
+                        }
                     />
                 </Field>
                 <div
@@ -110,11 +120,16 @@ export function NoteEditor({ note, bookId, kinds, onClose }: NoteEditorProps) {
             </div>
 
             {tab === 'edit' ? (
-                <Field label={t('Texto (Markdown). Tags: #tema')}>
+                <Field
+                    label={t('Texto (Markdown). Tags: #tema')}
+                    error={form.errors.body_md}
+                >
                     <Textarea
                         autoFocus
-                        value={body}
-                        onChange={(event) => setBody(event.target.value)}
+                        value={form.data.body_md}
+                        onChange={(event) =>
+                            form.setData('body_md', event.target.value)
+                        }
                         className="min-h-56 font-mono text-[14px]"
                         placeholder={t(
                             'Escreva o trecho, a reflexão ou a citação…',
@@ -123,12 +138,12 @@ export function NoteEditor({ note, bookId, kinds, onClose }: NoteEditorProps) {
                 </Field>
             ) : (
                 <div className="min-h-56 rounded-md bg-bg p-4 inset-ring inset-ring-border">
-                    {body.trim() === '' ? (
+                    {form.data.body_md.trim() === '' ? (
                         <p className="text-sm text-muted">
                             {t('Nada para mostrar ainda.')}
                         </p>
                     ) : (
-                        <Markdown source={body} />
+                        <Markdown source={form.data.body_md} />
                     )}
                 </div>
             )}
@@ -147,8 +162,13 @@ export function NoteEditor({ note, bookId, kinds, onClose }: NoteEditorProps) {
             )}
 
             <div className="flex flex-wrap items-center gap-3 border-t pt-4">
-                <Button onClick={save} disabled={saving || body.trim() === ''}>
-                    {saving
+                <Button
+                    onClick={save}
+                    disabled={
+                        form.processing || form.data.body_md.trim() === ''
+                    }
+                >
+                    {form.processing
                         ? t('Salvando…')
                         : note
                           ? t('Salvar')
