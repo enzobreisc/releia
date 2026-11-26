@@ -31,7 +31,7 @@
 - **Página do livro** com todas as leituras, suas sessões, notas em Markdown e uma resenha por leitura; releituras são registradas separadamente.
 - **Estatísticas**: livros e páginas por mês, ritmo, previsão da meta anual, gêneros e autores mais lidos e um calendário de leitura.
 - **Wrapped**: um resumo do ano que pode ser exportado como imagem.
-- **Fila, lista de compras e sugestões**: planeje a próxima leitura, acompanhe o menor preço de uma edição desejada e receba sugestões explicadas pelos livros que você avaliou bem, ou busque qualquer autor, título ou assunto.
+- **Fila, lista de compras e sugestões**: planeje a próxima leitura, acompanhe o menor preço de uma edição desejada e receba sugestões, cada uma com o motivo, a partir dos livros que você avaliou bem, dos que quer ler e da lista de compras, ou busque qualquer autor, título ou assunto.
 - **Autores e linha do tempo**: estatísticas de leitura por autor, com fotos da Open Library ou da Wikipedia, e uma linha do tempo das leituras por ano.
 - **Interface bilíngue** em português e inglês, incluindo datas, números e valores.
 - **Offline primeiro**: tudo fica num banco SQLite local e as capas são baixadas para o disco, então o app continua funcionando sem conexão.
@@ -57,7 +57,7 @@
 - **Um app Laravel entregue como app nativo.** O [NativePHP](https://nativephp.com) empacota o PHP e o app no Electron, então o mesmo código renderiza a interface em Inertia + React e controla a janela, o ícone da barra de menu e o atalho global ([`app/Native/QuickLog.php`](app/Native/QuickLog.php)).
 - **Uma tela, dois invólucros.** A página de registro rápido roda tanto na janela da barra de menu quanto como PWA instalável no celular: um agente `launchd` a serve pela tailnet usando o arquivo SQLite e o storage do app de desktop, e a página troca para controles do tamanho do toque quando não está dentro do app nativo.
 - **Busca de metadados atrás de um único contrato.** Cada fonte implementa [`MetadataProvider`](app/Services/BookLookup/MetadataProvider.php). O [`BookLookupService`](app/Services/BookLookupService.php) consulta a Open Library primeiro e usa a BrasilAPI e o Google Books para completar ou como reserva, com cache dos resultados; uma nova fonte é só uma classe.
-- **Sugestões explicáveis.** O [`RecommendationService`](app/Services/RecommendationService.php) parte dos livros que você avaliou bem, busca outras obras dos mesmos autores e assuntos e ordena os candidatos com um [`CandidateRanker`](app/Services/Recommendation/CandidateRanker.php) plugável. Cada sugestão traz o motivo, e as buscas têm limite de tempo e cache.
+- **Sugestões explicáveis.** O [`RecommendationService`](app/Services/RecommendationService.php) parte dos livros que você avaliou bem e do que você quer ler ou comprar, busca outras obras dos mesmos autores (e, para os avaliados, dos assuntos), mantém no máximo três por autor e ordena os candidatos com um [`CandidateRanker`](app/Services/Recommendation/CandidateRanker.php) plugável. Cada sugestão traz o motivo, e as buscas têm limite de tempo e cache.
 - **Controllers enxutos, serviços ricos.** As regras de negócio ficam nos serviços, e os presenters definem as props que cada página Inertia recebe.
 - **Páginas enxutas, componentes pequenos.** Cada página React só compõe componentes que ficam numa pasta com o nome dela; o estado fica em hooks `use-*` e os helpers puros em `lib/`, então nenhuma página vira um arquivo de mil linhas.
 - **i18n com o texto original como chave.** Os textos são escritos em português e traduzidos em [`lang/en.json`](lang/en.json); o type check falha se faltar uma chave no React, e um teste falha se faltar uma chave no PHP.
@@ -86,6 +86,18 @@ xattr -dr com.apple.quarantine /Applications/releia.app
 ```
 
 Para registrar sessões pelo celular, siga [docs/mobile-quick-log.md](docs/mobile-quick-log.md).
+
+## Ordenação com IA local (experimental)
+
+As sugestões também podem ser ordenadas pela proximidade com os livros que você avaliou, usando embeddings calculados no seu Mac pelo [Ollama](https://ollama.com). É opcional, vem desligada e nada da sua biblioteca sai da máquina: o Ollama roda em `localhost`, e a Open Library continua recebendo apenas as buscas por autor e assunto.
+
+```bash
+brew install ollama
+brew services start ollama
+ollama pull nomic-embed-text
+```
+
+Depois ligue **Ordenar com IA local** na página de Sugestões. É experimental: por enquanto muda pouco a ordem, e o ganho ainda não foi medido. Sem o Ollama, as sugestões continuam funcionando, ordenadas pela pontuação.
 
 ## Desenvolvimento
 
