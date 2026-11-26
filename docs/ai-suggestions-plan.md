@@ -85,8 +85,12 @@ Feita numa cópia do banco, com Ollama 0.40.18 e `nomic-embed-text`.
 
 - A API responde no formato esperado (768 dimensões; modelo ausente retorna 404).
 - Os 29 livros foram indexados em menos de 1 s. Ordenar 34 candidatos levou 0,66 s sem cache e 0,04 s com cache.
-- **Bug:** a similaridade é multiplicada pelo peso da nota. Como os cossenos ficam entre 0,63 e 0,94, os livros 4★ são praticamente ignorados.
-- A discriminação é baixa: em _O Tatuador de Auschwitz_, um terror sem relação ficou acima de outro livro sobre a mesma época. A causa provável é o tema não estar no texto analisado.
+- **Bug (corrigido):** a similaridade era multiplicada pelo peso da nota. Como os cossenos ficam entre 0,63 e 0,94, os livros 4★ eram praticamente ignorados. Depois da correção, o livro mais próximo de 34 candidatos foi um 5★ em 20 casos e um 4★ em 14.
+- Com os pesos atuais, livros 3★ e 2★ não foram o mais próximo de nenhum candidato.
+- **Adiado:** os pesos ficam como estão até haver uma amostra maior e mais diversa de livros avaliados. Alternativa testada para depois: pesos 1 / 0,8 / 0,6 / 0,2 com o 2º e o 3º vizinhos reforçando o melhor (`nota + (1 − nota) × 0,3 × vizinho`), o que fez um 3★ participar de 11 em 34 candidatos. Só aumentar os pesos fez um 3★ ser o melhor vizinho em no máximo 2.
+- A similaridade deixou de ser renormalizada a cada busca, para preservar os pesos. Com isso a IA altera ainda menos a ordem. O peso da similaridade na combinação precisa ser calibrado na medição.
+- A comparação ordenou os candidatos antes da verificação de edições. Parte deles era de livros já na biblioteca em outro idioma, o que infla a similaridade; o app os descarta depois, mas eles consomem tentativas de verificação.
+- A discriminação é baixa: para um livro sobre o Holocausto, um terror sem relação ficou acima de outro livro sobre a mesma época. A causa provável é o tema não estar no texto analisado.
 - Candidatos com título em russo tiveram similaridade baixa, mesmo sendo de autores curtidos.
 - A ordem das sugestões mudou pouco em relação à pontuação atual.
 - Não medido: tempo da busca completa e comparação com `bge-m3`.
@@ -120,13 +124,11 @@ O peso de 4★ para o interesse e o local do botão são padrões propostos, ain
 ## Próximos passos
 
 1. Confirmar se a Open Library traz assuntos úteis para os livros da biblioteca.
-2. Medir a cobertura (esconder um livro 4★ ou 5★ entre candidatos reais e ver se fica entre os 20 primeiros): só pontuação, `nomic-embed-text` e `bge-m3`.
-3. Implementar: correção do peso, buscas por interesse, limite por autor e, se a medição justificar, assuntos no embedding.
-4. Verificar por que _Metamorfose_ é sugerida com _A Metamorfose_ já na biblioteca.
+2. Medir a cobertura (esconder um livro 4★ ou 5★ entre candidatos reais e ver se fica entre os 20 primeiros), considerando só os candidatos que passam pela verificação de edições: só pontuação, `nomic-embed-text` e `bge-m3`.
+3. Implementar: buscas por interesse, limite por autor e, se a medição justificar, assuntos no embedding.
+4. Decidir se sugestões pendentes antigas de livros que já estão na biblioteca devem ser removidas. A detecção atual já as bloqueia; as encontradas são anteriores à correção que ignora artigos nos títulos.
 5. Botão `ai.enabled` na página de sugestões (etapa 5).
 6. `README.md` e `README.pt-BR.md` (etapa 7).
 7. Publicar uma nova versão: o app empacotado só cria `book_embeddings` após o bump.
 
 **Melhorias opcionais:** guardar os vetores em cache empacotados (`Vector::pack`) e pular o ranker quando a indexação acabou de falhar.
-
-**Antes de medir:** confirmar se `database/nativephp.sqlite` é a biblioteca real.
