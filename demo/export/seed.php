@@ -230,6 +230,16 @@ function addShoppingItems(CoverCatalog $covers): void
     }
 }
 
+/**
+ * Open Library work keys, checked on openlibrary.org. A suggestion without one shows no "choose edition" button.
+ */
+const RECOMMENDATION_WORK_KEYS = [
+    'Messias de Duna' => 'OL893461W',
+    'Salvar o fogo' => 'OL39580661W',
+    'Homo Deus' => 'OL37486679W',
+    'O Silmarillion' => 'OL46058377W',
+];
+
 function addRecommendations(CoverCatalog $covers): void
 {
     foreach ([
@@ -243,6 +253,7 @@ function addRecommendations(CoverCatalog $covers): void
             'title' => $title,
             'author' => $author,
             'cover_url' => $covers->coverFor('recommendations', $title, $author),
+            'work_key' => RECOMMENDATION_WORK_KEYS[$title] ?? null,
             'reason' => $reason,
             'based_on_book_id' => bookTitled($basedOn)->id,
             'status' => 'new',
