@@ -24,13 +24,13 @@ final class CandidateFinder
      */
     public function forSource(Source $source, int $page): array
     {
-        return [...$this->byAuthor($source), ...$this->bySubject($source, $page)];
+        return [...$this->byAuthor($source, $page), ...$this->bySubject($source, $page)];
     }
 
     /**
      * @return list<Suggestion>
      */
-    private function byAuthor(Source $source): array
+    private function byAuthor(Source $source, int $page): array
     {
         $author = $source->author;
 
@@ -38,10 +38,12 @@ final class CandidateFinder
             return [];
         }
 
-        $candidates = $this->cache->remember(
-            'author:'.BookIdentity::normalize($author),
-            fn () => $this->openLibrary->searchByAuthor($author),
-        );
+        // Most authors do not fill every page, and an empty one would leave them out of the search.
+        $candidates = $this->worksOf($author, $page);
+
+        if ($candidates === [] && $page > 1) {
+            $candidates = $this->worksOf($author, 1);
+        }
 
         $suggestions = [];
 
@@ -55,6 +57,17 @@ final class CandidateFinder
         }
 
         return $suggestions;
+    }
+
+    /**
+     * @return list<BookCandidate>
+     */
+    private function worksOf(string $author, int $page): array
+    {
+        return $this->cache->remember(
+            'author:'.BookIdentity::normalize($author).':p'.$page,
+            fn () => $this->openLibrary->searchByAuthor($author, $page),
+        );
     }
 
     /**

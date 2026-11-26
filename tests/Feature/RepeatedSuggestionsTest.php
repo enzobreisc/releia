@@ -16,9 +16,9 @@ const WORKS_BY_AUTHOR = [
 
 beforeEach(fn () => Storage::fake('local'));
 
-function fakeOneWorkPerAuthor(): void
+function fakeOneWorkPerAuthor(int $lastPage = 3): void
 {
-    Http::fake(function (Request $request) {
+    Http::fake(function (Request $request) use ($lastPage) {
         $url = urldecode($request->url());
 
         if (preg_match('/bibkeys=ISBN:(\d{13})/', $url, $match) === 1) {
@@ -37,7 +37,7 @@ function fakeOneWorkPerAuthor(): void
         }
 
         foreach (WORKS_BY_AUTHOR as $author => [$title, $isbn]) {
-            if (($request->data()['author'] ?? null) === $author) {
+            if (($request->data()['author'] ?? null) === $author && (int) $request->data()['page'] <= $lastPage) {
                 return Http::response(['docs' => [[
                     'key' => '/works/'.$isbn,
                     'title' => $title,
@@ -71,6 +71,12 @@ function expireSuggestionsOf(string ...$authors): void
             'status' => RecommendationStatus::Expired,
         ]);
     }
+}
+
+function assertAuthorPageRequested(int $page): void
+{
+    Http::assertSent(fn (Request $request) => ($request->data()['author'] ?? null) === 'Autora Um'
+        && (int) $request->data()['page'] === $page);
 }
 
 test('a suggestion pushed out of the pending list is kept as expired', function () {
@@ -108,4 +114,24 @@ test('a dismissed suggestion stays out even if it had expired before', function 
 
     expect(Recommendation::where('status', RecommendationStatus::New)->pluck('title'))
         ->not->toContain('Primeiro Rio');
+});
+
+test('each search reads the next page of the author works', function () {
+    fakeOneWorkPerAuthor();
+    rateOneBookPerAuthor();
+
+    app(RecommendationService::class)->generate();
+    app(RecommendationService::class)->generate();
+
+    assertAuthorPageRequested(1);
+    assertAuthorPageRequested(2);
+});
+
+test('an author without further pages is searched on the first one again', function () {
+    fakeOneWorkPerAuthor(lastPage: 1);
+    rateOneBookPerAuthor();
+    app(RecommendationService::class)->generate();
+    Recommendation::query()->delete();
+
+    expect(app(RecommendationService::class)->generate())->toBe(4);
 });

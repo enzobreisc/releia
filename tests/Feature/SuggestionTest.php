@@ -218,7 +218,7 @@ test('uma obra com várias edições aparece uma vez, e o nome do autor não vir
         ->and(Recommendation::where('title', 'Dom Casmurro')->exists())->toBeFalse();
 });
 
-test('a busca na Open Library é cacheada: só a página nova volta à rede', function () {
+test('Open Library searches are cached: only the new pages go to the network', function () {
     fakeOpenLibrary();
     ratedBook('Torto Arado', 'Itamar Vieira Junior', 5, 'Magic realism (Literature)');
 
@@ -227,8 +227,9 @@ test('a busca na Open Library é cacheada: só a página nova volta à rede', fu
     $sent = count(Http::recorded());
 
     $service->generate();
-    // Only the new subject page goes to the network; the author and editions are already cached.
-    Http::assertSentCount($sent + 1);
+    $newPages = collect(Http::recorded())->slice($sent)->map(fn (array $pair) => (int) ($pair[0]->data()['page'] ?? 0));
+
+    expect($newPages->values()->all())->toBe([2, 2]);
 });
 
 test('"quero ler" cria o livro na estante com os metadados do ISBN', function () {
