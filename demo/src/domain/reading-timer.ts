@@ -49,13 +49,13 @@ export function startTimer(
     const { pages } = bookRowOf(state, start.bookId);
 
     if (start.startPage < reading.current_page) {
-        reject(state, 'Você já registrou até a pág. :page.', {
+        reject(state, 'start_page', 'Você já registrou até a pág. :page.', {
             page: reading.current_page,
         });
     }
 
     if (pages !== null && start.startPage >= pages) {
-        reject(state, 'O livro tem :pages páginas.', { pages });
+        reject(state, 'start_page', 'O livro tem :pages páginas.', { pages });
     }
 
     if (reading.status === 'want_to_read') {
@@ -146,7 +146,7 @@ export function finishTimer(
     }
 
     if (pageTo <= timer.start_page) {
-        reject(state, 'Informe uma página depois da pág. :page.', {
+        reject(state, 'page_to', 'Informe uma página depois da pág. :page.', {
             page: timer.start_page,
         });
     }

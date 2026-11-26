@@ -1,9 +1,8 @@
 import { forgetUndo } from '../domain/undo';
-import { WriteRejected } from '../domain/reading-writes';
+import { FormErrors } from '../support/form-errors';
 import { successToast } from '../server/router';
 import type { Toast } from '@/types';
 import type { DemoState } from '../state/types';
-import { translateFor } from './flash';
 
 const MAX_PAGE = 20000;
 const MAX_MINUTES = 1440;
@@ -52,26 +51,71 @@ export function truthyFlag(value: unknown): boolean {
     return Boolean(value);
 }
 
-/** A page from a form: an integer from `minimum` to the largest page the forms take. */
+/** The messages of a page field: the one for a blank value and the one for a value out of range. */
+export type PageMessages = { required: string; invalid: string };
+
+export const SESSION_PAGE_MESSAGES: PageMessages = {
+    required: 'Informe a página atual.',
+    invalid: 'Número de página inválido.',
+};
+
+/**
+ * A page from a form: an integer from `minimum` to the largest page the forms take. A value that
+ * fails is reported on `errors` and returned as 0, which the caller never saves because it throws first.
+ */
 export function pageNumberOf(
-    state: DemoState,
+    errors: FormErrors,
+    field: string,
     value: unknown,
     minimum: number,
+    messages: PageMessages = SESSION_PAGE_MESSAGES,
 ): number {
+    if (value === null || value === undefined || value === '') {
+        errors.add(field, messages.required);
+
+        return 0;
+    }
+
     const page = integerOrNull(value);
 
     if (page === null || page < minimum || page > MAX_PAGE) {
-        throw new WriteRejected(
-            translateFor(state, 'Número de página inválido.'),
-        );
+        errors.add(field, messages.invalid);
+
+        return 0;
     }
 
     return page;
 }
 
+/** The book a form names: the id of a book that exists, else an error on the field and 0. */
+export function bookIdOf(
+    state: DemoState,
+    errors: FormErrors,
+    value: unknown,
+): number {
+    if (value === null || value === undefined || value === '') {
+        errors.add('book_id', 'O campo livro é obrigatório.');
+
+        return 0;
+    }
+
+    const bookId = integerOrNull(value);
+
+    if (
+        bookId === null ||
+        !state.tables.books.some((book) => book.id === bookId)
+    ) {
+        errors.add('book_id', 'O valor escolhido para livro é inválido.');
+
+        return 0;
+    }
+
+    return bookId;
+}
+
 /** The optional minutes of a session: blank is none, otherwise 1 to 1440. */
 export function optionalMinutesOf(
-    state: DemoState,
+    errors: FormErrors,
     value: unknown,
 ): number | null {
     if (value === null || value === undefined || value === '') {
@@ -81,9 +125,9 @@ export function optionalMinutesOf(
     const minutes = integerOrNull(value);
 
     if (minutes === null || minutes < 1 || minutes > MAX_MINUTES) {
-        throw new WriteRejected(
-            translateFor(state, 'Informe entre 1 e 1440 minutos.'),
-        );
+        errors.add('minutes', 'Informe entre 1 e 1440 minutos.');
+
+        return null;
     }
 
     return minutes;

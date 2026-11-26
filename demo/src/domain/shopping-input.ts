@@ -2,6 +2,7 @@ import { isAmazonUrl } from '../support/amazon-link';
 import { isHttpUrl } from '../support/http-url';
 import type { StoreType } from '../state/types';
 import { toIsbn13 } from '../support/isbn';
+import { FormErrors, checkMaxLength } from '../support/form-errors';
 
 export const STORE_TYPES: readonly StoreType[] = [
     'used_bookstore',
@@ -81,31 +82,7 @@ export function textField(body: Record<string, unknown>, key: string): string {
     return typeof value === 'string' ? value.trim() : '';
 }
 
-function isValidOptionalUrl(value: string): boolean {
-    return value === '' || (value.length <= MAX_URL_LENGTH && isHttpUrl(value));
-}
-
-function isValidOptionalIsbn(value: string): boolean {
-    return value === '' || toIsbn13(value) !== null;
-}
-
-function isValidOptionalPrice(value: string): boolean {
-    return value === '' || parseReais(value) !== null;
-}
-
-function isValidShoppingForm(body: Record<string, unknown>): boolean {
-    const title = textField(body, 'title');
-
-    return (
-        title !== '' &&
-        title.length <= MAX_TITLE_LENGTH &&
-        textField(body, 'author').length <= MAX_TITLE_LENGTH &&
-        isValidOptionalIsbn(textField(body, 'isbn')) &&
-        isValidOptionalUrl(textField(body, 'cover_url')) &&
-        isValidOptionalUrl(textField(body, 'url')) &&
-        isValidOptionalPrice(textField(body, 'estimated_price'))
-    );
-}
+const PRICE_FORMAT_MESSAGE = 'Preço inválido. Use o formato 34,90.';
 
 function isbnOf(isbn: string, url: string | null): string | null {
     if (isbn !== '') {
@@ -115,26 +92,105 @@ function isbnOf(isbn: string, url: string | null): string | null {
     return url === null ? null : isbnFromAmazonUrl(url);
 }
 
-/** ShoppingItemRequest::payload, or null when the form does not validate. */
-export function shoppingItemInput(
-    body: Record<string, unknown>,
-): ShoppingItemInput | null {
-    const storeType = textField(body, 'store_type');
-
-    if (!isValidShoppingForm(body) || !isStoreType(storeType)) {
+/** The price a form sends: null when blank, and a field error when it is not a price. */
+export function priceOf(errors: FormErrors, value: string): number | null {
+    if (value === '') {
         return null;
     }
 
-    const url = textField(body, 'url') || null;
-    const coverUrl = textField(body, 'cover_url') || null;
+    const cents = parseReais(value);
+
+    if (cents === null) {
+        errors.add('estimated_price', PRICE_FORMAT_MESSAGE);
+    }
+
+    return cents;
+}
+
+/** ShoppingItemRequest: every failing rule adds its error to `errors`. */
+export function shoppingItemInput(
+    body: Record<string, unknown>,
+    errors: FormErrors,
+): ShoppingItemInput {
+    const title = textField(body, 'title');
+    const author = textField(body, 'author');
+    const isbn = textField(body, 'isbn');
+    const coverUrl = textField(body, 'cover_url');
+    const url = textField(body, 'url');
+    const storeType = textField(body, 'store_type');
+
+    if (title === '') {
+        errors.add('title', 'O campo título é obrigatório.');
+    }
+
+    checkMaxLength(
+        errors,
+        'title',
+        title,
+        MAX_TITLE_LENGTH,
+        'O campo título deve ter no máximo :max caracteres.',
+    );
+    checkMaxLength(
+        errors,
+        'author',
+        author,
+        MAX_TITLE_LENGTH,
+        'O campo autor deve ter no máximo :max caracteres.',
+    );
+
+    if (isbn !== '' && toIsbn13(isbn) === null) {
+        errors.add('isbn', 'ISBN inválido.');
+    }
+
+    checkLink(
+        errors,
+        'cover_url',
+        coverUrl,
+        'O campo capa deve ser um link válido.',
+        'O campo capa deve ter no máximo :max caracteres.',
+    );
+    checkLink(
+        errors,
+        'url',
+        url,
+        'O campo link deve ser um link válido.',
+        'O campo link deve ter no máximo :max caracteres.',
+    );
+
+    if (storeType === '') {
+        errors.add('store_type', 'O campo loja é obrigatório.');
+    } else if (!isStoreType(storeType)) {
+        errors.add('store_type', 'O valor escolhido para loja é inválido.');
+    }
+
+    const price = priceOf(errors, textField(body, 'estimated_price'));
 
     return {
-        title: textField(body, 'title'),
-        author: textField(body, 'author'),
-        isbn: isbnOf(textField(body, 'isbn'), url),
-        cover_url: coverUrl,
-        url,
-        store_type: storeType,
-        estimated_price_cents: parseReais(textField(body, 'estimated_price')),
+        title,
+        author,
+        isbn: isbnOf(isbn, url === '' ? null : url),
+        cover_url: coverUrl === '' ? null : coverUrl,
+        url: url === '' ? null : url,
+        store_type: isStoreType(storeType) ? storeType : STORE_TYPES[0],
+        estimated_price_cents: price,
     };
+}
+
+/** A link the form may leave blank: http or https, and at most 2048 characters. */
+function checkLink(
+    errors: FormErrors,
+    field: string,
+    value: string,
+    invalid: string,
+    tooLong: string,
+): void {
+    if (value === '') {
+        return;
+    }
+
+    if (!isHttpUrl(value)) {
+        errors.add(field, invalid);
+    }
+
+    checkMaxLength(errors, field, value, MAX_URL_LENGTH, tooLong);
 }

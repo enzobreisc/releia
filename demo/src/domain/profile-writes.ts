@@ -1,4 +1,5 @@
 import { phpTrim } from '../support/php-cast';
+import { checkMaxLength, type FormErrors } from '../support/form-errors';
 import type { ReadModel } from './read-model';
 import {
     MAX_PINS,
@@ -13,15 +14,25 @@ const BIO_LIMIT = 160;
 
 type ReaderInput = { name: string | null; bio: string | null };
 
-/** null when the value is absent or empty, undefined when the rule rejects it. */
-function readText(value: unknown, limit: number): string | null | undefined {
+/** The text of a field: null when it is absent or empty. A text over its limit is an error on the field. */
+function readText(
+    errors: FormErrors,
+    field: string,
+    value: unknown,
+    limit: number,
+    text: string,
+): string | null {
     if (value === undefined || value === null || value === '') {
         return null;
     }
 
-    return typeof value === 'string' && Array.from(value).length <= limit
-        ? value
-        : undefined;
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    checkMaxLength(errors, field, value, limit, text);
+
+    return value;
 }
 
 /** ProfileService::updateReader stores blank text as null. */
@@ -35,16 +46,25 @@ function cleaned(value: string | null): string | null {
     return trimmed === '' ? null : trimmed;
 }
 
-/** The UpdateProfileRequest rules; null when they reject the request. */
+/** UpdateProfileRequest: the name and the bio, each within its limit. */
 export function readReaderInput(
     body: Record<string, unknown>,
-): ReaderInput | null {
-    const name = readText(body.name, NAME_LIMIT);
-    const bio = readText(body.bio, BIO_LIMIT);
-
-    if (name === undefined || bio === undefined) {
-        return null;
-    }
+    errors: FormErrors,
+): ReaderInput {
+    const name = readText(
+        errors,
+        'name',
+        body.name,
+        NAME_LIMIT,
+        'O campo nome deve ter no máximo :max caracteres.',
+    );
+    const bio = readText(
+        errors,
+        'bio',
+        body.bio,
+        BIO_LIMIT,
+        'O campo sobre você deve ter no máximo :max caracteres.',
+    );
 
     return { name: cleaned(name), bio: cleaned(bio) };
 }

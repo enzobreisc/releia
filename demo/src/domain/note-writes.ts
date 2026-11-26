@@ -1,7 +1,6 @@
-import { translateText } from '@/lib/i18n';
 import type { DemoState, NoteKind, NoteRow, NoteTagRow } from '../state/types';
 import { removeRows } from './cascade';
-import { WriteRejected } from './reading-writes';
+import { FormErrors } from '../support/form-errors';
 import { nextRowId } from './queue-writes';
 import { localDateTime } from '../state/dates';
 
@@ -65,22 +64,22 @@ function syncTags(state: DemoState, noteId: number, body: string): void {
     ];
 }
 
-/** NoteRequest: the checks the form would show, for a note the book of which exists. */
-export function checkNoteInput(state: DemoState, input: NoteInput): void {
-    const reject = (text: string): never => {
-        throw new WriteRejected(translateText(state.runtime.locale, text));
-    };
-
+/** NoteRequest: the checks that need the library, such as the book that must exist. */
+export function checkNoteInput(
+    state: DemoState,
+    input: NoteInput,
+    errors: FormErrors,
+): void {
     if (!state.tables.books.some((book) => book.id === input.bookId)) {
-        reject('Livro não encontrado.');
+        errors.add('book_id', 'Livro não encontrado.');
     }
 
     if (input.body === '') {
-        reject('Escreva o texto da nota.');
+        errors.add('body_md', 'Escreva o texto da nota.');
     }
 
     if (input.page !== null && (input.page < 1 || input.page > MAX_PAGE)) {
-        reject('Número de página inválido.');
+        errors.add('page', 'Número de página inválido.');
     }
 }
 

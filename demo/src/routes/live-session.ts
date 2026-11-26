@@ -24,13 +24,24 @@ import {
     type RouteContext,
     type RouteResult,
 } from '../server/router';
-import { backWith, refusable, successNotice, translateFor } from './flash';
-import { pageNumberOf } from './route-input';
+import {
+    backWith,
+    formRefusable,
+    refusable,
+    successNotice,
+    translateFor,
+} from './flash';
+import { pageNumberOf, type PageMessages } from './route-input';
+import { FormErrors } from '../support/form-errors';
 
 const LIVE_SESSION_PATH = '/live-session';
 const HOME_PATH = '/';
 const BOOK_PATH_PREFIX = '/library';
 const MIN_LIVE_PAGE = 0;
+const MOVE_PAGE_MESSAGES: PageMessages = {
+    required: 'Número de página inválido.',
+    invalid: 'Número de página inválido.',
+};
 
 function clockOf(ctx: RouteContext): TimerClock {
     return { now: new Date(), today: ctx.today };
@@ -94,7 +105,18 @@ function startAction(ctx: RouteContext): RouteResult {
 function movePageAction(ctx: RouteContext): RouteResult {
     const { state, body } = ctx;
 
-    moveTimerPage(state, pageNumberOf(state, body.page, MIN_LIVE_PAGE));
+    const errors = new FormErrors(state.runtime.locale);
+    const page = pageNumberOf(
+        errors,
+        'page',
+        body.page,
+        MIN_LIVE_PAGE,
+        MOVE_PAGE_MESSAGES,
+    );
+
+    errors.throwIfAny();
+
+    moveTimerPage(state, page);
 
     return redirectBack();
 }
@@ -187,6 +209,6 @@ route('POST', '/live-session/resume', (ctx) => {
     return redirectBack();
 });
 route('POST', '/live-session/finish', (ctx) =>
-    refusable(() => finishAction(ctx)),
+    formRefusable(() => finishAction(ctx)),
 );
 route('DELETE', LIVE_SESSION_PATH, discardAction);

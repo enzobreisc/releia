@@ -14,11 +14,13 @@ import {
 import {
     isStoreType,
     isbnFromAmazonUrl,
-    parseReais,
+    priceOf,
     shoppingItemInput,
     textField,
 } from '../domain/shopping-input';
 import { findQueueItemOfBook } from '../domain/queue-writes';
+import { FormErrors } from '../support/form-errors';
+import { formRefusable } from './flash';
 import {
     addShoppingItem,
     buyShoppingItem,
@@ -47,6 +49,7 @@ import {
     route,
     successToast,
     type RouteContext,
+    type RouteResult,
 } from '../server/router';
 import type { DemoState, ShoppingItemRow } from '../state/types';
 import {
@@ -201,12 +204,11 @@ async function shoppingMatches(
     };
 }
 
-route('POST', SHOPPING_PATH, ({ state, body, locale }) => {
-    const input = shoppingItemInput(body);
+function addAction({ state, body, locale }: RouteContext): RouteResult {
+    const errors = new FormErrors(state.runtime.locale);
+    const input = shoppingItemInput(body, errors);
 
-    if (input === null) {
-        return redirectBack();
-    }
+    errors.throwIfAny();
 
     const item = addShoppingItem(state, input, new Date());
 
@@ -216,31 +218,38 @@ route('POST', SHOPPING_PATH, ({ state, body, locale }) => {
             item.title,
         ),
     });
-});
+}
 
-route(
-    'PATCH',
-    '/shopping/{shoppingItem}',
-    ({ state, body, params, locale }) => {
-        const item = itemOfParam(state, params);
-        const price = textField(body, 'estimated_price');
+function priceAction({
+    state,
+    body,
+    params,
+    locale,
+}: RouteContext): RouteResult {
+    const item = itemOfParam(state, params);
 
-        if (
-            item === undefined ||
-            (price !== '' && parseReais(price) === null)
-        ) {
-            return redirectBack();
-        }
+    if (item === undefined) {
+        return redirectBack();
+    }
 
-        setShoppingPrice(item, parseReais(price), new Date());
+    const errors = new FormErrors(state.runtime.locale);
+    const cents = priceOf(errors, textField(body, 'estimated_price'));
 
-        return redirectBack({
-            toast: plainSuccessToast(
-                translateText(locale, 'Preço atualizado'),
-                item.title,
-            ),
-        });
-    },
+    errors.throwIfAny();
+
+    setShoppingPrice(item, cents, new Date());
+
+    return redirectBack({
+        toast: plainSuccessToast(
+            translateText(locale, 'Preço atualizado'),
+            item.title,
+        ),
+    });
+}
+
+route('POST', SHOPPING_PATH, (ctx) => formRefusable(() => addAction(ctx)));
+route('PATCH', '/shopping/{shoppingItem}', (ctx) =>
+    formRefusable(() => priceAction(ctx)),
 );
 
 route('POST', '/shopping/{shoppingItem}/price', ({ state, params, locale }) => {

@@ -1,4 +1,4 @@
-import { shortDate, translateText, type Replacements } from '@/lib/i18n';
+import { shortDate } from '@/lib/i18n';
 import { dayOf } from '../support/day';
 import { toIsbn10, toIsbn13 } from '../support/isbn';
 import { sha1Hex } from '../support/sha1';
@@ -14,9 +14,8 @@ import { removeRows } from './cascade';
 import { bookRowOf } from './rows';
 import { nextRowId } from './queue-writes';
 import { localDateTime } from '../state/dates';
-import { WriteRejected } from './reading-writes';
+import { FormErrors } from '../support/form-errors';
 
-const MAX_PAGES = 20_000;
 const HASH_LENGTH = 7;
 
 /** The fields the book form sends. Blank text is null, as the app stores it. */
@@ -33,16 +32,6 @@ export type BookInput = {
     seriesPosition: number | null;
     description: string | null;
 };
-
-function reject(
-    state: DemoState,
-    text: string,
-    replacements?: Replacements,
-): never {
-    throw new WriteRejected(
-        translateText(state.runtime.locale, text, replacements),
-    );
-}
 
 function readingIdsOf(state: DemoState, bookId: number): Set<number> {
     return new Set(
@@ -76,13 +65,16 @@ function checkIsbn(
     state: DemoState,
     bookId: number,
     isbn13: string | null,
+    errors: FormErrors,
 ): void {
     if (isbn13 === null) {
         return;
     }
 
     if (toIsbn13(isbn13) === null) {
-        reject(state, 'ISBN inválido.');
+        errors.add('isbn_13', 'ISBN inválido.');
+
+        return;
     }
 
     const other = state.tables.books.find(
@@ -98,28 +90,28 @@ function checkIsbn(
         .join(', ');
     const label = edition === '' ? other.title : `${other.title} (${edition})`;
 
-    reject(state, 'Esse ISBN já é de outro livro da biblioteca: :book.', {
-        book: label,
-    });
+    errors.add(
+        'isbn_13',
+        'Esse ISBN já é de outro livro da biblioteca: :book.',
+        { book: label },
+    );
+    errors.addValue('isbn_13_book', String(other.id));
 }
 
 function checkPages(
     state: DemoState,
     bookId: number,
     pages: number | null,
+    errors: FormErrors,
 ): void {
-    if (pages !== null && (pages < 1 || pages > MAX_PAGES)) {
-        reject(state, 'Número de páginas inválido.');
-    }
-
     const highest = highestSessionOf(state, bookId);
 
     if (pages === null || highest === undefined || highest.page_to <= pages) {
         return;
     }
 
-    reject(
-        state,
+    errors.add(
+        'pages',
         'O livro não pode ter menos que :pages páginas: a sessão :hash de :date vai até a p. :pages.',
         {
             pages: highest.page_to,
@@ -127,6 +119,7 @@ function checkPages(
             date: shortDate(state.runtime.locale, dayOf(highest.read_on)),
         },
     );
+    errors.addValue('pages_session', String(highest.id));
 }
 
 /** UpdateBookRequest: the rules the form enforces before the book is saved. */
@@ -135,12 +128,15 @@ function checkBookInput(
     bookId: number,
     input: BookInput,
 ): void {
+    const errors = new FormErrors(state.runtime.locale);
+
     if (input.title === '') {
-        reject(state, 'Informe o título.');
+        errors.add('title', 'Informe o título.');
     }
 
-    checkIsbn(state, bookId, input.isbn13);
-    checkPages(state, bookId, input.pages);
+    checkIsbn(state, bookId, input.isbn13, errors);
+    checkPages(state, bookId, input.pages, errors);
+    errors.throwIfAny();
 }
 
 function createAuthor(state: DemoState, name: string): AuthorRow {

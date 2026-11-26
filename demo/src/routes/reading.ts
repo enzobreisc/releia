@@ -11,7 +11,6 @@ import {
     type UndoSnapshot,
 } from '../domain/undo';
 import {
-    WriteRejected,
     abandonReading,
     changeReadingStatus,
     deleteReading,
@@ -27,6 +26,12 @@ import {
 import { bookRowOf, readingRowOf } from '../domain/rows';
 import { dayOf, yearOf } from '../support/day';
 import {
+    FormErrors,
+    checkDayFormat,
+    checkMaxLength,
+    rejectField,
+} from '../support/form-errors';
+import {
     enumOf,
     flagOf,
     optionalInteger,
@@ -41,7 +46,13 @@ import {
     type RouteContext,
     type RouteResult,
 } from '../server/router';
-import { backWith, refusable, successNotice, translateFor } from './flash';
+import {
+    backWith,
+    formRefusable,
+    refusable,
+    successNotice,
+    translateFor,
+} from './flash';
 
 const READING_STATUSES: readonly ReadingStatus[] = [
     'want_to_read',
@@ -53,6 +64,9 @@ const REREAD_STATUSES: readonly ReadingStatus[] = ['reading', 'want_to_read'];
 const QUEUE_PATH = '/queue';
 const QUEUE_STORE_PATH = '/queue/books';
 const BOOK_PATH_PREFIX = '/library';
+const MIN_RATING = 1;
+const MAX_RATING = 5;
+const MAX_LINE_LENGTH = 280;
 
 type StatusNotice = {
     state: DemoState;
@@ -326,11 +340,10 @@ function rereadAction(ctx: RouteContext): RouteResult {
     const status = enumOf(ctx.body.status, REREAD_STATUSES);
 
     if (status === null) {
-        throw new WriteRejected(
-            translateFor(
-                state,
-                'Uma releitura começa em "lendo" ou "quero ler".',
-            ),
+        rejectField(
+            state.runtime.locale,
+            'status',
+            'Uma releitura começa em "lendo" ou "quero ler".',
         );
     }
 
@@ -375,15 +388,51 @@ function finishGoalSub(
     return translateFor(state, 'a fila está vazia');
 }
 
+function finishErrorsOf(
+    state: DemoState,
+    body: RouteContext['body'],
+): FormErrors {
+    const errors = new FormErrors(state.runtime.locale);
+    const undated = flagOf(body.undated);
+    const finishedOn = optionalText(body.finished_on);
+    const rating = optionalInteger(body.rating);
+
+    if (!undated && finishedOn === null) {
+        errors.add(
+            'finished_on',
+            'O campo término é obrigatório quando undated não está presente.',
+        );
+    }
+
+    checkDayFormat(
+        errors,
+        'finished_on',
+        finishedOn,
+        'O campo término deve estar no formato :format.',
+    );
+
+    if (rating !== null && (rating < MIN_RATING || rating > MAX_RATING)) {
+        errors.add('rating', 'O campo nota deve estar entre 1 e 5.');
+    }
+
+    checkMaxLength(
+        errors,
+        'line',
+        optionalText(body.line),
+        MAX_LINE_LENGTH,
+        'O campo linha deve ter no máximo :max caracteres.',
+    );
+
+    return errors;
+}
+
 function finishAction(ctx: RouteContext): RouteResult {
     const { state, today, body } = ctx;
     const readingId = readingIdOf(ctx);
     const undated = flagOf(body.undated);
     const finishedOn = optionalText(body.finished_on);
 
-    if (!undated && finishedOn === null) {
-        throw new WriteRejected(translateFor(state, 'Informe a data.'));
-    }
+    finishErrorsOf(state, body).throwIfAny();
 
     const bookId = readingRowOf(state, readingId).book_id;
     const snapshot = captureShelf(state, bookId);
@@ -471,9 +520,34 @@ function reopenAction(ctx: RouteContext): RouteResult {
     );
 }
 
+function datesErrorsOf(
+    state: DemoState,
+    body: RouteContext['body'],
+): FormErrors {
+    const errors = new FormErrors(state.runtime.locale);
+
+    checkDayFormat(
+        errors,
+        'started_at',
+        optionalText(body.started_at),
+        'O campo início deve estar no formato :format.',
+    );
+    checkDayFormat(
+        errors,
+        'finished_at',
+        optionalText(body.finished_at),
+        'O campo término deve estar no formato :format.',
+    );
+
+    return errors;
+}
+
 function datesAction(ctx: RouteContext): RouteResult {
     const { state, today, body } = ctx;
     const readingId = readingIdOf(ctx);
+
+    datesErrorsOf(state, body).throwIfAny();
+
     const snapshot = captureUndo(state, [
         undoScope('readings', { id: readingId }),
     ]);
@@ -535,7 +609,7 @@ route('POST', '/library/{book}/reread', (ctx) =>
     refusable(() => rereadAction(ctx)),
 );
 route('POST', '/readings/{reading}/finish', (ctx) =>
-    refusable(() => finishAction(ctx)),
+    formRefusable(() => finishAction(ctx)),
 );
 route('POST', '/readings/{reading}/abandon', (ctx) =>
     refusable(() => abandonAction(ctx)),
@@ -544,7 +618,7 @@ route('POST', '/readings/{reading}/reopen', (ctx) =>
     refusable(() => reopenAction(ctx)),
 );
 route('PATCH', '/readings/{reading}/dates', (ctx) =>
-    refusable(() => datesAction(ctx)),
+    formRefusable(() => datesAction(ctx)),
 );
 route('DELETE', '/readings/{reading}', (ctx) =>
     refusable(() => destroyAction(ctx)),

@@ -17,13 +17,16 @@ import {
 } from '../domain/undo';
 import { profileProps } from '../presenters/profile';
 import {
-    errorToast,
     json,
     redirectBack,
     render,
     route,
     successToast,
+    type RouteContext,
+    type RouteResult,
 } from '../server/router';
+import { FormErrors } from '../support/form-errors';
+import { formRefusable } from './flash';
 import { integerOrNull } from './route-input';
 
 const NOT_FOUND_TEXT = 'Página não encontrada';
@@ -34,22 +37,24 @@ route('GET', '/profile', ({ state, query, today }) => {
     return render('profile', profileProps(model, query.get('year')));
 });
 
-route('PUT', '/profile', ({ state, body, today, locale }) => {
-    const input = readReaderInput(body);
+route('PUT', '/profile', ({ state, body, today, locale }) =>
+    formRefusable(() => {
+        const errors = new FormErrors(state.runtime.locale);
+        const input = readReaderInput(body, errors);
 
-    if (input === null) {
-        return redirectBack();
-    }
+        errors.throwIfAny();
 
-    forgetUndo();
-    saveReader(createReadModel(state, today, new Date()), input);
+        forgetUndo();
+        saveReader(createReadModel(state, today, new Date()), input);
 
-    return redirectBack({
-        toast: successToast(translateText(locale, 'Perfil salvo')),
-    });
-});
+        return redirectBack({
+            toast: successToast(translateText(locale, 'Perfil salvo')),
+        });
+    }),
+);
 
-route('POST', '/profile/pins', ({ state, body, today, locale }) => {
+function pinAction(ctx: RouteContext): RouteResult {
+    const { state, body, today, locale } = ctx;
     const model = createReadModel(state, today, new Date());
     const bookId = integerOrNull(body.book_id);
 
@@ -58,13 +63,12 @@ route('POST', '/profile/pins', ({ state, body, today, locale }) => {
     }
 
     if (!canPin(model, bookId)) {
-        return redirectBack({
-            toast: errorToast(
-                translateText(locale, 'Você pode fixar até :max livros.', {
-                    max: MAX_PINS,
-                }),
-            ),
+        const errors = new FormErrors(state.runtime.locale);
+
+        errors.add('book_id', 'Você pode fixar até :max livros.', {
+            max: MAX_PINS,
         });
+        errors.throwIfAny();
     }
 
     forgetUndo();
@@ -76,7 +80,9 @@ route('POST', '/profile/pins', ({ state, body, today, locale }) => {
             bookOf(model, bookId).title,
         ),
     });
-});
+}
+
+route('POST', '/profile/pins', (ctx) => formRefusable(() => pinAction(ctx)));
 
 route('DELETE', '/profile/pins/{book}', ({ state, params, today, locale }) => {
     const model = createReadModel(state, today, new Date());

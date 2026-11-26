@@ -1,6 +1,7 @@
 import type { Locale } from '@/lib/i18n';
 import type { Toast } from '@/types';
 import type { DemoState } from '../state/types';
+import type { FieldErrors } from '../support/form-errors';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -21,11 +22,14 @@ type RenderResult = {
     props: Record<string, unknown>;
 };
 
+type RedirectOptions = { toast?: Toast; errors?: FieldErrors };
+
 /** `path` null means back to the page the request came from. */
 export type RedirectResult = {
     kind: 'redirect';
     path: string | null;
     toast: Toast | null;
+    errors: FieldErrors | null;
 };
 
 type JsonResult = {
@@ -197,15 +201,28 @@ export function render(
     return { kind: 'render', component, props };
 }
 
-export function redirect(
-    path: string,
-    options: { toast?: Toast } = {},
+function redirectTo(
+    path: string | null,
+    options: RedirectOptions,
 ): RedirectResult {
-    return { kind: 'redirect', path, toast: options.toast ?? null };
+    return {
+        kind: 'redirect',
+        path,
+        toast: options.toast ?? null,
+        errors: options.errors ?? null,
+    };
 }
 
-export function redirectBack(options: { toast?: Toast } = {}): RedirectResult {
-    return { kind: 'redirect', path: null, toast: options.toast ?? null };
+export function redirect(
+    path: string,
+    options: RedirectOptions = {},
+): RedirectResult {
+    return redirectTo(path, options);
+}
+
+/** Back to the page the request came from, with its notice or its field errors. */
+export function redirectBack(options: RedirectOptions = {}): RedirectResult {
+    return redirectTo(null, options);
 }
 
 export function json(data: unknown, status = 200): JsonResult {

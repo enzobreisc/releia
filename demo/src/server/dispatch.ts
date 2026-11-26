@@ -7,6 +7,7 @@ import { hasEnteredDemo } from '../shell/entry';
 import { localIsoDate } from '../state/dates';
 import { getState, saveState } from '../state/store';
 import type { DemoState } from '../state/types';
+import type { FieldErrors } from '../support/form-errors';
 import { toBrowserUrl } from './base-path';
 import {
     errorToast,
@@ -27,6 +28,11 @@ const UNAVAILABLE_TITLE = 'Disponível só no app';
 const UNAVAILABLE_SUB = 'Na demo, esta ação só funciona no app.';
 const NOT_FOUND_MESSAGE = 'Página não encontrada';
 const LANDING_PATH = '/';
+/** Laravel's `errors` prop is an empty list when there is nothing to show, and the field map otherwise. */
+const NO_ERRORS: never[] = [];
+
+/** Field errors of the redirect being followed; the page it lands on shows them once. */
+let flashedErrors: FieldErrors | null = null;
 
 /** A request in the app's own terms: URLs without the base, headers in lower case. */
 export type DemoRequest = {
@@ -136,6 +142,14 @@ function listHeader(value: string | undefined): string[] {
     return value === undefined || value === '' ? [] : value.split(',');
 }
 
+function takeFlashedErrors(): FieldErrors | typeof NO_ERRORS {
+    const errors = flashedErrors ?? NO_ERRORS;
+
+    flashedErrors = null;
+
+    return errors;
+}
+
 function renderPage(
     component: string,
     props: Record<string, unknown>,
@@ -144,7 +158,7 @@ function renderPage(
 ): DemoResponse {
     const state = getState();
     const shared = sharedProps(state, localIsoDate(new Date()));
-    const allProps = { ...shared, ...props, errors: [] };
+    const allProps = { ...shared, ...props, errors: takeFlashedErrors() };
     const page = {
         component,
         props: selectProps(allProps, component, request),
@@ -204,7 +218,11 @@ function redirectHop(
         getState().runtime.flashToast = result.toast;
     }
 
+    flashedErrors = result.errors;
+
     if (redirects >= MAX_REDIRECTS) {
+        flashedErrors = null;
+
         return doneHop(jsonResponse({ message: 'Too many redirects' }, 500));
     }
 

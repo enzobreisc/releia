@@ -55,14 +55,17 @@ describe('dispatchAsync', () => {
             component: string;
             props: {
                 results: { title: string }[];
-                toast: { kind: string } | null;
+                errors: Record<string, string>;
             };
         };
 
         expect(response.status).toBe(200);
         expect(page.component).toBe('add-book');
         expect(page.props.results[0]?.title).toBe('Torto Arado');
-        expect(page.props.toast?.kind).toBe('error');
+        expect(page.props.errors).toEqual({
+            title: 'Informe o título.',
+            status: 'O campo estante é obrigatório.',
+        });
     });
 
     it('answers a malformed percent-encoded address with the only-in-app page', () => {

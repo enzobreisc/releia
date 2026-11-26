@@ -28,13 +28,27 @@ import {
     type RouteContext,
     type RouteResult,
 } from '../server/router';
-import { refusable } from './flash';
-import { optionalMinutesOf, pageNumberOf } from './route-input';
+import { formRefusable, refusable } from './flash';
+import {
+    bookIdOf,
+    optionalMinutesOf,
+    pageNumberOf,
+    type PageMessages,
+} from './route-input';
+import { FormErrors } from '../support/form-errors';
 
 const QUICK_LOG_PATH = '/quick-log';
 const TIMER_PATH = '/quick-log/timer';
 const MIN_START_PAGE = 0;
 const MIN_SESSION_PAGE = 1;
+const START_PAGE_MESSAGES: PageMessages = {
+    required: 'O campo start page é obrigatório.',
+    invalid: 'O campo start page deve estar entre 0 e 20000.',
+};
+const FINISH_PAGE_MESSAGES: PageMessages = {
+    required: 'O campo página é obrigatório.',
+    invalid: 'O campo página deve estar entre 1 e 20000.',
+};
 
 function clockOf(ctx: RouteContext): TimerClock {
     return { now: new Date(), today: ctx.today };
@@ -80,9 +94,19 @@ function flashSaved(
 
 function storeAction(ctx: RouteContext): RouteResult {
     const { state, today, body } = ctx;
-    const book = bookRowOf(state, Number(body.book_id));
-    const pageTo = pageNumberOf(state, body.page_to, MIN_SESSION_PAGE);
-    const minutes = optionalMinutesOf(state, body.minutes);
+    const errors = new FormErrors(state.runtime.locale);
+    const bookId = bookIdOf(state, errors, body.book_id);
+    const pageTo = pageNumberOf(
+        errors,
+        'page_to',
+        body.page_to,
+        MIN_SESSION_PAGE,
+    );
+    const minutes = optionalMinutesOf(errors, body.minutes);
+
+    errors.throwIfAny();
+
+    const book = bookRowOf(state, bookId);
     const session = registerSession(
         state,
         readingForBook(state, book.id).id,
@@ -112,26 +136,37 @@ function startBookAction(ctx: RouteContext): RouteResult {
 
 function timerStartAction(ctx: RouteContext): RouteResult {
     const { state, body } = ctx;
-
-    startTimer(
-        state,
-        {
-            bookId: Number(body.book_id),
-            startPage: pageNumberOf(state, body.start_page, MIN_START_PAGE),
-        },
-        clockOf(ctx),
+    const errors = new FormErrors(state.runtime.locale);
+    const bookId = bookIdOf(state, errors, body.book_id);
+    const startPage = pageNumberOf(
+        errors,
+        'start_page',
+        body.start_page,
+        MIN_START_PAGE,
+        START_PAGE_MESSAGES,
     );
+
+    errors.throwIfAny();
+
+    startTimer(state, { bookId, startPage }, clockOf(ctx));
 
     return redirect(QUICK_LOG_PATH);
 }
 
 function timerFinishAction(ctx: RouteContext): RouteResult {
     const { state, today, body } = ctx;
-    const session = finishTimer(
-        state,
-        pageNumberOf(state, body.page_to, MIN_SESSION_PAGE),
-        clockOf(ctx),
+    const errors = new FormErrors(state.runtime.locale);
+    const pageTo = pageNumberOf(
+        errors,
+        'page_to',
+        body.page_to,
+        MIN_SESSION_PAGE,
+        FINISH_PAGE_MESSAGES,
     );
+
+    errors.throwIfAny();
+
+    const session = finishTimer(state, pageTo, clockOf(ctx));
 
     if (session !== null) {
         flashSaved(state, session, today);
@@ -165,13 +200,13 @@ function discardAction(ctx: RouteContext): RouteResult {
 }
 
 route('GET', QUICK_LOG_PATH, showAction);
-route('POST', QUICK_LOG_PATH, (ctx) => refusable(() => storeAction(ctx)));
+route('POST', QUICK_LOG_PATH, (ctx) => formRefusable(() => storeAction(ctx)));
 route('GET', TIMER_PATH, timerStatusAction);
-route('POST', TIMER_PATH, (ctx) => refusable(() => timerStartAction(ctx)));
+route('POST', TIMER_PATH, (ctx) => formRefusable(() => timerStartAction(ctx)));
 route('POST', `${TIMER_PATH}/pause`, pauseAction);
 route('POST', `${TIMER_PATH}/resume`, resumeAction);
 route('POST', `${TIMER_PATH}/finish`, (ctx) =>
-    refusable(() => timerFinishAction(ctx)),
+    formRefusable(() => timerFinishAction(ctx)),
 );
 route('DELETE', TIMER_PATH, discardAction);
 route('POST', '/quick-log/books', (ctx) =>

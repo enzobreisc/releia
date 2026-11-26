@@ -108,8 +108,10 @@ describe('profile pins', () => {
         });
 
         expect(settingOf(PINS_KEY)).toBe(before);
-        expect(toastOf(response)?.kind).toBe('error');
-        expect(toastOf(response)?.title).toBe('You can pin up to 6 books.');
+        expect(toastOf(response)).toBeNull();
+        expect(response.page?.props.errors).toEqual({
+            book_id: 'You can pin up to 6 books.',
+        });
     });
 
     it('unpins a book, keeps the others in pin order and offers an undo', () => {

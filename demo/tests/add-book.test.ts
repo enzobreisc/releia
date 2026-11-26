@@ -182,9 +182,9 @@ describe('adding a book', () => {
             },
         });
 
-        expect(response.page?.props.toast).toMatchObject({
-            kind: 'error',
-            title: 'Esse livro já está na biblioteca.',
+        expect(response.page?.props.toast).toBeNull();
+        expect(response.page?.props.errors).toEqual({
+            isbn_13: 'Esse livro já está na biblioteca.',
         });
         restoreClock();
     });

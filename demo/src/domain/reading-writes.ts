@@ -1,4 +1,4 @@
-import { shortDate, translateText, type Replacements } from '@/lib/i18n';
+import { shortDate, type Replacements } from '@/lib/i18n';
 import { dayOf } from '../support/day';
 import { phpTrim } from '../support/php-cast';
 import type {
@@ -11,6 +11,7 @@ import { removeRows } from './cascade';
 import { bookRowOf, readingRowOf, sessionRowOf } from './rows';
 import { addToQueue, nextRowId, removeBookFromQueue } from './queue-writes';
 import { localDateTime } from '../state/dates';
+import { rejectField } from '../support/form-errors';
 
 const OPEN_STATUSES: readonly ReadingStatus[] = ['want_to_read', 'reading'];
 const CLOSED_STATUSES: readonly ReadingStatus[] = ['read', 'abandoned'];
@@ -18,23 +19,20 @@ const MIN_READINGS_PER_BOOK = 1;
 const ABANDON_READ_MESSAGE =
     'Um livro lido não pode ser abandonado. Para relê-lo, use "Ler de novo".';
 
-/** A write the demo refuses, with the message the app would show. */
-export class WriteRejected extends Error {}
-
 type FinishInput = {
     finishedOn: string | null;
     rating: number | null;
     line: string | null;
 };
 
+/** A refusal the app reports beside the field it names, as ReadingService does. */
 export function reject(
     state: DemoState,
+    field: string,
     text: string,
     replacements?: Replacements,
 ): never {
-    throw new WriteRejected(
-        translateText(state.runtime.locale, text, replacements),
-    );
+    rejectField(state.runtime.locale, field, text, replacements);
 }
 
 function startOfDay(day: string): string {
@@ -166,7 +164,7 @@ export function changeReadingStatus(
 
     if (reading.status === 'read') {
         if (status === 'abandoned') {
-            reject(state, ABANDON_READ_MESSAGE);
+            reject(state, 'status', ABANDON_READ_MESSAGE);
         }
 
         return startReread(state, reading.book_id, status, today);
@@ -190,11 +188,15 @@ export function startReread(
     today: string,
 ): ReadingRow {
     if (!OPEN_STATUSES.includes(status)) {
-        reject(state, 'Uma releitura começa em "lendo" ou "quero ler".');
+        reject(
+            state,
+            'status',
+            'Uma releitura começa em "lendo" ou "quero ler".',
+        );
     }
 
     if (latestReadingOf(state, bookId)?.status !== 'read') {
-        reject(state, 'Só dá para reler um livro que você terminou.');
+        reject(state, 'status', 'Só dá para reler um livro que você terminou.');
     }
 
     const reading = insertReading(
@@ -240,7 +242,7 @@ function ensureEndDate(
     today: string,
 ): void {
     if (end > today) {
-        reject(state, 'O término não pode ser depois de hoje.');
+        reject(state, field, 'O término não pode ser depois de hoje.');
     }
 
     const startedOn =
@@ -249,6 +251,7 @@ function ensureEndDate(
     if (startedOn !== null && end < startedOn && field === 'finished_on') {
         reject(
             state,
+            field,
             'A leitura começou em :date. Escolha essa data ou depois.',
             {
                 date: shortDate(state.runtime.locale, startedOn),
@@ -265,6 +268,7 @@ function ensureEndDate(
     if (lastSession !== null && end < lastSession) {
         reject(
             state,
+            field,
             'A última sessão foi em :date. Escolha essa data ou depois.',
             {
                 date: shortDate(state.runtime.locale, lastSession),
@@ -283,7 +287,7 @@ export function finishReading(
     const reading = readingRowOf(state, readingId);
 
     if (reading.status === 'read') {
-        reject(state, 'Esta leitura já está terminada.');
+        reject(state, 'status', 'Esta leitura já está terminada.');
     }
 
     if (input.finishedOn !== null) {
@@ -332,7 +336,7 @@ export function abandonReading(
     const reading = readingRowOf(state, readingId);
 
     if (reading.status === 'read') {
-        reject(state, ABANDON_READ_MESSAGE);
+        reject(state, 'status', ABANDON_READ_MESSAGE);
     }
 
     changeReadingStatus(state, readingId, 'abandoned', today);
@@ -380,7 +384,11 @@ export function reopenReading(state: DemoState, readingId: number): ReadingRow {
     const reading = readingRowOf(state, readingId);
 
     if (reading.status !== 'read') {
-        reject(state, 'Só uma leitura terminada pode ser desmarcada.');
+        reject(
+            state,
+            'status',
+            'Só uma leitura terminada pode ser desmarcada.',
+        );
     }
 
     reading.status = 'reading';
@@ -410,20 +418,24 @@ export function updateReadingDates(
     }
 
     if (startedOn === null) {
-        reject(state, 'Informe o início.');
+        reject(state, 'started_at', 'Informe o início.');
     }
 
     if (startedOn > today) {
-        reject(state, 'O início não pode ser depois de hoje.');
+        reject(state, 'started_at', 'O início não pode ser depois de hoje.');
     }
 
     if (closed) {
         if (finishedOn === null) {
-            reject(state, 'Informe o término.');
+            reject(state, 'finished_at', 'Informe o término.');
         }
 
         if (finishedOn < startedOn) {
-            reject(state, 'O término não pode ser antes do início.');
+            reject(
+                state,
+                'finished_at',
+                'O término não pode ser antes do início.',
+            );
         }
 
         ensureEndDate(state, reading, finishedOn, 'finished_at', today);
@@ -447,6 +459,7 @@ export function deleteReading(state: DemoState, readingId: number): void {
     ) {
         reject(
             state,
+            'reading',
             'Esta é a única leitura do livro. Para apagá-la, remova o livro da biblioteca.',
         );
     }
@@ -462,7 +475,7 @@ function ensureWithinBook(
     const pages = bookRowOf(state, reading.book_id).pages;
 
     if (pages !== null && pageTo > pages) {
-        reject(state, 'O livro tem :pages páginas.', { pages });
+        reject(state, 'page_to', 'O livro tem :pages páginas.', { pages });
     }
 }
 
@@ -492,13 +505,17 @@ export function registerSession(
     const reading = readingRowOf(state, readingId);
 
     if (!OPEN_STATUSES.includes(reading.status)) {
-        reject(state, 'Mude a estante para "Lendo" para registrar sessões.');
+        reject(
+            state,
+            'status',
+            'Mude a estante para "Lendo" para registrar sessões.',
+        );
     }
 
     ensureWithinBook(state, reading, pageTo);
 
     if (pageTo <= reading.current_page) {
-        reject(state, 'Informe uma página depois da pág. :page.', {
+        reject(state, 'page_to', 'Informe uma página depois da pág. :page.', {
             page: reading.current_page,
         });
     }
@@ -539,7 +556,7 @@ export function updateSession(
     const reading = readingRowOf(state, session.reading_id);
 
     if (pageTo < session.page_from) {
-        reject(state, 'Use uma página a partir da :page.', {
+        reject(state, 'page_to', 'Use uma página a partir da :page.', {
             page: session.page_from,
         });
     }

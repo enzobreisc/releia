@@ -8,23 +8,23 @@ import {
 import { workKeyOf } from '../external/open-library-keys';
 import { addBook } from '../domain/library-writes';
 import { orderEditions } from '../domain/editions';
-import { newBookInput, READING_STATUSES } from '../domain/new-book-input';
+import { parseNewBook, READING_STATUSES } from '../domain/new-book-input';
+import { FormErrors } from '../support/form-errors';
 import { candidatePayloads } from '../presenters/candidates';
 import { isAmazonUrl } from '../support/amazon-link';
 import { genreNames } from '../support/genres';
 import { readingStatusLabel } from '../support/labels';
 import { toIsbn13 } from '../support/isbn';
 import {
-    errorToast,
     json,
     redirect,
-    redirectBack,
     render,
     route,
     type RouteContext,
     type RouteResult,
     successToast,
 } from '../server/router';
+import { formRefusable } from './flash';
 
 const ADD_BOOK_PAGE = 'add-book';
 const BOOK_ADDED_TITLE = 'Livro adicionado';
@@ -138,26 +138,25 @@ route('GET', '/library/add', (context) => {
     );
 });
 
-route('POST', '/library', (context) => {
-    const parsed = newBookInput(context.body, context.state, context.today);
+function storeBookAction(context: RouteContext): RouteResult {
+    const { state, body, today, locale } = context;
+    const errors = new FormErrors(state.runtime.locale);
+    const input = parseNewBook(body, state, today, errors);
 
-    if (!parsed.ok) {
-        return redirectBack({
-            toast: errorToast(translateText(context.locale, parsed.message)),
-        });
-    }
+    errors.throwIfAny();
 
-    const book = addBook(context.state, parsed.book, new Date());
-    const status = readingStatusLabel(context.locale, parsed.book.status);
+    const book = addBook(state, input, new Date());
+    const status = readingStatusLabel(locale, input.status);
     const sub = `${book.title} · ${status.toLowerCase()}`;
 
     return redirect(`/library/${book.id}`, {
-        toast: successToast(
-            translateText(context.locale, BOOK_ADDED_TITLE),
-            sub,
-        ),
+        toast: successToast(translateText(locale, BOOK_ADDED_TITLE), sub),
     });
-});
+}
+
+route('POST', '/library', (context) =>
+    formRefusable(() => storeBookAction(context)),
+);
 
 function asinOf(link: string): string | null {
     if (!isAmazonUrl(link)) {

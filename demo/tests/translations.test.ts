@@ -12,6 +12,12 @@ const TRANSLATE_CALL = new RegExp(
     'g',
 );
 const INVALID_INPUT = new RegExp(String.raw`\binvalid\(\s*${QUOTED}`, 'g');
+const FIELD_NAME = String.raw`'[a-z][a-z0-9_]*'`;
+/** Messages a route or domain module attaches to a field, as `errors.add('field', 'text')` names them. */
+const FIELD_MESSAGE = new RegExp(
+    String.raw`\b(?:add|addValue|reject|rejectField)\(\s*(?:[^,()]+,\s*)?${FIELD_NAME},\s*${QUOTED}|checkMaxLength\(\s*[^,()]+,\s*${FIELD_NAME},\s*[^,()]+,\s*[^,()]+,\s*${QUOTED}|(?:checkDayFormat|wholeNumberField)\(\s*[^,()]+,\s*${FIELD_NAME},\s*[^,()]+,\s*(?:[^,()]+,\s*)?${QUOTED}|\b(?:required|invalid):\s*${QUOTED}`,
+    'g',
+);
 const STRING_CONSTANT = new RegExp(
     String.raw`\bconst\s+([A-Z_][A-Z0-9_]*)\s*=\s*${QUOTED}`,
     'g',
@@ -22,10 +28,9 @@ const LABEL_MAP = new RegExp(
 );
 const KNOWN_LITERALS = [
     'Informe a data.',
-    'Tipo de nota inválido.',
-    'Data do término inválida.',
-    'Endereço da capa inválido.',
-    'Status inválido.',
+    'Escreva o texto da nota.',
+    'ISBN inválido.',
+    'O campo meta é obrigatório.',
 ];
 const VISUAL_KEY = 'visual';
 
@@ -83,6 +88,14 @@ function translatedLiterals(): string[] {
 
         for (const match of allMatches(INVALID_INPUT, text)) {
             literals.add(unescape(match[1]));
+        }
+
+        for (const match of allMatches(FIELD_MESSAGE, text)) {
+            const literal = match.slice(1).find((group) => group !== undefined);
+
+            if (literal !== undefined) {
+                literals.add(unescape(literal));
+            }
         }
     }
 
