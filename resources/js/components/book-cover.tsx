@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +12,8 @@ export function BookCover({
     className?: string;
 }) {
     const { t } = useTranslation();
+    const [failedSrc, setFailedSrc] = useState<string | null>(null);
+    const imageSrc = src === failedSrc ? null : src;
 
     return (
         <div
@@ -19,11 +22,12 @@ export function BookCover({
                 className,
             )}
         >
-            {src ? (
+            {imageSrc ? (
                 <img
-                    src={src}
+                    src={imageSrc}
                     alt={t('Capa de :title', { title })}
                     loading="lazy"
+                    onError={() => setFailedSrc(imageSrc)}
                     className="size-full object-cover"
                 />
             ) : (
