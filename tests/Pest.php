@@ -46,7 +46,6 @@ function fakeOpenLibrary(): void
         return match (true) {
             str_contains($url, 'author=Itamar') => Http::response(apiFixture('open-library/search-author-itamar-vieira.json')),
             str_contains($url, 'author=Machado') => Http::response(apiFixture('open-library/search-author-machado-de-assis.json')),
-            str_contains($url, 'subject=Magic') => Http::response(apiFixture('open-library/search-subject-magic-realism.json')),
             default => Http::response(['docs' => []]),
         };
     });
@@ -59,7 +58,7 @@ function openLibraryIndex(): array
 {
     $index = [];
 
-    foreach (['search-author-itamar-vieira', 'search-author-machado-de-assis', 'search-subject-magic-realism'] as $name) {
+    foreach (['search-author-itamar-vieira', 'search-author-machado-de-assis'] as $name) {
         foreach (apiFixture("open-library/{$name}.json")['docs'] as $doc) {
             foreach ($doc['isbn'] ?? [] as $isbn) {
                 $index[$isbn] ??= $doc;

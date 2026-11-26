@@ -11,7 +11,7 @@ final class Genres
 {
     /**
      * Ordered from most specific to most general: on a tie, the first one wins.
-     * `subject` is the Open Library subject used for suggestions, since their search is in English.
+     * `subject` is the English name the embedding model reads.
      *
      * @var array<string, array{subject: string|null, keywords: list<string>}>
      */
@@ -95,20 +95,6 @@ final class Genres
     public static function openLibrarySubject(?string $genre): ?string
     {
         return $genre !== null ? (self::CATALOG[$genre]['subject'] ?? null) : null;
-    }
-
-    /**
-     * The catalog genres are in Portuguese and Open Library indexes subjects in English. A genre typed
-     * by the reader is searched as it is, but a catalog genre without a subject is not searched at all:
-     * "romance" would bring love stories.
-     */
-    public static function searchSubject(?string $genre): ?string
-    {
-        if ($genre === null) {
-            return null;
-        }
-
-        return array_key_exists($genre, self::CATALOG) ? self::CATALOG[$genre]['subject'] : $genre;
     }
 
     /**

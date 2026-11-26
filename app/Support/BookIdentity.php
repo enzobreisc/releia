@@ -36,6 +36,26 @@ final class BookIdentity
     }
 
     /**
+     * Whether a title is just an author's full name or surname, as some catalog records are.
+     *
+     * @param  list<string>  $authors
+     */
+    public static function isAuthorName(string $title, array $authors): bool
+    {
+        $normalizedTitle = self::normalizeTitle($title);
+
+        foreach ($authors as $author) {
+            $name = self::normalize(self::givenNamesFirst($author));
+
+            if ($normalizedTitle === $name || $normalizedTitle === Str::afterLast($name, ' ')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Brazilian catalogs list authors as "Surname, Given names", so "WILDE, OSCAR" becomes "OSCAR WILDE".
      * A comma followed by a generational suffix ("Silva, Jr") is a name part, not a reversed name.
      */

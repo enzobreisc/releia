@@ -250,16 +250,6 @@ class OpenLibraryProvider implements MetadataProvider
     }
 
     /**
-     * Works with a subject. Generic subjects such as "Fiction" return thousands of results.
-     *
-     * @return list<BookCandidate>
-     */
-    public function searchBySubject(string $subject, int $page = 1): array
-    {
-        return $this->searchDocs(['subject' => $subject, 'language' => self::SUGGESTION_LANGUAGE, 'sort' => 'want_to_read', 'page' => $page], 30);
-    }
-
-    /**
      * Author keys in Open Library from one of the author's books. Open Library often registers the
      * same author more than once ("Júnior" and "Junior"); the ISBN search returns `author_name` and
      * `author_key` in the same order, so the name picks the keys.

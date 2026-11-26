@@ -148,18 +148,17 @@ test('sends an identical candidate text only once and still ranks both', functio
 test('a candidate matching only a 2-star book does not outrank a clearly higher-scored candidate', function () {
     fakeOllamaEmbeddings(vectorFor: nearAndFarVector(...));
     $source = profileBook(rating: 2);
-    $suggest = fn (string $title, string $kind, float $affinity): Suggestion => new Suggestion(
+    $suggest = fn (string $title, float $affinity): Suggestion => new Suggestion(
         new BookCandidate(title: $title, source: BookSource::OpenLibrary, authors: ['Autor'], genre: 'Romance'),
         'mesmo autor',
         Source::rated($source, 1.0),
-        $kind,
         $affinity,
     );
 
     $ranked = app(EmbeddingRanker::class)->rank([
-        $suggest('Outro', Suggestion::BY_SUBJECT, 1.0),
-        $suggest(CLOSE_TITLE, Suggestion::BY_SUBJECT, 2.0),
-        $suggest(FAR_TITLE, Suggestion::BY_AUTHOR, 1.0),
+        $suggest('Outro', 1 / 3),
+        $suggest(CLOSE_TITLE, 2 / 3),
+        $suggest(FAR_TITLE, 1.0),
     ], SearchBudget::deadline());
 
     expect(titlesOf($ranked))->toBe([FAR_TITLE, CLOSE_TITLE, 'Outro']);

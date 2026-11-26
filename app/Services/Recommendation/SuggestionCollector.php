@@ -44,11 +44,10 @@ final class SuggestionCollector
 
                 $current = $position === null ? null : $found[$position];
 
-                if ($current === null || ($current->kind === Suggestion::BY_SUBJECT && $suggestion->kind === Suggestion::BY_AUTHOR)) {
-                    // New, or the same author replaces a subject-only reason: the stronger reason wins.
-                    $position ??= count($found);
-                    $found[$position] = new Suggestion($suggestion->candidate, $suggestion->reason, $source, $suggestion->kind, $source->weight);
-                } elseif ($current->kind === $suggestion->kind && $current->basedOn->origin === $source->origin && ! $current->includes($source)) {
+                if ($current === null) {
+                    $position = count($found);
+                    $found[$position] = new Suggestion($suggestion->candidate, $suggestion->reason, $source, $source->weight);
+                } elseif ($current->basedOn->origin === $source->origin && ! $current->includes($source)) {
                     $found[$position] = $current->withSource($source);
                 }
 

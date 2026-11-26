@@ -50,7 +50,7 @@ test('vale a nota da leitura mais recente, não a da primeira passagem', functio
     Http::assertNothingSent();
 });
 
-test('busca do mesmo autor e do mesmo assunto, sem repetir a biblioteca', function () {
+test('finds other works by the same author, without repeating the library', function () {
     fakeOpenLibrary();
     ratedBook('Torto Arado', 'Itamar Vieira Junior', 5, 'Magic realism (Literature)', '9786580309313');
     Book::factory()->withAuthors(['Itamar Vieira Junior'])->create(['title' => 'Salvar o Fogo']);
@@ -79,53 +79,6 @@ test('toda sugestão tem motivo e livro de origem', function () {
             ->and($recommendation->based_on_book_id)->toBe($source->id)
             ->and($recommendation->reason)->toBe('mesmo autor que Torto Arado');
     }
-});
-
-test('por assunto só entra obra com edição brasileira, mesmo gênero e popularidade, com o título em português', function () {
-    $doc = fn (string $title, string $isbn, array $extra = []) => $extra + [
-        'key' => '/works/OL1W',
-        'title' => $title,
-        'author_name' => ['Alguém'],
-        'isbn' => [$isbn],
-        'cover_i' => 1,
-        'subject' => ['Fantasy'],
-        'edition_count' => 30,
-        'want_to_read_count' => 500,
-        'ratings_count' => 40,
-    ];
-
-    Http::fake(function (Request $request) use ($doc) {
-        $url = urldecode($request->url());
-
-        return match (true) {
-            str_contains($url, 'subject=Fantasy') => Http::response(['docs' => [
-                $doc('The Hobbit', '9788595084742'),
-                $doc('Mort', '9781473200319'), // no Brazilian edition
-                $doc('Livro raro', '9788535933390', ['want_to_read_count' => 1, 'ratings_count' => 0]),
-                $doc('Duna', '9788576573135', ['subject' => ['Science fiction']]),
-                $doc('Sem capa', '9788535914849', ['cover_i' => null]),
-            ]]),
-            str_contains($url, 'bibkeys=ISBN:9788595084742') => Http::response(['ISBN:9788595084742' => [
-                'title' => 'O Hobbit',
-                'authors' => [['name' => 'J. R. R. Tolkien']],
-                'cover' => ['large' => 'https://covers.openlibrary.org/b/id/9-L.jpg'],
-                'number_of_pages' => 310,
-                'subjects' => [['name' => 'Fantasy']],
-                'description' => 'x',
-            ]]),
-            default => Http::response([], 404),
-        };
-    });
-
-    ratedBook('Harry Potter', 'J. K. Rowling', 5, 'Fantasia');
-
-    expect(app(RecommendationService::class)->generate())->toBe(1);
-
-    $recommendation = Recommendation::sole();
-
-    expect($recommendation->title)->toBe('O Hobbit')
-        ->and($recommendation->author)->toBe('J. R. R. Tolkien')
-        ->and($recommendation->reason)->toBe('assunto em comum: Fantasia, como Harry Potter');
 });
 
 test('o mesmo candidato apontado por dois livros sobe e cita os dois no motivo', function () {
@@ -157,24 +110,6 @@ test('uma nova busca acrescenta às pendentes, sem repetir nem apagar', function
 
     expect(Recommendation::find($existing->id))->not->toBeNull()
         ->and(Recommendation::where('title', 'Doramar ou a Odisseia')->count())->toBe(1);
-});
-
-test('cada busca lê uma página diferente da Open Library', function () {
-    fakeOpenLibrary();
-    ratedBook('Torto Arado', 'Itamar Vieira Junior', 5, 'Fantasia');
-
-    $service = app(RecommendationService::class);
-    $service->generate();
-    $service->generate();
-
-    $pages = collect(Http::recorded())
-        ->map(fn ($pair) => urldecode($pair[0]->url()))
-        ->filter(fn ($url) => str_contains($url, 'subject='))
-        ->map(fn ($url) => preg_match('/page=(\d+)/', $url, $m) ? (int) $m[1] : null)
-        ->values()
-        ->all();
-
-    expect($pages)->toBe([1, 2]);
 });
 
 test('não repete o que já foi descartado nem o que já está sugerido', function () {
@@ -229,7 +164,7 @@ test('Open Library searches are cached: only the new pages go to the network', f
     $service->generate();
     $newPages = collect(Http::recorded())->slice($sent)->map(fn (array $pair) => (int) ($pair[0]->data()['page'] ?? 0));
 
-    expect($newPages->values()->all())->toBe([2, 2]);
+    expect($newPages->values()->all())->toBe([2]);
 });
 
 test('"quero ler" cria o livro na estante com os metadados do ISBN', function () {
@@ -735,7 +670,7 @@ test('moving a want-to-read book to the shopping list keeps the suggestions made
         ->and(app(RecommendationService::class)->hasSources())->toBeTrue();
 });
 
-test('a novel does not search the subject, which would bring love stories', function () {
+test('a rated book never leads to a search by subject', function () {
     fakeOpenLibrary();
     ratedBook('Torto Arado', 'Itamar Vieira Junior', 5, 'Romance');
 

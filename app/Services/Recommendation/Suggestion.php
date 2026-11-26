@@ -3,7 +3,6 @@
 namespace App\Services\Recommendation;
 
 use App\Services\BookLookup\BookCandidate;
-use App\Support\BookIdentity;
 use InvalidArgumentException;
 
 /**
@@ -14,9 +13,7 @@ use InvalidArgumentException;
  */
 final readonly class Suggestion
 {
-    public const BY_AUTHOR = 'author';
-
-    public const BY_SUBJECT = 'subject';
+    private const SAME_AUTHOR_WEIGHT = 3.0;
 
     /**
      * @param  list<Source>  $also  other sources that led to the same candidate
@@ -25,7 +22,6 @@ final readonly class Suggestion
         public BookCandidate $candidate,
         public string $reason,
         public Source $basedOn,
-        public string $kind = self::BY_AUTHOR,
         public float $affinity = 1.0,
         public array $also = [],
     ) {
@@ -40,7 +36,6 @@ final readonly class Suggestion
             $this->candidate,
             $this->reason,
             $this->basedOn,
-            $this->kind,
             $this->affinity + $source->weight,
             [...$this->also, $source],
         );
@@ -60,29 +55,18 @@ final readonly class Suggestion
 
     public function withCandidate(BookCandidate $candidate, string $reason): self
     {
-        return new self($candidate, $reason, $this->basedOn, $this->kind, $this->affinity, $this->also);
+        return new self($candidate, $reason, $this->basedOn, $this->affinity, $this->also);
     }
 
-    /**
-     * The author this suggestion is about: the searched author for a same-author suggestion, so a
-     * co-author's name does not count, otherwise the candidate's first author.
-     */
+    /** The searched author, so a co-author's name does not count. */
     public function authorKey(): ?string
     {
-        if ($this->kind === self::BY_AUTHOR) {
-            return $this->basedOn->authorKey();
-        }
-
-        $author = $this->candidate->authors[0] ?? null;
-
-        return $author === null ? null : BookIdentity::normalize($author);
+        return $this->basedOn->authorKey();
     }
 
-    /** Same author counts more than subject; popularity breaks ties. */
+    /** Works of authors you point to more often come first; popularity breaks ties. */
     public function score(): float
     {
-        $base = $this->kind === self::BY_AUTHOR ? 3.0 : 1.0;
-
-        return $base * $this->affinity + 0.5 * log10(1 + ($this->candidate->popularity ?? 0));
+        return self::SAME_AUTHOR_WEIGHT * $this->affinity + 0.5 * log10(1 + ($this->candidate->popularity ?? 0));
     }
 }

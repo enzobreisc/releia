@@ -69,8 +69,6 @@ final class PortugueseEditions
         $last = array_pop($titles);
         $list = $titles === [] ? $last : implode(', ', $titles).' '.__('e').' '.$last;
 
-        return $suggestion->kind === Suggestion::BY_AUTHOR
-            ? $suggestion->basedOn->authorReason($list)
-            : __('assunto em comum: :genre, como :titles', ['genre' => __((string) $suggestion->basedOn->book?->genre), 'titles' => $list]);
+        return $suggestion->basedOn->authorReason($list);
     }
 }

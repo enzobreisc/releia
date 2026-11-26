@@ -26,6 +26,7 @@ final class SuggestionGenerator
         private readonly SuggestionCollector $collector,
         private readonly PortugueseEditions $editions,
         private readonly PendingRecommendations $pending,
+        private readonly SimilarTitles $similarTitles,
         private readonly CandidateRanker $ranker = new ScoredRanker,
     ) {}
 
@@ -68,6 +69,7 @@ final class SuggestionGenerator
         $lookups = 0;
         $returning = 0;
         $expired = $this->blockedKeys->expired();
+        $owned = $this->similarTitles->owned();
         $worksByAuthor = [];
 
         foreach ($ranked as $suggestion) {
@@ -104,6 +106,13 @@ final class SuggestionGenerator
 
             // The Portuguese title may be a book you already have under another ISBN.
             if (self::matchesAny($keys, $blocked)) {
+                continue;
+            }
+
+            // The searched author counts too: the edition may spell the name differently.
+            $authors = [...$verified->candidate->authors, ...$suggestion->candidate->authors, (string) $suggestion->basedOn->author];
+
+            if (BookIdentity::isAuthorName($verified->candidate->title, $authors) || $this->similarTitles->isOwned($verified->candidate->title, $authors, $owned)) {
                 continue;
             }
 

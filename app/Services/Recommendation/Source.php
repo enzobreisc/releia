@@ -7,8 +7,7 @@ use App\Models\ShoppingItem;
 use App\Support\BookIdentity;
 
 /**
- * A title of yours that a search starts from. Its author leads to other works, and a rated
- * book also leads to its subject.
+ * A title of yours that a search starts from. Its author leads to other works.
  */
 final readonly class Source
 {

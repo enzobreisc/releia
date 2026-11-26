@@ -1,6 +1,5 @@
 <?php
 
-use App\Services\Recommendation\GenericSubjects;
 use App\Support\BookIdentity;
 
 test('ISBN-10 e ISBN-13 do mesmo livro geram a mesma chave', function () {
@@ -60,16 +59,3 @@ test('artigos no começo ou invertidos no fim do título não atrapalham a compa
 test('um título que é só o artigo continua valendo', function () {
     expect(BookIdentity::normalizeTitle('O'))->toBe('o');
 });
-
-test('assuntos genéricos não servem para aproximar livros', function (?string $subject, bool $useful) {
-    expect(GenericSubjects::isUseful($subject))->toBe($useful);
-})->with([
-    ['Fiction', false],
-    ['Fiction, general', false],
-    ['Accidents', false],
-    ['nyt:combined-print-and-e-book-fiction=2020-04-12', false],
-    ['Ab', false],
-    [null, false],
-    ['Magic realism (Literature)', true],
-    ['Romance brasileiro', true],
-]);
