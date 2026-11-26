@@ -149,3 +149,12 @@ O peso de 4★ para o interesse e o local do botão são padrões propostos, ain
 - A busca por autor passou a avançar as mesmas 3 páginas da busca por assunto, voltando à primeira quando a página vem vazia.
 - Livros do gênero "Romance" não buscam mais o assunto `romance` da Open Library, que significa histórias de amor.
 - As sugestões apagadas antes dessa mudança não têm registro e ainda podem voltar uma vez.
+
+## Sem busca por assunto e duplicados (26/11/2026)
+
+- A busca por assunto foi removida: trazia livros didáticos e obras distantes do gosto do leitor. As sugestões vêm só de autores.
+- Um livro que o leitor já tem passa a ser reconhecido também por título quase igual do mesmo autor, sem confundir volumes.
+- Um título que é só o nome do autor é descartado.
+- As edições das editoras da biblioteca aparecem primeiro na lista de edições. A edição sugerida e a da página do autor preferem essas editoras, identificadas pelo registrante do ISBN com a biblioteca `nicebooks/isbn`. Uma edição preferida sem autor no catálogo é ignorada, porque costuma trazer o título de outro livro.
+- Numa cópia do banco, cinco buscas trouxeram 10 sugestões (de 1 a 3 por busca, em até 6 s). Seis delas eram expiradas que voltaram: com a busca só por autor, o limite de 2 retornos pesa muito no resultado.
+- Por causa desse resultado, o limite passou a ser de 1 expirada por busca.
