@@ -121,14 +121,24 @@ O peso de 4★ para o interesse e o local do botão são padrões propostos, ain
 
 **Condição para a IA permanecer:** com ela, os livros que o leitor amaria precisam aparecer mais entre os 20 primeiros.
 
+## Buscas por interesse (25/11/2026)
+
+- Livros em "Quero ler" e itens da lista de compras disparam buscas pelo autor, com o peso de um 4★. Das 6 fontes de cada busca, 2 são reservadas para o interesse, e um lado completa o que o outro não preencher.
+- Sugestões por interesse não têm livro de origem: `recommendations.based_on_book_id` passou a aceitar nulo.
+- Numa cópia nova do banco, duas buscas trouxeram 27 sugestões (15,1 s e 10,2 s), nenhuma com título igual ao de um livro da biblioteca e sem passar de 3 obras por autor.
+- Com 10 autores de interesse e 2 vagas sorteadas, um autor específico pode levar várias buscas para aparecer.
+- Ruídos observados: a busca por assunto trouxe livros didáticos, e um título com erro de digitação escapou da detecção de duplicados.
+- Corrigido: uma edição que trazia a editora no lugar do autor fazia um livro já na biblioteca voltar como sugestão.
+- Um autor com livro 4★ ou 5★ só é buscado quando esse livro é sorteado, mesmo que também esteja na lista de interesse.
+
 ## Próximos passos
 
 1. Confirmar se a Open Library traz assuntos úteis para os livros da biblioteca.
 2. Medir a cobertura (esconder um livro 4★ ou 5★ entre candidatos reais e ver se fica entre os 20 primeiros), considerando só os candidatos que passam pela verificação de edições: só pontuação, `nomic-embed-text` e `bge-m3`.
-3. Implementar: buscas por interesse, limite por autor e, se a medição justificar, assuntos no embedding.
+3. **Feito:** buscas por interesse e limite de 3 obras por autor (funcionam sem IA). Falta, se a medição justificar, incluir assuntos no embedding.
 4. Decidir se sugestões pendentes antigas de livros que já estão na biblioteca devem ser removidas. A detecção atual já as bloqueia; as encontradas são anteriores à correção que ignora artigos nos títulos.
 5. Botão `ai.enabled` na página de sugestões (etapa 5).
 6. `README.md` e `README.pt-BR.md` (etapa 7).
-7. Publicar uma nova versão: o app empacotado só cria `book_embeddings` após o bump.
+7. Publicar uma nova versão. É obrigatório: o app empacotado só roda as migrações quando a versão muda, e sem elas as sugestões por interesse falham ao serem gravadas.
 
 **Melhorias opcionais:** guardar os vetores em cache empacotados (`Vector::pack`) e pular o ranker quando a indexação acabou de falhar.
