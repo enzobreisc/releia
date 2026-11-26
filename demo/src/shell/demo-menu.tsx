@@ -1,4 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
+import { useId, useRef } from 'react';
 import { buttonClass } from '@/components/form';
 import { SidebarReadingCard } from '@/components/sidebar-reading';
 import { useTranslation } from '@/hooks/use-translation';
@@ -11,6 +12,7 @@ import {
     WELCOME_PATH,
 } from './constants';
 import { toBrowserUrl } from '../server/base-path';
+import { useDialogFocus } from './use-dialog-focus';
 import { useEscapeKey } from './use-escape-key';
 import { useShellCopy } from './use-shell-copy';
 
@@ -26,8 +28,11 @@ export function DemoMenu({
     const topCopy = shell.topBar;
     const { t } = useTranslation();
     const { props } = usePage();
+    const dialogRef = useRef<HTMLDivElement>(null);
+    const titleId = useId();
 
     useEscapeKey(onClose);
+    useDialogFocus(dialogRef);
 
     return (
         <div className="fixed inset-0 z-50 flex flex-col justify-end">
@@ -39,13 +44,16 @@ export function DemoMenu({
                 className="absolute inset-0 bg-bg/70"
             />
             <div
+                ref={dialogRef}
                 role="dialog"
                 aria-modal="true"
-                aria-label={copy.title}
+                aria-labelledby={titleId}
                 className="relative flex max-h-[85dvh] flex-col gap-4 overflow-y-auto rounded-t-lg border-t border-strong bg-elevated px-4.5 pt-5 pb-6"
             >
                 <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-extrabold">{copy.title}</h2>
+                    <h2 id={titleId} className="text-lg font-extrabold">
+                        {copy.title}
+                    </h2>
                     <button
                         type="button"
                         aria-label={copy.close}

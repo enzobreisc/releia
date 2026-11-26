@@ -24,6 +24,7 @@ import './styles.css';
 // Same rules as resources/js/app.tsx: keep both in step when either changes.
 const SIDEBARLESS_PAGES = ['quick-log', 'live-session'];
 const APP_NAME = 'releia';
+const UNTITLED_PAGE_LABEL = 'Demonstração';
 
 const CHUNK_RELOAD_KEY = 'releia-demo:chunk-reloaded-at';
 const CHUNK_RELOAD_WINDOW_MS = 10_000;
@@ -99,12 +100,17 @@ window.addEventListener('vite:preloadError', (event) => {
     }
 });
 
-function bootFailureLocale(): Locale {
+function currentLocale(): Locale {
     try {
         return getState().runtime.locale;
     } catch {
         return DEFAULT_LOCALE;
     }
+}
+
+/** Pages without a title of their own, such as the landing, still name the demo in the tab. */
+function untitledDocumentTitle(): string {
+    return `${APP_NAME} · ${translateText(currentLocale(), UNTITLED_PAGE_LABEL)}`;
 }
 
 function showBootFailure(error: unknown): void {
@@ -113,10 +119,7 @@ function showBootFailure(error: unknown): void {
     const root = document.getElementById('app');
 
     if (root !== null) {
-        root.textContent = translateText(
-            bootFailureLocale(),
-            BOOT_FAILURE_MESSAGE,
-        );
+        root.textContent = translateText(currentLocale(), BOOT_FAILURE_MESSAGE);
     }
 }
 
@@ -131,7 +134,8 @@ async function boot(): Promise<void> {
         page: initialPage,
         resolve: resolvePage,
         http: demoHttpClient,
-        title: (title) => (title ? `${title} - ${APP_NAME}` : APP_NAME),
+        title: (title) =>
+            title ? `${title} - ${APP_NAME}` : untitledDocumentTitle(),
         layout: (name) => {
             if (name === WELCOME_PAGE) {
                 return null;

@@ -25,7 +25,6 @@ type ShellCopy = {
         body: string;
         cancel: string;
         confirm: string;
-        dialogLabel: string;
         sampleEyebrow: string;
     };
     notice: {
@@ -98,7 +97,6 @@ const SHELL_COPY_SOURCE: ShellCopy = {
         body: 'Os livros, sessões e notas que você criou nesta demonstração serão apagados deste navegador.',
         cancel: 'Cancelar',
         confirm: 'Restaurar',
-        dialogLabel: 'Restaurar os dados de exemplo',
         sampleEyebrow: 'Confirmação ao restaurar',
     },
     notice: {

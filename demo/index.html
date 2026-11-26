@@ -6,38 +6,187 @@
             name="viewport"
             content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
+        <title>releia · Demonstração</title>
+        <meta
+            name="description"
+            content="Demonstração do releia, um catálogo pessoal dos livros físicos que você lê. Explore uma biblioteca de exemplo no navegador, sem instalar nada."
+        />
+        <link rel="canonical" href="https://enzobreisc.github.io/releia/" />
         <meta name="theme-color" content="#06080c" />
+        <meta name="color-scheme" content="dark" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="releia" />
+        <meta
+            property="og:title"
+            content="releia · Demonstração no navegador"
+        />
+        <meta
+            property="og:description"
+            content="Um catálogo pessoal dos livros físicos que você lê, com estatísticas, notas e sugestões. Experimente a biblioteca de exemplo no navegador."
+        />
+        <meta
+            property="og:url"
+            content="https://enzobreisc.github.io/releia/"
+        />
+        <meta
+            property="og:image"
+            content="https://enzobreisc.github.io/releia/og-image.jpg"
+        />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta
+            property="og:image:alt"
+            content="Tela inicial da demonstração do releia, com capas de livros."
+        />
+        <meta property="og:locale" content="pt_BR" />
+        <meta property="og:locale:alternate" content="en_US" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+            name="twitter:title"
+            content="releia · Demonstração no navegador"
+        />
+        <meta
+            name="twitter:description"
+            content="Um catálogo pessoal dos livros físicos que você lê, com estatísticas, notas e sugestões. Experimente a biblioteca de exemplo no navegador."
+        />
+        <meta
+            name="twitter:image"
+            content="https://enzobreisc.github.io/releia/og-image.jpg"
+        />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
             name="apple-mobile-web-app-status-bar-style"
             content="black-translucent"
         />
+        <meta name="apple-mobile-web-app-title" content="releia" />
         <link rel="icon" href="/releia/favicon.ico" sizes="any" />
         <link rel="icon" href="/releia/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/releia/apple-touch-icon.png" />
-        <meta name="apple-mobile-web-app-title" content="releia" />
         <link rel="preconnect" href="https://fonts.bunny.net" />
+        <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
+        <link rel="preconnect" href="https://covers.openlibrary.org" />
         <!-- Bunny returns only the first family of a multi-family request, so each one loads on its own. -->
         <link
             rel="stylesheet"
+            crossorigin="anonymous"
             href="https://fonts.bunny.net/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
         />
         <link
             rel="stylesheet"
+            crossorigin="anonymous"
             href="https://fonts.bunny.net/css2?family=Space+Grotesk:wght@500;700&display=swap"
         />
         <link
             rel="stylesheet"
+            crossorigin="anonymous"
             href="https://fonts.bunny.net/css2?family=Geist+Mono:wght@400;500&display=swap"
         />
         <link
             rel="stylesheet"
+            crossorigin="anonymous"
             href="https://fonts.bunny.net/css2?family=JetBrains+Mono:wght@700&display=swap"
         />
-        <title>releia</title>
+        <!-- The stylesheets above block rendering, so the page background is set here and not left to the CSS bundle. -->
+        <style>
+            html {
+                background: #06080c;
+                color-scheme: dark;
+            }
+
+            body {
+                margin: 0;
+                background: #06080c;
+            }
+
+            .demo-loading {
+                position: fixed;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                background: #06080c;
+                color: #a9b4c6;
+                font:
+                    500 14px/1.4 Manrope,
+                    system-ui,
+                    sans-serif;
+            }
+
+            .demo-loading-mark {
+                width: 8px;
+                height: 8px;
+                border-radius: 9999px;
+                background: #5b9bff;
+                animation: demo-loading-pulse 1.2s ease-in-out infinite
+                    alternate;
+            }
+
+            @keyframes demo-loading-pulse {
+                from {
+                    opacity: 0.3;
+                }
+
+                to {
+                    opacity: 1;
+                }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .demo-loading-mark {
+                    animation: none;
+                }
+            }
+        </style>
+        <noscript>
+            <style>
+                .demo-loading {
+                    display: none;
+                }
+            </style>
+        </noscript>
     </head>
     <body class="bg-bg font-sans text-text antialiased">
-        <div id="app"></div>
+        <div id="app">
+            <div class="demo-loading" role="status">
+                <span class="demo-loading-mark" aria-hidden="true"></span>
+                <span>Carregando a demonstração…</span>
+            </div>
+        </div>
+        <noscript>
+            <main
+                style="
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    gap: 16px;
+                    padding: 24px;
+                    max-width: 56ch;
+                    margin: 0 auto;
+                    background: #06080c;
+                    color: #e8eef7;
+                    font:
+                        500 16px/1.6 Manrope,
+                        system-ui,
+                        sans-serif;
+                "
+            >
+                <h1 style="margin: 0; font-size: 28px; font-weight: 800">
+                    releia
+                </h1>
+                <p lang="pt-BR" style="margin: 0; color: #a9b4c6">
+                    A demonstração roda inteiramente no navegador. Ative o
+                    JavaScript para abri-la.
+                </p>
+                <p lang="en" style="margin: 0; color: #a9b4c6">
+                    The demo runs entirely in the browser. Enable JavaScript to
+                    open it.
+                </p>
+            </main>
+        </noscript>
         <script type="module" src="/src/main.tsx"></script>
     </body>
 </html>

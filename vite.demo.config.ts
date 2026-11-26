@@ -35,8 +35,8 @@ const MODULE_REPLACEMENTS: Record<string, string> = {
 
 /**
  * GitHub Pages serves 404.html for unknown paths, so a deep link such as /releia/library
- * loads the app and the router takes over. The favicons come from public/, which Vite
- * does not serve for this build.
+ * loads the app and the router takes over. The favicons come from the app's public/ folder,
+ * because demo/public (served by Vite) holds only the demo's own files.
  */
 function demoStaticFiles(): Plugin {
     return {
@@ -134,7 +134,6 @@ function demoModuleReplacements(): Plugin {
 export default defineConfig({
     root: 'demo',
     base: '/releia/',
-    publicDir: false,
     plugins: lazyPlugins(() => [
         inertia(),
         react(),
