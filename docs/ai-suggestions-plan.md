@@ -142,3 +142,10 @@ O peso de 4★ para o interesse e o local do botão são padrões propostos, ain
 7. Publicar uma nova versão. É obrigatório: o app empacotado só roda as migrações quando a versão muda, e sem elas as sugestões por interesse falham ao serem gravadas.
 
 **Melhorias opcionais:** guardar os vetores em cache empacotados (`Vector::pack`) e pular o ranker quando a indexação acabou de falhar.
+
+## Repetição de sugestões (26/11/2026)
+
+- A lista guarda 60 pendentes. As que passavam do limite eram apagadas, deixavam de ser bloqueadas e voltavam: de 48 pendentes em 15/11, 25 reapareceram. Agora ficam como `expired`, e cada busca traz de volta no máximo 2. "Sem interesse" continua definitivo.
+- A busca por autor passou a avançar as mesmas 3 páginas da busca por assunto, voltando à primeira quando a página vem vazia.
+- Livros do gênero "Romance" não buscam mais o assunto `romance` da Open Library, que significa histórias de amor.
+- As sugestões apagadas antes dessa mudança não têm registro e ainda podem voltar uma vez.
