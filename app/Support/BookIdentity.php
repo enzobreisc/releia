@@ -12,6 +12,8 @@ final class BookIdentity
 {
     private const ARTICLES = 'a|o|as|os|um|uma|uns|umas|the|an';
 
+    private const GENERATIONAL_SUFFIXES = ['jr', 'junior', 'filho', 'neto', 'sobrinho', 'sr', 'ii', 'iii'];
+
     /**
      * @param  list<string>  $authors
      * @return list<string>
@@ -27,10 +29,25 @@ final class BookIdentity
         }
 
         // Without an author the key only covers the title, which still catches obvious duplicates.
-        $author = self::normalize($authors[0] ?? '');
+        $author = self::normalize(self::givenNamesFirst($authors[0] ?? ''));
         $keys[] = 'title-author:'.self::normalizeTitle($title).'|'.$author;
 
         return $keys;
+    }
+
+    /**
+     * Brazilian catalogs list authors as "Surname, Given names", so "WILDE, OSCAR" becomes "OSCAR WILDE".
+     * A comma followed by a generational suffix ("Silva, Jr") is a name part, not a reversed name.
+     */
+    private static function givenNamesFirst(string $author): string
+    {
+        $parts = array_map(trim(...), explode(',', $author));
+
+        if (count($parts) !== 2 || in_array('', $parts, true) || in_array(self::normalize($parts[1]), self::GENERATIONAL_SUFFIXES, true)) {
+            return $author;
+        }
+
+        return $parts[1].' '.$parts[0];
     }
 
     /**
