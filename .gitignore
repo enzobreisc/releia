@@ -43,6 +43,8 @@ yarn-error.log
 
 .DS_Store
 /dist
+/dist-demo
 /demo/golden
 /demo/data/state.json
+/demo/node_modules
 /nativephp

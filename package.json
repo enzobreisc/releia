@@ -8,7 +8,11 @@
         "dev": "vp dev",
         "check": "vp check",
         "check:fix": "vp check --fix",
-        "types:check": "tsc --noEmit"
+        "types:check": "tsc --noEmit",
+        "demo:dev": "vite --config vite.demo.config.ts",
+        "demo:build": "vite build --config vite.demo.config.ts",
+        "demo:preview": "vite preview --config vite.demo.config.ts",
+        "demo:test": "vp test run --config demo/tests/vitest.config.ts"
     },
     "dependencies": {
         "@inertiajs/react": "^3.0.0",

@@ -1,0 +1,70 @@
+@import '../../resources/css/app.css';
+
+@source '../../resources/js';
+@source '.';
+
+/* The demo top bar sits above the app, so the frame holds the viewport and the body scrolls once. */
+.demo-frame {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+.demo-frame-body {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* Pages size themselves to the viewport (h-screen, h-dvh); inside the frame they take the body's height instead. */
+.demo-frame-body > * {
+    height: 100%;
+    min-height: 0;
+}
+
+/* The sidebar sizes itself to the viewport too, which would run under the top bar on desktop. */
+@media (min-width: 768px) {
+    .demo-frame-body > div > nav:first-child {
+        height: 100%;
+    }
+}
+
+/* The quick-log page sizes itself to the viewport; inside its window it fills the window instead. */
+.demo-quick-log-window {
+    height: 100%;
+    min-height: 0;
+}
+
+.demo-quick-log-window > * {
+    height: 100%;
+    min-height: 0;
+}
+
+@media (min-width: 768px) {
+    .demo-quick-log-stage {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        height: 100%;
+        padding: 24px;
+        overflow-y: auto;
+    }
+
+    .demo-quick-log-window {
+        width: 360px;
+        height: 600px;
+        flex-shrink: 0;
+        overflow: hidden;
+        border: 1px solid var(--color-strong);
+        border-radius: 12px;
+        background: var(--color-bg);
+        transform: translateZ(0);
+    }
+
+    /* The page clips at its own edge on phones; in the window a tall state scrolls instead. */
+    .demo-quick-log-window > * {
+        overflow-y: auto;
+    }
+}

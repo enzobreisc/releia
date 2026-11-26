@@ -116,6 +116,9 @@
         "resources/js/**/*.ts",
         "resources/js/**/*.d.ts",
         "resources/js/**/*.tsx",
-        "vite.config.ts"
+        "demo/**/*.ts",
+        "demo/**/*.tsx",
+        "vite.config.ts",
+        "vite.demo.config.ts"
     ]
 }
