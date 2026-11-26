@@ -103,6 +103,16 @@ ollama pull nomic-embed-text
 
 Depois ligue **Ordenar com IA local** na página de Sugestões. É experimental: por enquanto muda pouco a ordem, e o ganho ainda não foi medido. Sem o Ollama, as sugestões continuam funcionando, ordenadas pela pontuação.
 
+## Demonstração web
+
+Uma versão no navegador, com uma biblioteca de exemplo, está publicada em https://enzobreisc.github.io/releia/.
+
+- Os fluxos principais funcionam no navegador: a biblioteca e as estantes, adicionar livros, sessões de leitura, anotações, estatísticas, linha do tempo, fila, lista de compras e sugestões.
+- Os dados ficam no seu navegador. Nada do que você adiciona é enviado.
+- A ordenação com IA local, as buscas no Google Books e a consulta de preços funcionam só no app.
+
+Como os dados da demonstração são exportados, testados e gerados está descrito em [demo/README.md](demo/README.md) (em inglês).
+
 ## Desenvolvimento
 
 Requisitos: PHP 8.4, Composer, Node 22+.

@@ -103,6 +103,16 @@ ollama pull nomic-embed-text
 
 Then turn on **Sort with local AI** on the Suggestions page. It is experimental: so far it changes the order only slightly, and its benefit has not been measured. Without Ollama, suggestions keep working and are ordered by score.
 
+## Web demo
+
+A browser version with a sample library is published at https://enzobreisc.github.io/releia/.
+
+- The main flows work in the browser: the library and shelves, adding books, reading sessions, notes, stats, timeline, queue, shopping list and suggestions.
+- Data stays in your browser. Nothing you add is uploaded.
+- Local AI ordering, Google Books lookups and price lookups only work in the app.
+
+How the demo data is exported, tested and built is described in [demo/README.md](demo/README.md).
+
 ## Development
 
 Requirements: PHP 8.4, Composer, Node 22+.
