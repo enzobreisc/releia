@@ -164,3 +164,9 @@ O peso de 4★ para o interesse e o local do botão são padrões propostos, ain
 - Com a Open Library falhando, a busca passava dos 30 s do PHP e terminava em erro 500. Agora para no limite de tempo mesmo sem resultados, desiste após 3 falhas seguidas, avisa o leitor e tem 90 s de limite da requisição.
 - Uma página de autor que falhou não puxa mais a primeira página.
 - A sugestão usa a capa encontrada pelo ISBN da edição; a capa da obra, muitas vezes estrangeira, fica de reserva.
+
+## Edições que faltavam (26/11/2026)
+
+- Só as primeiras 200 edições de uma obra eram lidas. "O processo" tem 783 e a lista não trazia nenhuma brasileira. Agora são lidas até 1.000, e uma lista interrompida não vai para o cache.
+- A edição da sugestão aparece sempre em primeiro lugar na lista.
+- Em "O processo" e "A peste", a Open Library registra um único ISBN brasileiro na obra, o da própria sugestão.
