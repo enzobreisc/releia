@@ -1,17 +1,24 @@
 import { useTranslation } from '@/hooks/use-translation';
 import { useReaderEditor } from '@/hooks/use-reader-editor';
 import type { Option } from '@/types';
+import { GoogleBooksKeyForm } from './google-books-key-form';
 import { LocaleSelect } from './locale-select';
 import { ReaderAvatar } from './reader-avatar';
 import { ReaderEditForm } from './reader-edit-form';
 import { ReaderStats } from './reader-stats';
 import { ReaderSummary } from './reader-summary';
 import { TopGenres } from './top-genres';
-import type { GenreCount, Reader, ReaderTotals } from './types';
+import type {
+    GenreCount,
+    GoogleBooksKeyStatus,
+    Reader,
+    ReaderTotals,
+} from './types';
 
 export function ReaderCard({
     reader,
     locales,
+    googleBooksKey,
     since,
     totals,
     genres,
@@ -19,6 +26,7 @@ export function ReaderCard({
 }: {
     reader: Reader;
     locales: Option[];
+    googleBooksKey: GoogleBooksKeyStatus;
     since: string;
     totals: ReaderTotals;
     genres: GenreCount[];
@@ -45,6 +53,8 @@ export function ReaderCard({
             )}
 
             <LocaleSelect locales={locales} />
+
+            <GoogleBooksKeyForm status={googleBooksKey} />
 
             <ReaderStats totals={totals} />
 

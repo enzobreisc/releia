@@ -11,10 +11,12 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Fallback source. Without a key the daily quota is shared by everyone and often answers 429;
- * with GOOGLE_BOOKS_API_KEY the quota is our own.
+ * with a key the quota is our own.
  */
 class GoogleBooksProvider implements MetadataProvider
 {
+    public function __construct(private readonly GoogleBooksKey $key) {}
+
     public function findByIsbn(string $isbn13): ?BookCandidate
     {
         foreach ($this->volumes("isbn:{$isbn13}", 1) as $candidate) {
@@ -50,7 +52,7 @@ class GoogleBooksProvider implements MetadataProvider
                     'q' => $query,
                     'maxResults' => $limit,
                     'printType' => 'books',
-                    'key' => config('services.google_books.key'),
+                    'key' => $this->key->current(),
                 ]));
         } catch (ConnectionException $e) {
             Log::warning('Google Books indisponível', ['error' => $e->getMessage()]);

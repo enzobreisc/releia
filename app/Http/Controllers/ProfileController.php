@@ -9,6 +9,7 @@ use App\Http\Requests\PinBookRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Models\Book;
 use App\Models\Reading;
+use App\Services\BookLookup\GoogleBooksKey;
 use App\Services\ProfileService;
 use App\Services\StatsService;
 use App\Services\UndoService;
@@ -24,6 +25,7 @@ class ProfileController extends Controller
     public function __construct(
         private readonly ProfileService $profile,
         private readonly StatsService $stats,
+        private readonly GoogleBooksKey $googleBooksKey,
     ) {}
 
     private const AVATAR_DAYS = 25;
@@ -44,6 +46,10 @@ class ProfileController extends Controller
         return Inertia::render('profile', [
             'reader' => $this->profile->reader(),
             'locales' => Locale::options(),
+            'google_books_key' => [
+                'saved_ending' => $this->googleBooksKey->savedEnding(),
+                'has_environment_key' => $this->googleBooksKey->fromEnvironment() !== null,
+            ],
             'since' => $history->start->format('Y-m'),
             'totals' => [
                 'books_read' => $indicators['books_read'],

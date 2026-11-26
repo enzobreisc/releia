@@ -38,3 +38,8 @@ export type ReaderTotals = {
 export type GenreCount = { label: string; count: number };
 
 export type PinOption = { id: number; title: string };
+
+export type GoogleBooksKeyStatus = {
+    saved_ending: string | null;
+    has_environment_key: boolean;
+};

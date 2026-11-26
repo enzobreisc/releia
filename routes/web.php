@@ -9,6 +9,7 @@ use App\Http\Controllers\BookCoverController;
 use App\Http\Controllers\BookPostureController;
 use App\Http\Controllers\BookshelfController;
 use App\Http\Controllers\GoalController;
+use App\Http\Controllers\GoogleBooksKeyController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\LiveSessionController;
@@ -96,6 +97,8 @@ Route::post('/quick-log/books', [QuickLogController::class, 'startBook'])->name(
 Route::put('/locale', [LocaleController::class, 'update'])->name('locale.update');
 Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
 Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+Route::put('/profile/google-books-key', [GoogleBooksKeyController::class, 'update'])->name('profile.google-books-key.update');
+Route::delete('/profile/google-books-key', [GoogleBooksKeyController::class, 'destroy'])->name('profile.google-books-key.destroy');
 Route::post('/profile/pins', [ProfileController::class, 'pin'])->name('profile.pins.store');
 Route::delete('/profile/pins/{book}', [ProfileController::class, 'unpin'])->whereNumber('book')->name('profile.pins.destroy');
 Route::get('/timeline', [TimelineController::class, 'index'])->name('timeline.index');

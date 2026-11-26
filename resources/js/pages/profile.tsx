@@ -6,6 +6,7 @@ import { ReadingCalendar } from '@/components/profile/reading-calendar';
 import type {
     ActivityItem,
     GenreCount,
+    GoogleBooksKeyStatus,
     PinOption,
     PinnedBook,
     Reader,
@@ -18,6 +19,7 @@ import type { CalendarDay, Option, SpineBook } from '@/types';
 type ProfileProps = {
     reader: Reader;
     locales: Option[];
+    google_books_key: GoogleBooksKeyStatus;
     since: string;
     totals: ReaderTotals;
     genres: GenreCount[];
@@ -36,6 +38,7 @@ type ProfileProps = {
 export default function Profile({
     reader,
     locales,
+    google_books_key,
     since,
     totals,
     genres,
@@ -60,6 +63,7 @@ export default function Profile({
                 <ReaderCard
                     reader={reader}
                     locales={locales}
+                    googleBooksKey={google_books_key}
                     since={since}
                     totals={totals}
                     genres={genres}
