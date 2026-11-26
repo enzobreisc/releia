@@ -3,6 +3,7 @@
 namespace App\Services\Recommendation;
 
 use App\Services\BookLookup\BookCandidate;
+use App\Services\BookLookup\OpenLibraryAvailability;
 use App\Services\BookLookup\OpenLibraryProvider;
 use App\Support\BookIdentity;
 use App\Support\Isbn;
@@ -12,6 +13,7 @@ final class CandidateFinder
     public function __construct(
         private readonly OpenLibraryProvider $openLibrary,
         private readonly CandidateCache $cache,
+        private readonly OpenLibraryAvailability $availability,
     ) {}
 
     /**
@@ -28,7 +30,7 @@ final class CandidateFinder
         // Most authors do not fill every page, and an empty one would leave them out of the search.
         $candidates = $this->worksOf($author, $page);
 
-        if ($candidates === [] && $page > 1) {
+        if ($candidates === [] && $page > 1 && ! $this->availability->hasJustFailed()) {
             $candidates = $this->worksOf($author, 1);
         }
 

@@ -28,6 +28,8 @@ class OpenLibraryProvider implements MetadataProvider
     /** Popular works have dozens of editions; 200 covers almost all of them in one call. */
     private const EDITIONS_LIMIT = 200;
 
+    public function __construct(private readonly OpenLibraryAvailability $availability) {}
+
     public function findByIsbn(string $isbn13): ?BookCandidate
     {
         $data = $this->get('/api/books', [
@@ -210,12 +212,23 @@ class OpenLibraryProvider implements MetadataProvider
      */
     private function get(string $path, array $query): array
     {
+        if ($this->availability->isUnavailable()) {
+            return [];
+        }
+
         try {
             $response = $this->client()->get($path, $query);
         } catch (ConnectionException $e) {
+            $this->availability->recordFailure();
             Log::warning('Open Library indisponível', ['path' => $path, 'error' => $e->getMessage()]);
 
             return [];
+        }
+
+        if ($response->serverError() || $response->tooManyRequests()) {
+            $this->availability->recordFailure();
+        } else {
+            $this->availability->recordAnswer();
         }
 
         if (! $response->successful()) {

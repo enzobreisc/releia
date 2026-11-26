@@ -3,11 +3,15 @@
 namespace App\Services\Recommendation;
 
 use App\Services\BookLookup\BookCandidate;
+use App\Services\BookLookup\OpenLibraryAvailability;
 use App\Support\BookIdentity;
 
 final class SuggestionCollector
 {
-    public function __construct(private readonly CandidateFinder $finder) {}
+    public function __construct(
+        private readonly CandidateFinder $finder,
+        private readonly OpenLibraryAvailability $availability,
+    ) {}
 
     /**
      * Gathers the candidates of every source, merging the ones several sources point to.
@@ -24,8 +28,8 @@ final class SuggestionCollector
         $index = [];
 
         foreach ($sources as $source) {
-            // Searches go over the network: on timeout, it carries on with what already came (at least one source).
-            if ($found !== [] && SearchBudget::isExceeded($deadline)) {
+            // Searches go over the network: on timeout, it carries on with what already came.
+            if (SearchBudget::isExceeded($deadline) || $this->availability->isUnavailable()) {
                 break;
             }
 

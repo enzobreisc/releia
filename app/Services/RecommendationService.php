@@ -10,9 +10,11 @@ use App\Models\Recommendation;
 use App\Services\Ai\BookEmbeddingIndexer;
 use App\Services\Ai\EmbeddingUnavailable;
 use App\Services\BookLookup\BookCandidate;
+use App\Services\BookLookup\OpenLibraryAvailability;
 use App\Services\Recommendation\EmbeddingRanker;
 use App\Services\Recommendation\LibraryIntake;
 use App\Services\Recommendation\ProfileReadings;
+use App\Services\Recommendation\SearchBudget;
 use App\Services\Recommendation\SourceBooks;
 use App\Services\Recommendation\SuggestionGenerator;
 use App\Services\Recommendation\TodaySuggestion;
@@ -45,6 +47,7 @@ class RecommendationService
 
     public function __construct(
         private readonly SourceBooks $sources,
+        private readonly OpenLibraryAvailability $availability,
         private readonly SuggestionGenerator $generator,
         private readonly TodaySuggestion $today,
         private readonly WorkSearch $workSearch,
@@ -64,11 +67,18 @@ class RecommendationService
      */
     public function generate(): int
     {
+        SearchBudget::extendRequestLimit();
+
         if (EmbeddingRanker::isEnabled()) {
             $this->indexProfileBookEmbeddings();
         }
 
         return $this->generator->generate();
+    }
+
+    public function isSearchSourceUnavailable(): bool
+    {
+        return $this->availability->isUnavailable();
     }
 
     public function today(): ?Recommendation

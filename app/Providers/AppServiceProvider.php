@@ -8,6 +8,7 @@ use App\Services\Ai\BookEmbeddingIndexer;
 use App\Services\Ai\EmbeddingProvider;
 use App\Services\Ai\OllamaEmbeddingProvider;
 use App\Services\Ai\SimilarityScale;
+use App\Services\BookLookup\OpenLibraryAvailability;
 use App\Services\Recommendation\CandidateEmbeddings;
 use App\Services\Recommendation\CandidateRanker;
 use App\Services\Recommendation\EmbeddingRanker;
@@ -26,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->scoped(OpenLibraryAvailability::class);
+
         $this->app->bind(EmbeddingProvider::class, fn (): EmbeddingProvider => new OllamaEmbeddingProvider(
             url: config()->string('services.ollama.url'),
             model: config()->string('services.ollama.embedding_model'),

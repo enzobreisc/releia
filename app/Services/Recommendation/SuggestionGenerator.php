@@ -3,6 +3,7 @@
 namespace App\Services\Recommendation;
 
 use App\Models\Setting;
+use App\Services\BookLookup\OpenLibraryAvailability;
 use App\Support\BookIdentity;
 
 final class SuggestionGenerator
@@ -27,6 +28,7 @@ final class SuggestionGenerator
         private readonly PortugueseEditions $editions,
         private readonly PendingRecommendations $pending,
         private readonly SimilarTitles $similarTitles,
+        private readonly OpenLibraryAvailability $availability,
         private readonly CandidateRanker $ranker = new ScoredRanker,
     ) {}
 
@@ -44,9 +46,11 @@ final class SuggestionGenerator
         $found = $this->collector->collect($this->sources->pick(), $blocked, $round % self::PAGES + 1, $deadline);
         $created = $this->verify($this->ranker->rank($found, $deadline), $blocked, $deadline);
 
-        // Nothing new on this page: the next search already reads another.
+        // Nothing new on this page: the next search already reads another, unless the page was never read.
         if ($created === []) {
-            Setting::put(self::ROUND_KEY, $round + 1);
+            if (! $this->availability->isUnavailable()) {
+                Setting::put(self::ROUND_KEY, $round + 1);
+            }
 
             return 0;
         }

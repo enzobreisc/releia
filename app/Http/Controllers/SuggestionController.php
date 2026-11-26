@@ -62,6 +62,12 @@ class SuggestionController extends Controller
     {
         $added = $this->suggestions->generate();
 
+        if ($added === 0 && $this->suggestions->isSearchSourceUnavailable()) {
+            Toast::error(__('A Open Library está indisponível'), __('Tente de novo em alguns minutos.'));
+
+            return to_route('suggestions.index');
+        }
+
         Toast::success(match ($added) {
             0 => __('Nenhuma sugestão nova'),
             1 => __('1 sugestão nova'),

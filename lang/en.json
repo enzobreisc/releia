@@ -929,6 +929,8 @@
     "O Ollama não está rodando. As sugestões seguem pela pontuação.": "Ollama is not running. Suggestions keep using the score.",
     "Falta o modelo. Rode: ollama pull :model": "The model is missing. Run: ollama pull :model",
     "Chave do Google Books": "Google Books key",
+    "A Open Library está indisponível": "Open Library is unavailable",
+    "Tente de novo em alguns minutos.": "Try again in a few minutes.",
     "Não encontramos outras obras em português com edição brasileira.": "We found no other works in Portuguese with a Brazilian edition.",
     "Chave do Google Books salva": "Google Books key saved",
     "Chave do Google Books removida": "Google Books key removed",
