@@ -204,7 +204,7 @@ function ShoppingGroup({
             <ul
                 className={
                     isGrid
-                        ? 'grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-x-5.5 gap-y-8'
+                        ? 'grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-x-5.5 gap-y-8 max-md:grid-cols-2'
                         : cardClass('flex flex-col')
                 }
             >

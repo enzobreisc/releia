@@ -24,17 +24,25 @@ import { show as wrappedShow } from '@/routes/wrapped';
 import { index as suggestionsIndex } from '@/routes/suggestions';
 import type { NavGroup, NavItem } from '@/types';
 
+const homeItem: NavItem = { title: 'Início', href: home.url(), icon: HomeIcon };
+const libraryItem: NavItem = {
+    title: 'Biblioteca',
+    href: libraryIndex.url(),
+    icon: LibraryIcon,
+    count: 'books',
+};
+const statsItem: NavItem = {
+    title: 'Estatísticas',
+    href: statsIndex.url(),
+    icon: StatsIcon,
+};
+
 export const navGroups: NavGroup[] = [
-    { items: [{ title: 'Início', href: home.url(), icon: HomeIcon }] },
+    { items: [homeItem] },
     {
         title: 'Acervo',
         items: [
-            {
-                title: 'Biblioteca',
-                href: libraryIndex.url(),
-                icon: LibraryIcon,
-                count: 'books',
-            },
+            libraryItem,
             { title: 'Autores', href: authorsIndex.url(), icon: AuthorsIcon },
             {
                 title: 'Linha do tempo',
@@ -68,7 +76,7 @@ export const navGroups: NavGroup[] = [
     {
         title: 'Seu histórico',
         items: [
-            { title: 'Estatísticas', href: statsIndex.url(), icon: StatsIcon },
+            statsItem,
             { title: 'Wrapped', href: wrappedShow.url(), icon: WrappedIcon },
             { title: 'Perfil', href: profileShow.url(), icon: ProfileIcon },
         ],
@@ -80,6 +88,13 @@ export const addBookItem: NavItem = {
     href: addBook.url(),
     icon: PlusIcon,
 };
+
+export const tabBarItems: NavItem[] = [
+    homeItem,
+    libraryItem,
+    { ...addBookItem, title: 'Adicionar' },
+    statsItem,
+];
 
 /** Everything "Go to" (⌘P) can find. */
 export const commandItems: NavItem[] = [

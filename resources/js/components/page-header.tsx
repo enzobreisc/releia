@@ -19,7 +19,7 @@ export function PageHeader({
             <Head title={headTitle ?? title} />
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div className="flex flex-col gap-1.5">
-                    <h1 className="text-[44px] leading-none font-extrabold tracking-tighter">
+                    <h1 className="text-[44px] leading-none font-extrabold tracking-tighter max-md:text-[32px] max-md:leading-[1.05]">
                         {title}
                     </h1>
                     {description && (
@@ -44,7 +44,7 @@ export function SectionTitle({ children }: { children: string }) {
 
 export function DisplayTitle({ children }: { children: ReactNode }) {
     return (
-        <h1 className="text-[clamp(48px,6vw,76px)] leading-[0.92] font-extrabold tracking-[-0.045em]">
+        <h1 className="text-[clamp(48px,6vw,76px)] leading-[0.92] font-extrabold tracking-[-0.045em] max-md:text-[32px] max-md:leading-[1.05]">
             {children}
         </h1>
     );

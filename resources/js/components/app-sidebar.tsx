@@ -26,7 +26,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         <nav
             aria-label={t('Principal')}
             className={cn(
-                'flex h-screen shrink-0 flex-col gap-0.5 overflow-x-hidden overflow-y-auto border-r border-active/60 bg-sidebar pb-4 transition-[width,padding] duration-200 ease-out motion-reduce:transition-none',
+                'flex h-screen shrink-0 flex-col gap-0.5 overflow-x-hidden overflow-y-auto border-r border-active/60 bg-sidebar pb-4 transition-[width,padding] duration-200 ease-out motion-reduce:transition-none max-md:hidden',
                 collapsed ? 'w-14 px-2' : 'w-61 px-3.5',
             )}
         >

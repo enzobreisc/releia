@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { AppSidebar } from '@/components/app-sidebar';
 import { CommandPalette } from '@/components/command-palette';
+import { MobileTabBar } from '@/components/mobile-tab-bar';
 import { Toaster } from '@/components/toaster';
 import { useStored } from '@/hooks/use-stored';
 
@@ -43,14 +44,15 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     }, [toggleSidebar]);
 
     return (
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex h-screen overflow-hidden max-md:h-auto max-md:min-h-screen max-md:flex-col max-md:overflow-visible">
             <AppSidebar collapsed={collapsed} onToggle={toggleSidebar} />
-            <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
-                <div className="sticky top-0 z-10 h-9 shrink-0 bg-bg app-drag" />
-                <main className="flex flex-1 flex-col gap-7 px-10 pt-2 pb-8">
+            <div className="flex min-w-0 flex-1 flex-col overflow-y-auto max-md:overflow-visible">
+                <div className="sticky top-0 z-10 h-9 shrink-0 bg-bg app-drag max-md:hidden" />
+                <main className="flex flex-1 flex-col gap-7 px-10 pt-2 pb-8 max-md:px-4.5 max-md:pt-5.5 max-md:pb-28">
                     {children}
                 </main>
             </div>
+            <MobileTabBar />
             {commandOpen && (
                 <CommandPalette onClose={() => setCommandOpen(false)} />
             )}

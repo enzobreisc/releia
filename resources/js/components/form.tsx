@@ -165,7 +165,7 @@ export function Segmented({
                         aria-pressed={selected}
                         onClick={() => onChange(option.value)}
                         className={cn(
-                            'h-9 rounded-full px-3 text-[13px] font-bold',
+                            'h-9 rounded-full px-3 text-[13px] font-bold max-md:px-2 max-md:whitespace-nowrap',
                             selected
                                 ? 'bg-text text-bg'
                                 : 'text-secondary hover:bg-elevated hover:text-text',

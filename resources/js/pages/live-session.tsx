@@ -55,7 +55,7 @@ export default function LiveSession({
                 now={now}
             />
 
-            <main className="relative flex min-h-0 flex-1 flex-wrap items-center justify-center gap-x-24 gap-y-8 overflow-y-auto px-14 lg:px-30">
+            <main className="relative flex min-h-0 flex-1 flex-wrap items-center justify-center gap-x-24 gap-y-8 overflow-y-auto px-14 max-md:gap-x-0 max-md:px-4.5 lg:px-30">
                 <BookCover
                     src={reading.cover_url}
                     title={reading.title}
@@ -71,7 +71,7 @@ export default function LiveSession({
                 />
             </main>
 
-            <footer className="relative px-14 pt-6 pb-12">
+            <footer className="relative px-14 pt-6 pb-12 max-md:px-4.5">
                 <SessionStats
                     pagesToday={today.pages + Math.max(0, progress.gained)}
                     averagePages={today.average}

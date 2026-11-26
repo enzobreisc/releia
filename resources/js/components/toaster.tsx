@@ -107,7 +107,7 @@ export function Toaster({
             className={cn(
                 'z-60 flex flex-col gap-2',
                 variant === 'corner'
-                    ? 'fixed right-6 bottom-6 w-95 max-w-[calc(100vw-48px)]'
+                    ? 'fixed right-6 bottom-6 w-95 max-w-[calc(100vw-48px)] max-md:right-3 max-md:bottom-24 max-md:left-3 max-md:w-auto max-md:max-w-[calc(100vw-24px)]'
                     : 'fixed inset-x-3 bottom-9',
             )}
         >

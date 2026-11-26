@@ -38,7 +38,7 @@ export default function Timeline({
                 description={t('Os livros por onde você passou')}
                 actions={
                     <Segmented
-                        className="w-md"
+                        className="w-md max-md:w-full"
                         value={activeView}
                         onChange={(next) => setView(next as TimelineView)}
                         options={[

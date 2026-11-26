@@ -17,7 +17,7 @@ export function Steps({ editing }: { editing: boolean }) {
     return (
         <ol
             aria-label={t('Etapas')}
-            className="flex flex-wrap rounded-full bg-surface p-1 inset-ring inset-ring-border"
+            className="flex flex-wrap rounded-full bg-surface p-1 inset-ring inset-ring-border max-md:flex-nowrap"
         >
             {STEP_LABELS.map((label, index) => {
                 const active = index + 1 === current;
@@ -27,11 +27,11 @@ export function Steps({ editing }: { editing: boolean }) {
                         key={label}
                         aria-current={active ? 'step' : undefined}
                         className={cn(
-                            'flex h-9 items-center gap-2 rounded-full px-4 text-[13px] font-bold',
+                            'flex h-9 items-center gap-2 rounded-full px-4 text-[13px] font-bold max-md:px-2 max-md:whitespace-nowrap',
                             active ? 'bg-text text-bg' : 'text-secondary',
                         )}
                     >
-                        <span className="font-mono text-[11px] font-normal">
+                        <span className="font-mono text-[11px] font-normal max-md:hidden">
                             {index + 1}
                         </span>
                         {t(label)}

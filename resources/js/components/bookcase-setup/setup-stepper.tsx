@@ -13,7 +13,7 @@ export function SetupStepper({
     const { t } = useTranslation();
 
     return (
-        <ol aria-label={t('Etapas')} className="flex items-start">
+        <ol aria-label={t('Etapas')} className="flex items-start max-md:w-full">
             {labels.map((label, index) => {
                 const number = index + 1;
                 const isDone = number < current;
@@ -25,7 +25,7 @@ export function SetupStepper({
                             <li
                                 aria-hidden
                                 className={cn(
-                                    'mt-4.5 h-px w-14 sm:w-20',
+                                    'mt-4.5 h-px w-14 max-md:mt-3.5 max-md:w-auto max-md:flex-1 sm:w-20',
                                     number <= current
                                         ? 'bg-primary'
                                         : 'bg-strong',
@@ -34,11 +34,11 @@ export function SetupStepper({
                         )}
                         <li
                             aria-current={isCurrent ? 'step' : undefined}
-                            className="flex w-24 flex-col items-center gap-2"
+                            className="flex w-24 flex-col items-center gap-2 max-md:w-auto max-md:min-w-0 max-md:flex-1"
                         >
                             <span
                                 className={cn(
-                                    'flex size-9 items-center justify-center rounded-full font-mono text-xs',
+                                    'flex size-9 items-center justify-center rounded-full font-mono text-xs max-md:size-7',
                                     isCurrent && 'bg-text font-bold text-bg',
                                     isDone && 'bg-primary text-sm text-text',
                                     !isCurrent &&

@@ -30,7 +30,7 @@ export function SessionHeading({
                 />
                 {isPaused ? t('pausado') : t('lendo')}
             </span>
-            <h1 className="text-[clamp(2.5rem,4.5vw,4rem)] leading-[0.95] font-extrabold tracking-[-0.045em]">
+            <h1 className="text-[clamp(2.5rem,4.5vw,4rem)] leading-[0.95] font-extrabold tracking-[-0.045em] max-md:text-[32px] max-md:leading-[1.05]">
                 {title}
             </h1>
             <p className="text-xl font-semibold text-secondary">{authors}</p>

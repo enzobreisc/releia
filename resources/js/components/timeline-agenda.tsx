@@ -41,7 +41,7 @@ function YearPosition({
     return (
         <span
             aria-hidden="true"
-            className="relative h-1.5 w-36 rounded-full bg-heat-0"
+            className="relative h-1.5 w-36 rounded-full bg-heat-0 max-md:hidden"
         >
             <span
                 className={cn(
@@ -76,16 +76,18 @@ function AgendaRow({
         <Link
             href={show.url(reading.book_id)}
             className={cardClass(
-                'grid grid-cols-[9.5rem_2.25rem_minmax(0,1fr)_auto_auto] items-center gap-4.5 px-3.5 py-2.5 hover:bg-elevated',
+                'grid grid-cols-[9.5rem_2.25rem_minmax(0,1fr)_auto_auto] items-center gap-4.5 px-3.5 py-2.5 hover:bg-elevated max-md:grid-cols-[2.25rem_minmax(0,1fr)_auto] max-md:gap-x-3 max-md:gap-y-2',
             )}
         >
-            <DateRange reading={reading} />
+            <span className="contents max-md:col-start-2 max-md:row-start-2 max-md:block">
+                <DateRange reading={reading} />
+            </span>
             <BookCover
                 src={reading.cover_url}
                 title={reading.title}
-                className="w-9"
+                className="w-9 max-md:row-span-2"
             />
-            <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="flex min-w-0 flex-col gap-0.5 max-md:col-span-2 max-md:col-start-2 max-md:row-start-1">
                 <span className="truncate text-[15px] font-extrabold">
                     {reading.title}
                 </span>
@@ -93,8 +95,10 @@ function AgendaRow({
                     {reading.authors}
                 </span>
             </span>
-            <ReadingTag reading={reading} />
-            <span className="flex items-center justify-end gap-3.5">
+            <span className="contents max-md:col-start-3 max-md:row-start-2 max-md:block max-md:justify-self-end">
+                <ReadingTag reading={reading} />
+            </span>
+            <span className="flex items-center justify-end gap-3.5 max-md:col-span-2 max-md:col-start-2 max-md:row-start-3 max-md:justify-start">
                 <span className="font-mono text-xs text-muted">
                     {plural(readingDays(reading, today), 'dia', 'dias')}
                 </span>

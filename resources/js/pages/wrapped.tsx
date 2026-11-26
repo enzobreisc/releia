@@ -151,7 +151,7 @@ export default function Wrapped({
             >
                 <div
                     aria-hidden="true"
-                    className="absolute -top-10 -right-10 grid grid-cols-[repeat(6,44px)] gap-2 opacity-50"
+                    className="absolute -top-10 -right-10 grid grid-cols-[repeat(6,44px)] gap-2 opacity-50 max-md:hidden"
                 >
                     {DECORATION_LEVELS.map((level, index) => (
                         <span

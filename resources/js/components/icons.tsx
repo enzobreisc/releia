@@ -288,3 +288,22 @@ export function PlayIcon(props: IconProps) {
         </svg>
     );
 }
+
+export function MoreIcon(props: IconProps) {
+    return (
+        <LineIcon {...props}>
+            <path d="M2.5 4.5h11" />
+            <path d="M2.5 8h11" />
+            <path d="M2.5 11.5h11" />
+        </LineIcon>
+    );
+}
+
+export function CloseIcon(props: IconProps) {
+    return (
+        <LineIcon {...props}>
+            <path d="m4 4 8 8" />
+            <path d="m12 4-8 8" />
+        </LineIcon>
+    );
+}

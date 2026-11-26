@@ -162,7 +162,7 @@ function AuthorRow({ author }: { author: AuthorIndexEntry }) {
     return (
         <Link
             href={show.url(author.id)}
-            className="grid grid-cols-[minmax(0,1fr)_auto_auto_20px] items-center gap-4 border-b border-border px-5 py-4 last:border-b-0 hover:bg-active sm:grid-cols-[minmax(180px,1.6fr)_minmax(120px,1.2fr)_minmax(70px,0.6fr)_minmax(70px,0.6fr)_20px]"
+            className="grid grid-cols-[minmax(0,1fr)_auto_auto_20px] items-center gap-4 border-b border-border px-5 py-4 last:border-b-0 hover:bg-active max-md:gap-2 max-md:px-4 sm:grid-cols-[minmax(180px,1.6fr)_minmax(120px,1.2fr)_minmax(70px,0.6fr)_minmax(70px,0.6fr)_20px]"
         >
             <span className="flex min-w-0 items-center gap-3">
                 <AuthorAvatar
@@ -353,9 +353,9 @@ export default function Authors({
                             <section
                                 key={group.label}
                                 aria-label={group.label}
-                                className="grid grid-cols-[64px_minmax(0,1fr)] items-start gap-4"
+                                className="grid grid-cols-[64px_minmax(0,1fr)] items-start gap-4 max-md:grid-cols-1 max-md:gap-2"
                             >
-                                <span className="text-[44px] leading-none font-extrabold tracking-tighter text-heat-2">
+                                <span className="text-[44px] leading-none font-extrabold tracking-tighter text-heat-2 max-md:text-[28px]">
                                     {group.label}
                                 </span>
                                 <div

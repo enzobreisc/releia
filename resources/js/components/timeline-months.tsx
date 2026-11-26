@@ -57,7 +57,13 @@ function MonthBlock({
                     style={columns}
                 >
                     {Array.from({ length: dayCount }, (_, index) => (
-                        <span key={index} className="text-center">
+                        <span
+                            key={index}
+                            className={cn(
+                                'text-center',
+                                index % 5 !== 0 && 'max-md:invisible',
+                            )}
+                        >
                             {index + 1}
                         </span>
                     ))}

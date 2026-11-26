@@ -37,7 +37,7 @@ export function ResultRow({
                 selected ? 'bg-active inset-ring-primary' : undefined,
             )}
         >
-            <div className="flex items-center gap-4 px-4 py-3.5">
+            <div className="flex items-center gap-4 px-4 py-3.5 max-md:flex-wrap">
                 <BookCover
                     src={result.cover_url}
                     title={result.title}
@@ -59,7 +59,7 @@ export function ResultRow({
                         )}
                     </span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 max-md:w-full max-md:justify-end">
                     {onToggleEditions && (
                         <button
                             type="button"

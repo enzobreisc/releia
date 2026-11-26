@@ -16,7 +16,7 @@ export function ReaderSummary({
     return (
         <>
             <div className="flex flex-col gap-1.5">
-                <h1 className="text-4xl leading-none font-extrabold tracking-tighter">
+                <h1 className="text-4xl leading-none font-extrabold tracking-tighter max-md:text-[32px]">
                     {reader.name ?? t('Seu perfil')}
                 </h1>
                 <span className="font-mono text-xs text-muted">

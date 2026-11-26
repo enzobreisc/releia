@@ -208,7 +208,7 @@ export default function Library({
                     }
                 />
             ) : books.length > 0 ? (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-x-5.5 gap-y-8">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-x-5.5 gap-y-8 max-md:grid-cols-2">
                     {books.map((book) => (
                         // The queue button sits outside the Link, which cannot contain buttons.
                         <div

@@ -119,11 +119,16 @@ export function HeatMap({
     const active = days.find((day) => day.date === selected);
 
     return (
-        <div className={cn('flex flex-col gap-3', className)}>
+        <div
+            className={cn(
+                'flex flex-col gap-3 max-md:overflow-x-auto',
+                className,
+            )}
+        >
             <div
                 role="img"
                 aria-label={t('Mapa de calor de dias lidos')}
-                className="grid gap-[3px]"
+                className="grid gap-[3px] max-md:min-w-[720px]"
                 style={{
                     gridTemplateColumns: `auto repeat(${weeks}, minmax(0, 1fr))`,
                     gridTemplateRows: 'auto repeat(7, auto)',

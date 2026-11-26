@@ -36,7 +36,7 @@ export function Dialog({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-bg/75 px-4 pt-[12vh] pb-8 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-bg/75 px-4 pt-[12vh] pb-8 backdrop-blur-sm max-md:px-3 max-md:pt-3 max-md:pb-3"
             onMouseDown={(event) => {
                 if (event.target === event.currentTarget) {
                     onClose();
@@ -48,7 +48,7 @@ export function Dialog({
                 aria-modal="true"
                 aria-label={heading}
                 className={cn(
-                    'flex w-full max-w-125 flex-col gap-4 rounded-lg bg-surface p-6 shadow-float',
+                    'flex w-full max-w-125 flex-col gap-4 rounded-lg bg-surface p-6 shadow-float max-md:max-h-[calc(100dvh-1.5rem)] max-md:overflow-y-auto max-md:p-5',
                     className,
                 )}
             >
