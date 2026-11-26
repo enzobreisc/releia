@@ -24,7 +24,7 @@ export function ResultRow({
     onToggleEditions,
     children,
 }: ResultRowProps) {
-    const { t } = useTranslation();
+    const { t, plural } = useTranslation();
     const meta = [
         result.authors.join(', ') || t('Autor desconhecido'),
         result.published_year,
@@ -71,9 +71,11 @@ export function ResultRow({
                             )}
                         >
                             {editionsOpen ? '−' : '+'}{' '}
-                            {t(':count edições', {
-                                count: result.edition_count ?? 0,
-                            })}
+                            {plural(
+                                result.edition_count ?? 0,
+                                'edição',
+                                'edições',
+                            )}
                         </button>
                     )}
                     {result.library_id ? (

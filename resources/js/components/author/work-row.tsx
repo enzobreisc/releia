@@ -21,7 +21,7 @@ export function WorkRow({
     work: Work;
     authorName: string;
 }) {
-    const { t } = useTranslation();
+    const { t, plural } = useTranslation();
 
     return (
         <li className="flex flex-wrap items-center gap-4 border-b px-4.5 py-3.5 last:border-b-0">
@@ -36,9 +36,7 @@ export function WorkRow({
                     {work.year && <span>{work.year}</span>}
                     {work.edition_count && (
                         <span>
-                            {t(':count edições', {
-                                count: work.edition_count,
-                            })}
+                            {plural(work.edition_count, 'edição', 'edições')}
                         </span>
                     )}
                     {work.portuguese && (
