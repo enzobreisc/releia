@@ -104,6 +104,7 @@ export const commandItems: NavItem[] = [
 
 export function isActive(currentUrl: string, href: string): boolean {
     const path = currentUrl.split('?')[0];
+    const homeHref = home.url();
 
-    return href === '/' ? path === '/' : path.startsWith(href);
+    return href === homeHref ? path === homeHref : path.startsWith(href);
 }
