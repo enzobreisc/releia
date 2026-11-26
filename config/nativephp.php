@@ -70,6 +70,7 @@ return [
         'DO_SPACES_*',
         '*_SECRET',
         'BIFROST_*',
+        'GOOGLE_BOOKS_API_KEY',
         'NATIVEPHP_UPDATER_PATH',
         'NATIVEPHP_APPLE_ID',
         'NATIVEPHP_APPLE_ID_PASS',
@@ -93,10 +94,16 @@ return [
         '.github',
         'brand',
         'storage/framework/testing',
+        // Library covers, photos and uploads belong to the user's own data, never to the bundle.
+        'storage/app/private/*',
+        'storage/app/public/*',
+        // Inertia devtools snapshots record requests made during development.
+        'storage/inertia-devtools',
+        'storage/inertia-devtools/*',
         // Points at the Vite dev server; when bundled, the app would ship without CSS and JS.
         'public/hot',
         // Dev and test databases: the app uses its own database in the data folder.
-        'database/*.sqlite',
+        'database/*.sqlite*',
         'build',
         'temp',
         'content',
