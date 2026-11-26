@@ -734,3 +734,12 @@ test('moving a want-to-read book to the shopping list keeps the suggestions made
     expect(Recommendation::query()->whereIn('id', $suggestionIds)->count())->toBe(count($suggestionIds))
         ->and(app(RecommendationService::class)->hasSources())->toBeTrue();
 });
+
+test('a novel does not search the subject, which would bring love stories', function () {
+    fakeOpenLibrary();
+    ratedBook('Torto Arado', 'Itamar Vieira Junior', 5, 'Romance');
+
+    app(RecommendationService::class)->generate();
+
+    Http::assertNotSent(fn (Request $request) => array_key_exists('subject', $request->data()));
+});

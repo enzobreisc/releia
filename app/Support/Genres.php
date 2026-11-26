@@ -98,6 +98,20 @@ final class Genres
     }
 
     /**
+     * The catalog genres are in Portuguese and Open Library indexes subjects in English. A genre typed
+     * by the reader is searched as it is, but a catalog genre without a subject is not searched at all:
+     * "romance" would bring love stories.
+     */
+    public static function searchSubject(?string $genre): ?string
+    {
+        if ($genre === null) {
+            return null;
+        }
+
+        return array_key_exists($genre, self::CATALOG) ? self::CATALOG[$genre]['subject'] : $genre;
+    }
+
+    /**
      * @param  array<mixed>  $subjects
      * @return list<string>
      */

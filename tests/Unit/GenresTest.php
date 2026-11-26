@@ -22,3 +22,12 @@ test('só gêneros do catálogo têm assunto para sugestões', function () {
         ->and(Genres::openLibrarySubject(null))->toBeNull()
         ->and(Genres::names())->toContain('Poesia', 'Romance');
 });
+
+test('searches the subject of a catalog genre in English and a typed genre as it is', function (?string $genre, ?string $subject) {
+    expect(Genres::searchSubject($genre))->toBe($subject);
+})->with([
+    'catalog genre' => ['Ficção científica', 'Science fiction'],
+    'novel, which would bring love stories' => ['Romance', null],
+    'typed genre' => ['Cyberpunk', 'Cyberpunk'],
+    'no genre' => [null, null],
+]);

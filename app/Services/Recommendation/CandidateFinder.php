@@ -81,8 +81,7 @@ final class CandidateFinder
             return [];
         }
 
-        // The catalog genres are in Portuguese; Open Library indexes subjects in English.
-        $subject = Genres::openLibrarySubject($book->genre) ?? $book->genre;
+        $subject = Genres::searchSubject($book->genre);
 
         if (! GenericSubjects::isUseful($subject) || $subject === null) {
             return [];
