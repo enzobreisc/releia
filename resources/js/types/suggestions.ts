@@ -7,3 +7,10 @@ export type Suggestion = {
     based_on: string | null;
     has_editions: boolean;
 };
+
+export type AiRanking = {
+    enabled: boolean;
+    model: string;
+};
+
+export type AiAvailability = 'ready' | 'server_unreachable' | 'model_missing';

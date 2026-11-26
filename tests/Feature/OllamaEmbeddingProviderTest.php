@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\Ai\EmbeddingAvailability;
 use App\Services\Ai\EmbeddingProvider;
 use App\Services\Ai\EmbeddingUnavailable;
 use App\Services\Ai\OllamaEmbeddingProvider;
@@ -81,4 +82,31 @@ test('throws when the response body is malformed', function (array $body) {
 
 test('resolves the embedding interface to the Ollama provider', function () {
     expect(app(EmbeddingProvider::class))->toBeInstanceOf(OllamaEmbeddingProvider::class);
+});
+
+test('reports the model as ready when Ollama shows it', function () {
+    Http::fake(['http://ollama.test/api/show' => Http::response(['modelfile' => 'FROM nomic-embed-text'])]);
+
+    expect(ollamaEmbeddings()->availability())->toBe(EmbeddingAvailability::Ready);
+
+    Http::assertSent(fn (Request $request) => $request->url() === 'http://ollama.test/api/show'
+        && $request['model'] === 'nomic-embed-text');
+});
+
+test('reports the model as missing when Ollama does not have it', function () {
+    Http::fake(['http://ollama.test/api/show' => Http::response(['error' => 'model not found'], 404)]);
+
+    expect(ollamaEmbeddings()->availability())->toBe(EmbeddingAvailability::ModelMissing);
+});
+
+test('reports the server as unreachable when the connection fails', function () {
+    Http::fake(fn () => Http::failedConnection('Connection refused'));
+
+    expect(ollamaEmbeddings()->availability())->toBe(EmbeddingAvailability::ServerUnreachable);
+});
+
+test('reports the server as unreachable for any other failing status', function () {
+    Http::fake(['http://ollama.test/api/show' => Http::response(['error' => 'boom'], 500)]);
+
+    expect(ollamaEmbeddings()->availability())->toBe(EmbeddingAvailability::ServerUnreachable);
 });

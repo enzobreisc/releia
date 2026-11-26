@@ -11,7 +11,11 @@ final readonly class OllamaEmbeddingProvider implements EmbeddingProvider
 {
     private const EMBED_PATH = '/api/embed';
 
+    private const SHOW_PATH = '/api/show';
+
     private const CONNECT_TIMEOUT_SECONDS = 1;
+
+    private const PROBE_TIMEOUT_SECONDS = 2;
 
     /**
      * The task prefix is required by models such as nomic-embed-text, and Ollama does not add it.
@@ -43,11 +47,27 @@ final readonly class OllamaEmbeddingProvider implements EmbeddingProvider
         return $this->timeoutSeconds;
     }
 
+    /** Ollama answers 404 for a model that was never pulled, and refuses connections when it is not running. */
+    public function availability(): EmbeddingAvailability
+    {
+        try {
+            $response = $this->client(self::PROBE_TIMEOUT_SECONDS)->post(self::SHOW_PATH, ['model' => $this->model]);
+        } catch (ConnectionException) {
+            return EmbeddingAvailability::ServerUnreachable;
+        }
+
+        if ($response->successful()) {
+            return EmbeddingAvailability::Ready;
+        }
+
+        return $response->notFound() ? EmbeddingAvailability::ModelMissing : EmbeddingAvailability::ServerUnreachable;
+    }
+
     /** @param  list<string>  $texts */
     private function send(array $texts): Response
     {
         try {
-            $response = $this->client()->post(self::EMBED_PATH, [
+            $response = $this->client($this->timeoutSeconds)->post(self::EMBED_PATH, [
                 'model' => $this->model,
                 'input' => array_map(fn (string $text) => $this->prefix.$text, $texts),
             ]);
@@ -94,11 +114,11 @@ final readonly class OllamaEmbeddingProvider implements EmbeddingProvider
         return $floats;
     }
 
-    private function client(): PendingRequest
+    private function client(int $timeoutSeconds): PendingRequest
     {
         return Http::baseUrl($this->url)
             ->acceptJson()
             ->connectTimeout(self::CONNECT_TIMEOUT_SECONDS)
-            ->timeout($this->timeoutSeconds);
+            ->timeout($timeoutSeconds);
     }
 }

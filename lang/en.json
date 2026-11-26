@@ -921,5 +921,13 @@
     "Unir com outra prateleira": "Merge with another shelf",
     "Os livros da prateleira escolhida passam para esta, e os próximos livros do mesmo grupo também.": "The books on the shelf you pick move to this one, and so will future books of the same group.",
     "Deitar o livro": "Lay the book down",
-    "Colocar em pé": "Stand the book up"
+    "Colocar em pé": "Stand the book up",
+    "IA local ativada": "Local AI turned on",
+    "IA local desativada": "Local AI turned off",
+    "Ordenar com IA local (experimental)": "Sort with local AI (experimental)",
+    "Usa o Ollama no seu computador para aproximar as sugestões dos livros que você avaliou. Nada sai da sua máquina.": "Uses Ollama on your computer to bring the suggestions closer to the books you rated. Nothing leaves your machine.",
+    "Verificando o Ollama…": "Checking Ollama…",
+    "IA local disponível": "Local AI available",
+    "O Ollama não está rodando. As sugestões seguem pela pontuação.": "Ollama is not running. Suggestions keep using the score.",
+    "Falta o modelo. Rode: ollama pull :model": "The model is missing. Run: ollama pull :model"
 }

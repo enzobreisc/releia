@@ -17,4 +17,7 @@ interface EmbeddingProvider
 
     /** Worst-case seconds one embed call may take, so callers can budget for it. */
     public function timeoutSeconds(): int;
+
+    /** Whether the embedding model can answer right now. Never throws. */
+    public function availability(): EmbeddingAvailability;
 }
