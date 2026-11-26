@@ -172,6 +172,17 @@ class OpenLibraryProvider implements MetadataProvider
     }
 
     /**
+     * @param  array<mixed>  $isbns
+     * @return list<string>
+     */
+    private function brazilianIsbns(array $isbns): array
+    {
+        $valid = array_filter(array_map(fn (mixed $isbn) => is_string($isbn) ? Isbn::toIsbn13($isbn) : null, $isbns));
+
+        return array_values(array_unique(array_filter($valid, Isbn::isBrazilian(...))));
+    }
+
+    /**
      * Searches return works with the ISBNs of all their editions.
      * Prefers a Brazilian edition; otherwise the first valid ISBN.
      *
@@ -525,6 +536,7 @@ class OpenLibraryProvider implements MetadataProvider
                 coverUrl: $coverId ? "https://covers.openlibrary.org/b/id/{$coverId}-L.jpg" : null,
                 workKey: self::workKey($doc['key'] ?? null),
                 editionCount: BookCandidate::positiveInt($doc['edition_count'] ?? null),
+                brazilianIsbns: $this->brazilianIsbns(is_array($doc['isbn'] ?? null) ? $doc['isbn'] : []),
                 popularity: (int) ($doc['want_to_read_count'] ?? 0) + 5 * (int) ($doc['ratings_count'] ?? 0),
             );
         }

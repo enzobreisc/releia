@@ -2,31 +2,27 @@
 
 namespace App\Services\Recommendation;
 
-use App\Services\BookLookup\BookCandidate;
-use App\Services\BookLookup\BrasilApiProvider;
-use App\Services\BookLookupService;
-use Illuminate\Support\Facades\Cache;
+use App\Services\BookLookup\BrazilianEditions;
+use App\Services\BookLookup\PreferredPublishers;
 
 final class PortugueseEditions
 {
     public function __construct(
-        private readonly BrasilApiProvider $brasilApi,
-        private readonly BookLookupService $lookup,
+        private readonly BrazilianEditions $editions,
+        private readonly PreferredPublishers $preferredPublishers,
     ) {}
 
     /**
-     * The Open Library work comes with the original title ("The Hobbit"). The Brazilian edition,
-     * fetched by ISBN, brings the title, authors and cover in Portuguese; without it, it does not suggest.
+     * The Open Library work comes with the original title ("The Hobbit"). A Brazilian edition, from your
+     * publishers when possible, brings the title, authors and cover in Portuguese; without one, it does
+     * not suggest.
      */
     public function localize(Suggestion $suggestion): ?Suggestion
     {
-        $isbn = $suggestion->candidate->isbn13;
+        $isbns = $this->preferredPublishers->sortIsbns($suggestion->candidate->brazilianIsbns)
+            ?: array_filter([$suggestion->candidate->isbn13]);
 
-        if ($isbn === null) {
-            return null;
-        }
-
-        $edition = $this->findByIsbn($isbn);
+        $edition = $this->editions->firstDescribed($isbns);
 
         if ($edition === null || $edition->title === '') {
             return null;
@@ -36,30 +32,6 @@ final class PortugueseEditions
 
         // Author and title come from the edition; the work's cover is only a fallback.
         return $suggestion->withCandidate($candidate, $this->reasonFor($suggestion));
-    }
-
-    /**
-     * Edition by Brazilian ISBN: BrasilAPI first (one call, right title) and, if it
-     * does not know it, the other sources. Each ISBN is cached.
-     */
-    public function findByIsbn(string $isbn): ?BookCandidate
-    {
-        $key = 'author-edition:'.$isbn;
-        $cached = Cache::get($key);
-
-        if ($cached !== null) {
-            return BookCandidate::fromArray($cached);
-        }
-
-        $edition = $this->brasilApi->findByIsbn($isbn);
-
-        if ($edition !== null) {
-            Cache::put($key, $edition->toArray(), now()->addDays(30));
-
-            return $edition;
-        }
-
-        return $this->lookup->findByIsbn($isbn);
     }
 
     /** Stored in the language it was generated in, so the reason is rebuilt from the same sources. */

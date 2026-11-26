@@ -272,3 +272,15 @@ test('a work titled with just the author surname is not listed', function () {
 
     $this->getJson(route('authors.works', authorWithBook()))->assertJson(['items' => []]);
 });
+
+test('an edition that lists its author wins over one from your publisher that does not', function () {
+    Http::fake([
+        'brasilapi.com.br/api/isbn/v1/9788573262735' => Http::response(['title' => 'Os paralamas do sucesso', 'authors' => []]),
+        'brasilapi.com.br/api/isbn/v1/9788500000010' => Http::response(['title' => 'O desaparecido', 'authors' => ['Itamar Vieira Junior']]),
+    ]);
+    // Registered after, so the editions above answer before the catch-all.
+    fakeAuthorApi([['key' => '/works/OL1W', 'title' => 'Amerika', 'isbn' => ['9788500000010', '9788573262735'], 'language' => ['por']]]);
+
+    $this->getJson(route('authors.works', authorWithBook(isbn: '9788573263107')))
+        ->assertJsonPath('items.0.title', 'O desaparecido');
+});

@@ -18,7 +18,7 @@ final class CandidateCache
      */
     public function remember(string $key, Closure $fetch): array
     {
-        $key = 'suggestions:v2:'.$key;
+        $key = 'suggestions:v3:'.$key;
 
         if (Cache::has($key)) {
             return array_values(array_map(BookCandidate::fromArray(...), Cache::get($key)));

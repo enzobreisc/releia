@@ -6,6 +6,7 @@ use App\Services\BookLookup\BookCandidate;
 use App\Services\BookLookup\BrasilApiProvider;
 use App\Services\BookLookup\GoogleBooksProvider;
 use App\Services\BookLookup\OpenLibraryProvider;
+use App\Services\BookLookup\PreferredPublishers;
 use App\Support\Isbn;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -27,6 +28,7 @@ class BookLookupService
         private readonly GoogleBooksProvider $googleBooks,
         private readonly BrasilApiProvider $brasilApi,
         private readonly CoverStore $covers,
+        private readonly PreferredPublishers $preferredPublishers,
     ) {}
 
     /**
@@ -74,7 +76,7 @@ class BookLookupService
 
     /**
      * Editions of a work with ISBN, without repeats, in the order they matter:
-     * Brazilian first, then with a cover, then the most recent.
+     * Brazilian first, then your publishers, then with a cover, then the most recent.
      *
      * @param  list<string>  $authors  work authors (editions do not carry them)
      * @param  string|null  $publisher  filters by publisher name, ignoring accents
@@ -116,10 +118,11 @@ class BookLookupService
             ));
         }
 
-        return array_map(
+        // Applied after the cache, so a new book in the library changes the order right away.
+        return $this->preferredPublishers->sort(array_map(
             fn (array $edition) => BookCandidate::fromArray(['authors' => $authors] + $edition),
             $cached,
-        );
+        ));
     }
 
     /**

@@ -5,8 +5,9 @@ namespace App\Services;
 use App\Models\Author;
 use App\Models\Book;
 use App\Services\BookLookup\BookCandidate;
-use App\Services\BookLookup\BrasilApiProvider;
+use App\Services\BookLookup\BrazilianEditions;
 use App\Services\BookLookup\OpenLibraryProvider;
+use App\Services\BookLookup\PreferredPublishers;
 use App\Support\BookIdentity;
 use App\Support\Isbn;
 use Illuminate\Support\Collection;
@@ -24,14 +25,12 @@ class AuthorService
 
     private const MAX_WORKS = 30;
 
-    private const ISBN_TRIES = 3;
-
     private const WORKS_LANGUAGE = 'por';
 
     public function __construct(
         private readonly OpenLibraryProvider $openLibrary,
-        private readonly BrasilApiProvider $brasilApi,
-        private readonly BookLookupService $lookup,
+        private readonly BrazilianEditions $editions,
+        private readonly PreferredPublishers $preferredPublishers,
     ) {}
 
     /**
@@ -173,7 +172,7 @@ class AuthorService
 
             $missingWorks++;
 
-            $edition = $this->portugueseEdition($brazilian);
+            $edition = $this->editions->firstDescribed($this->preferredPublishers->sortIsbns($brazilian));
 
             if ($edition === null) {
                 continue;
@@ -224,35 +223,6 @@ class AuthorService
         }
 
         return $works;
-    }
-
-    /**
-     * Portuguese edition by ISBN: BrasilAPI first (Brazilian catalogue, reliable title), then the
-     * other sources when it does not know the ISBN.
-     *
-     * @param  list<string>  $isbns  Brazilian ISBNs of the work
-     */
-    private function portugueseEdition(array $isbns): ?BookCandidate
-    {
-        foreach (array_slice($isbns, 0, self::ISBN_TRIES) as $isbn) {
-            $key = 'author-edition:'.$isbn;
-            $cached = Cache::get($key);
-
-            if ($cached !== null) {
-                return BookCandidate::fromArray($cached);
-            }
-
-            $edition = $this->brasilApi->findByIsbn($isbn);
-
-            if ($edition !== null) {
-                Cache::put($key, $edition->toArray(), now()->addDays(30));
-
-                return $edition;
-            }
-        }
-
-        // BookLookupService::findByIsbn already caches its result.
-        return $this->lookup->findByIsbn($isbns[0]);
     }
 
     /**

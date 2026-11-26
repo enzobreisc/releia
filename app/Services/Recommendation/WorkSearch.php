@@ -3,6 +3,7 @@
 namespace App\Services\Recommendation;
 
 use App\Services\BookLookup\BookCandidate;
+use App\Services\BookLookup\BrazilianEditions;
 use App\Services\BookLookup\OpenLibraryProvider;
 use App\Support\BookIdentity;
 use App\Support\Isbn;
@@ -12,7 +13,7 @@ final class WorkSearch
     public function __construct(
         private readonly OpenLibraryProvider $openLibrary,
         private readonly CandidateCache $cache,
-        private readonly PortugueseEditions $editions,
+        private readonly BrazilianEditions $editions,
     ) {}
 
     /**

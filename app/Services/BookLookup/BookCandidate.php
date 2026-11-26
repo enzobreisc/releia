@@ -6,12 +6,13 @@ use App\Enums\BookSource;
 use Illuminate\Support\Str;
 
 /**
- * @phpstan-type CandidateArray array{isbn_13: string|null, isbn_10: string|null, title: string, subtitle: string|null, authors: list<string>, publisher: string|null, published_year: int|null, pages: int|null, genre: string|null, description: string|null, cover_url: string|null, source: string, work_key?: string|null, edition_count?: int|null, language?: string|null, popularity?: int|null}
+ * @phpstan-type CandidateArray array{isbn_13: string|null, isbn_10: string|null, title: string, subtitle: string|null, authors: list<string>, publisher: string|null, published_year: int|null, pages: int|null, genre: string|null, description: string|null, cover_url: string|null, source: string, work_key?: string|null, edition_count?: int|null, language?: string|null, popularity?: int|null, brazilian_isbns?: list<string>}
  */
 final readonly class BookCandidate
 {
     /**
      * @param  list<string>  $authors
+     * @param  list<string>  $brazilianIsbns  every Brazilian edition of the work, when a search lists them
      */
     public function __construct(
         public string $title,
@@ -33,6 +34,7 @@ final readonly class BookCandidate
         public ?string $language = null,
         // How many people want to read or have rated the work (Open Library); used to rank suggestions.
         public ?int $popularity = null,
+        public array $brazilianIsbns = [],
     ) {}
 
     /** Fills the empty fields from another source, never overwriting a value already set. */
@@ -55,6 +57,7 @@ final readonly class BookCandidate
             editionCount: $this->editionCount ?? $other->editionCount,
             language: $this->language ?? $other->language,
             popularity: $this->popularity ?? $other->popularity,
+            brazilianIsbns: $this->brazilianIsbns ?: $other->brazilianIsbns,
         );
     }
 
@@ -85,6 +88,7 @@ final readonly class BookCandidate
             'edition_count' => $this->editionCount,
             'language' => $this->language,
             'popularity' => $this->popularity,
+            'brazilian_isbns' => $this->brazilianIsbns,
         ];
     }
 
@@ -110,6 +114,7 @@ final readonly class BookCandidate
             editionCount: $data['edition_count'] ?? null,
             language: $data['language'] ?? null,
             popularity: $data['popularity'] ?? null,
+            brazilianIsbns: $data['brazilian_isbns'] ?? [],
         );
     }
 
