@@ -87,6 +87,10 @@ xattr -dr com.apple.quarantine /Applications/releia.app
 
 Para registrar sessões pelo celular, siga [docs/mobile-quick-log.md](docs/mobile-quick-log.md).
 
+## Chave do Google Books (opcional)
+
+Sem chave, o Google Books divide uma cota diária entre todos e costuma recusar as consultas; a Open Library e a BrasilAPI continuam funcionando. Para usar a sua própria cota, crie uma [chave da Books API](https://developers.google.com/books/docs/v1/using#APIKey) e cole na página de Perfil. Ela fica criptografada no banco local e nunca faz parte do app publicado. Em desenvolvimento, `GOOGLE_BOOKS_API_KEY` no `.env` também funciona.
+
 ## Ordenação com IA local (experimental)
 
 As sugestões também podem ser ordenadas pela proximidade com os livros que você avaliou, usando embeddings calculados no seu Mac pelo [Ollama](https://ollama.com). É opcional, vem desligada e nada da sua biblioteca sai da máquina: o Ollama roda em `localhost`, e a Open Library continua recebendo apenas as buscas por autor e assunto.

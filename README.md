@@ -87,6 +87,10 @@ xattr -dr com.apple.quarantine /Applications/releia.app
 
 To log sessions from your phone, follow [docs/mobile-quick-log.md](docs/mobile-quick-log.md).
 
+## Google Books key (optional)
+
+Without a key, Google Books shares a daily quota among everyone and often refuses requests; Open Library and BrasilAPI keep working. To use your own quota, create a [Books API key](https://developers.google.com/books/docs/v1/using#APIKey) and paste it on the Profile page. It is stored encrypted in the local database and is never part of the published app. In development, `GOOGLE_BOOKS_API_KEY` in `.env` also works.
+
 ## Local AI ordering (experimental)
 
 Suggestions can also be ordered by how close they are to the books you rated, using embeddings computed on your Mac by [Ollama](https://ollama.com). It is optional, off by default, and nothing about your library leaves the machine: Ollama runs on `localhost`, while Open Library keeps receiving only the author and subject searches.
