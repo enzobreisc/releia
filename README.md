@@ -17,51 +17,55 @@
 </p>
 
 <p align="center">
-  English · <a href="README.pt-BR.md">Português</a>
+  English · <a href="README.pt-BR.md">Português</a> · <a href="https://enzobreisc.github.io/releia/">Live demo</a>
 </p>
 
 ![releia demo: search a book, add it to the library, browse the shelf and open the statistics](docs/demo.gif)
 
+## Live demo
+
+**[Try the web demo](https://enzobreisc.github.io/releia/)**: the same interface running in your browser against a sample library, with nothing to install. It also has a phone layout for narrow screens.
+
+- The main flows work: library and shelves, adding books, reading sessions, notes, stats, timeline, queue, shopping list and suggestions. The sample suggestions come ready-made.
+- Your library stays in your browser's local storage and is never sent to a server; "Restore data" brings the sample library back. Book searches still go from the browser to Open Library and BrasilAPI.
+- Some things only work in the app: the menu bar window, the phone quick log over Tailscale, local AI ordering, Google Books lookups and price lookups.
+- How it works: the demo reuses the React pages from `resources/js`. The Laravel presenters are ported to TypeScript (`demo/src/presenters`) and checked against golden pages exported from the PHP app, and the user flows (add, read, shop, undo) are replayed from scenarios recorded from the app. Details in [demo/README.md](demo/README.md).
+
 ## Features
 
-- **Add books in seconds** by ISBN or title: metadata and covers come from Open Library, Google Books and BrasilAPI, and are cached locally.
-- **Log reading sessions** from the main window or from a menu bar window opened by a global shortcut (`⌘⇧L`), without leaving what you are doing.
+- **Add books in seconds** by ISBN or title: metadata and covers come from Open Library, Google Books and BrasilAPI, and are cached locally. A cover can also be taken from an Amazon product link.
+- **Log reading sessions** from the main window or from a menu bar window opened by a global shortcut (`⌘⇧L` by default), without leaving what you are doing.
 - **Log from your phone**: the same quick log installs on the home screen as a web app and talks to the Mac over [Tailscale](https://tailscale.com), sharing its database, with a lock screen widget that counts the current session ([setup](docs/mobile-quick-log.md)).
 - **Library** as a cover grid or a bookcase of named shelves: a step-by-step setup splits the books by publisher, author, genre or series (several groups can share a shelf) and shows a preview to approve. Spines are drawn from the real edition's cover with a look per publisher, new books join the shelf of their group, and shelves and books can still be rearranged by hand.
 - **Book page** with every reading, its sessions, Markdown notes and a review per reading; rereads are tracked separately.
 - **Statistics**: books and pages per month, pace, yearly goal forecast, top genres and authors, and a reading calendar heat map.
 - **Wrapped**: a yearly summary that can be exported as an image.
-- **Queue, shopping list and suggestions**: plan what to read next, track the lowest price of a wanted edition, and get suggestions, each with its reason, from the books you rated highly, the ones you want to read and your shopping list, or search any author, title or subject.
+- **Queue, shopping list and suggestions**: plan what to read next, track the lowest price of a wanted edition on Estante Virtual, and get suggestions, each with its reason, from the books you rated highly, the ones you want to read and your shopping list, or search any author, title or subject.
 - **Authors and timeline**: per-author reading stats with photos from Open Library or Wikipedia, and a timeline of readings by year.
 - **Bilingual interface** in Portuguese and English, including dates, numbers and money.
 - **Offline first**: everything lives in a local SQLite database and covers are downloaded to disk, so the app keeps working without a connection.
 
 ## Screenshots
 
-| Library                                  | Book                               |
-| ---------------------------------------- | ---------------------------------- |
-| ![Library](docs/screenshots/library.png) | ![Book](docs/screenshots/book.png) |
+| Library                                  | Bookcase                                   |
+| ---------------------------------------- | ------------------------------------------ |
+| ![Library](docs/screenshots/library.png) | ![Bookcase](docs/screenshots/bookcase.png) |
+| ![Book](docs/screenshots/book.png)       | ![Statistics](docs/screenshots/stats.png)  |
+| ![Wrapped](docs/screenshots/wrapped.png) | ![Home](docs/screenshots/home.png)         |
+| ![Profile](docs/screenshots/profile.png) |                                            |
 
-| Statistics                                | Wrapped                                  |
-| ----------------------------------------- | ---------------------------------------- |
-| ![Statistics](docs/screenshots/stats.png) | ![Wrapped](docs/screenshots/wrapped.png) |
-
-| Home                               | Profile                                  |
-| ---------------------------------- | ---------------------------------------- |
-| ![Home](docs/screenshots/home.png) | ![Profile](docs/screenshots/profile.png) |
-
-<sub>Screenshots use the bundled demo library (`php artisan db:seed --class=DemoSeeder`).</sub>
+<sub>Screenshots use the sample library of the web demo (`demo/export/seed.php`).</sub>
 
 ## Technical highlights
 
 - **A Laravel app shipped as a native desktop app.** [NativePHP](https://nativephp.com) bundles PHP and the app into Electron, so the same codebase renders an Inertia + React UI, owns the window, the menu bar icon and the global shortcut ([`app/Native/QuickLog.php`](app/Native/QuickLog.php)).
 - **One screen, two shells.** The quick log page runs both in the menu bar window and as an installable PWA on the phone: a `launchd` agent serves it over the tailnet against the desktop app's SQLite file and storage, and the page switches to touch-sized controls when it is not inside the native app.
 - **Metadata lookup behind a single contract.** Each source implements [`MetadataProvider`](app/Services/BookLookup/MetadataProvider.php). [`BookLookupService`](app/Services/BookLookupService.php) asks Open Library first and lets BrasilAPI and Google Books fill gaps or act as fallbacks, caching the results, so a new source is one class. Editions from the publishers already in your library are listed and suggested first.
-- **Explainable suggestions.** [`RecommendationService`](app/Services/RecommendationService.php) starts from your highly rated books and from what you want to read or buy, looks for other works by the same authors, keeps at most three per author, brings back at most one ignored suggestion per search, and ranks candidates through a pluggable [`CandidateRanker`](app/Services/Recommendation/CandidateRanker.php). Every suggestion carries the reason it was made, and searches are time-boxed and cached.
+- **Explainable suggestions.** [`RecommendationService`](app/Services/RecommendationService.php) starts from your highly rated books and from what you want to read or buy, looks for other works by the same authors, keeps at most three works by the same author per search, brings back at most one ignored suggestion per search, and ranks candidates through a pluggable [`CandidateRanker`](app/Services/Recommendation/CandidateRanker.php). Every suggestion carries the reason it was made, and searches are time-boxed and cached.
 - **Thin controllers, rich services.** Business rules live in services, and presenters shape the props each Inertia page receives.
 - **Thin pages, small components.** Each React page only composes components that live in a folder named after it; state sits in `use-*` hooks and pure helpers in `lib/`, so no page is a thousand-line file.
 - **i18n where the key is the source text.** Strings are written in Portuguese and translated in [`lang/en.json`](lang/en.json); the type check fails on a missing React key and a feature test fails on a missing PHP key.
-- **Quality gates in CI.** Pest feature tests, PHPStan, Pint, Vite+ lint and format, and `tsc` run on every push.
+- **Quality gates in CI.** Pint, PHPStan, Pest feature tests, Vite+ lint and format, and `tsc` run on every push to `main` and on every pull request. The web demo is built and deployed to GitHub Pages on each push to `main`.
 
 ## Stack
 
@@ -93,7 +97,7 @@ Without a key, Google Books shares a daily quota among everyone and often refuse
 
 ## Local AI ordering (experimental)
 
-Suggestions can also be ordered by how close they are to the books you rated, using embeddings computed on your Mac by [Ollama](https://ollama.com). It is optional, off by default, and nothing about your library leaves the machine: Ollama runs on `localhost`, while Open Library keeps receiving only the author and subject searches.
+Suggestions can also be ordered by how close they are to the books you rated, using embeddings computed on your Mac by [Ollama](https://ollama.com). It is optional, off by default, and nothing about your library leaves the machine: Ollama runs on `localhost` by default, while Open Library keeps receiving only the author and subject searches.
 
 ```bash
 brew install ollama
@@ -102,16 +106,6 @@ ollama pull nomic-embed-text
 ```
 
 Then turn on **Sort with local AI** on the Suggestions page. It is experimental: so far it changes the order only slightly, and its benefit has not been measured. Without Ollama, suggestions keep working and are ordered by score.
-
-## Web demo
-
-A browser version with a sample library is published at https://enzobreisc.github.io/releia/.
-
-- The main flows work in the browser: the library and shelves, adding books, reading sessions, notes, stats, timeline, queue, shopping list and suggestions.
-- Data stays in your browser. Nothing you add is uploaded.
-- Local AI ordering, Google Books lookups and price lookups only work in the app.
-
-How the demo data is exported, tested and built is described in [demo/README.md](demo/README.md).
 
 ## Development
 
@@ -131,12 +125,18 @@ php artisan db:seed --class=DemoSeeder
 
 In development (`APP_DEBUG=true`) the native app uses `database/nativephp.sqlite`, separate from the `database/database.sqlite` used by `composer dev`. It is created and migrated on first launch; after adding migrations, run `php artisan native:migrate`.
 
-| Command                        | What it runs                         |
-| ------------------------------ | ------------------------------------ |
-| `composer test`                | Pint, PHPStan and Pest               |
-| `npm run check`                | front-end lint and formatting        |
-| `npm run types:check`          | TypeScript type check                |
-| `php artisan native:build mac` | builds the `.app`, `.dmg` and `.zip` |
+| Command                                   | What it runs                                                                  |
+| ----------------------------------------- | ----------------------------------------------------------------------------- |
+| `composer test`                           | Pint, PHPStan and Pest                                                        |
+| `npm run check`                           | front-end lint and formatting                                                 |
+| `npm run types:check`                     | TypeScript type check                                                         |
+| `php artisan native:build mac`            | builds the `.app`, `.dmg` and `.zip`                                          |
+| `npm run demo:test`                       | web demo tests against the golden pages (run `bash demo/export/run.sh` first) |
+| `npm run demo:build`                      | builds the web demo into `dist-demo/`                                         |
+| `php artisan releia:suggestions`          | searches new suggestions                                                      |
+| `php artisan releia:embed`                | computes the vectors for local AI ordering (needs Ollama)                     |
+| `php artisan releia:lookup "…"`           | searches book metadata without saving it                                      |
+| `php artisan releia:fill-shopping-prices` | looks up prices for the shopping list                                         |
 
 ## Project structure
 
@@ -148,14 +148,18 @@ app/
   Models/               Book, Reading, ReadingSession, Note…
   Native/               menu bar window and global shortcut
   Services/             domain logic: lookup, readings, stats, suggestions…
+    Ai/                 local embeddings (Ollama) for ordering suggestions
     BookLookup/         metadata providers (Open Library, Google Books, BrasilAPI)
+    PriceLookup/        shopping list prices (Estante Virtual)
     Recommendation/     suggestion ranking
+  Console/Commands/     releia:suggestions, releia:embed, releia:lookup…
 resources/js/
   pages/                one Inertia page per screen, kept thin
   components/           shared UI, plus one folder per page (book/, stats/…)
   hooks/                state and side effects extracted from components
   lib/                  pure helpers: formatting, dates, routes, i18n
 lang/en.json            English translations
+demo/                   web demo: sample data, golden pages, browser shell
 tests/Feature/          behavior tests per feature
 ```
 
