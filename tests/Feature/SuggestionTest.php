@@ -385,6 +385,8 @@ test('sugestão antiga, sem a obra guardada, acha a obra pelo ISBN ao listar as 
     Http::fake([
         'openlibrary.org/search.json*' => Http::response(['docs' => [['key' => '/works/OL1003040W']]]),
         'openlibrary.org/works/OL1003040W/editions.json*' => apiFixture('open-library/editions-OL1003040W.json'),
+        // The suggested edition is looked up too, and no catalog needs to know it here.
+        '*' => Http::response([], 404),
     ]);
 
     $source = ratedBook('Torto Arado', 'Itamar Vieira Junior', 5);

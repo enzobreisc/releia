@@ -101,6 +101,8 @@ class RecommendationService
      */
     public function editions(Recommendation $recommendation): array
     {
+        SearchBudget::extendRequestLimit();
+
         return $this->workEditions->for($recommendation);
     }
 
