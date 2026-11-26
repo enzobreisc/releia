@@ -3,10 +3,14 @@
 namespace App\Services\Recommendation;
 
 use App\Models\Setting;
+use App\Support\BookIdentity;
 
 final class SuggestionGenerator
 {
     private const MAX_NEW = 20;
+
+    /** Same author's works past this are left out: otherwise one prolific author fills the list. */
+    private const MAX_WORKS_PER_AUTHOR = 3;
 
     /** How many searches have been made: on each one, Open Library is read on a different page. */
     private const ROUND_KEY = 'suggestion-round';
@@ -58,19 +62,33 @@ final class SuggestionGenerator
     private function verify(array $ranked, array $blocked, float $deadline): array
     {
         $created = [];
+        $lookups = 0;
+        $worksByAuthor = [];
 
-        foreach ($ranked as $attempt => $suggestion) {
-            if (count($created) >= self::MAX_NEW || $attempt >= self::MAX_NEW * 2 || SearchBudget::isExceeded($deadline)) {
+        foreach ($ranked as $suggestion) {
+            if (count($created) >= self::MAX_NEW || $lookups >= self::MAX_NEW * 2 || SearchBudget::isExceeded($deadline)) {
                 break;
             }
 
+            // Read before localizing: the Portuguese edition may name the author differently.
+            $authorKey = $suggestion->authorKey();
+
+            if ($authorKey !== null && ($worksByAuthor[$authorKey] ?? 0) >= self::MAX_WORKS_PER_AUTHOR) {
+                continue;
+            }
+
+            $lookups++;
             $verified = $this->editions->localize($suggestion);
 
             if ($verified === null) {
                 continue;
             }
 
-            $keys = SuggestionCollector::keysOf($verified->candidate);
+            // The edition may name another author (a publisher), so the work's own authors are checked too.
+            $keys = [
+                ...SuggestionCollector::keysOf($verified->candidate),
+                ...BookIdentity::keys($verified->candidate->title, $suggestion->candidate->authors),
+            ];
 
             // The Portuguese title may be a book you already have under another ISBN.
             if (array_intersect_key(array_flip($keys), $blocked) !== []) {
@@ -79,6 +97,10 @@ final class SuggestionGenerator
 
             foreach ($keys as $key) {
                 $blocked[$key] = true;
+            }
+
+            if ($authorKey !== null) {
+                $worksByAuthor[$authorKey] = ($worksByAuthor[$authorKey] ?? 0) + 1;
             }
 
             $created[] = $verified;

@@ -41,9 +41,13 @@ export function LeadSuggestion({
                 <p className="max-w-[58ch] text-base leading-relaxed font-semibold">
                     {t('Por quê: :reason', { reason: suggestion.reason })}
                 </p>
-                <p className="text-[13px] font-semibold text-muted">
-                    {t('Parecido com: :book', { book: suggestion.based_on })}
-                </p>
+                {suggestion.based_on !== null && (
+                    <p className="text-[13px] font-semibold text-muted">
+                        {t('Parecido com: :book', {
+                            book: suggestion.based_on,
+                        })}
+                    </p>
+                )}
                 {suggestion.has_editions && (
                     <EditionsToggle
                         open={choice.open}

@@ -2,32 +2,60 @@
 
 namespace App\Services\Recommendation;
 
-use App\Models\Book;
 use App\Models\Reading;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 
+/**
+ * The titles a search starts from: books rated 4 or 5, and the books you want to read or plan to buy.
+ */
 final class SourceBooks
 {
+    public const FOUR_STAR_WEIGHT = 0.7;
+
     private const MAX_SOURCES = 6;
+
+    /** Reserved for the interest sources when there are any, so rated books cannot take every slot. */
+    private const INTEREST_SLOTS = 2;
+
+    private const SOURCE_RATINGS = [4, 5];
+
+    private const TOP_RATING = 5;
 
     private const FIVE_STAR_WEIGHT = 1.0;
 
-    private const FOUR_STAR_WEIGHT = 0.7;
+    public function __construct(private readonly InterestSources $interest) {}
 
     public function exist(): bool
     {
-        return $this->readings()->exists();
+        return $this->ratedReadings()->exists() || $this->interest->exist();
     }
 
     /**
-     * Source books with the rating's weight: 5 stars count more than 4.
+     * Rated sources with the rating's weight (5 stars count more than 4), interleaved with the interest
+     * sources. The collector stops at its deadline, so the sources at the end of the list may never be searched.
      *
-     * @return Collection<int, array{0: Book, 1: float}>
+     * @return list<Source>
      */
-    public function pick(): Collection
+    public function pick(): array
     {
-        return $this->weighted($this->readings()->inRandomOrder()->limit(self::MAX_SOURCES));
+        $readings = $this->ratedReadings()->with('book.authors')->get();
+
+        $rated = $readings
+            ->shuffle()
+            ->map(fn (Reading $reading): Source => Source::rated($reading->book, self::ratingWeight($reading)))
+            ->values()
+            ->all();
+
+        // Only the first author of a rated book is searched, so only that one is left out, drawn or not.
+        $ratedAuthorKeys = array_values(array_unique(array_filter(
+            array_map(fn (Source $source): ?string => $source->authorKey(), $rated),
+        )));
+
+        $interest = $this->interest->pick($ratedAuthorKeys);
+        $interestCount = min(count($interest), max(self::INTEREST_SLOTS, self::MAX_SOURCES - count($rated)));
+        $ratedCount = min(count($rated), self::MAX_SOURCES - $interestCount);
+
+        return self::interleave(array_slice($rated, 0, $ratedCount), array_slice($interest, 0, $interestCount));
     }
 
     /**
@@ -36,27 +64,37 @@ final class SourceBooks
      *
      * @return Builder<Reading>
      */
-    private function readings(): Builder
+    private function ratedReadings(): Builder
     {
         return Reading::query()
             ->current()
-            ->whereIn('rating', [4, 5]);
+            ->whereIn('rating', self::SOURCE_RATINGS);
     }
 
     /**
-     * @param  Builder<Reading>  $query
-     * @return Collection<int, array{0: Book, 1: float}>
+     * @param  list<Source>  $rated
+     * @param  list<Source>  $interest
+     * @return list<Source>
      */
-    private function weighted(Builder $query): Collection
+    private static function interleave(array $rated, array $interest): array
     {
-        return $query
-            ->with('book.authors')
-            ->get()
-            ->map(fn (Reading $reading) => [$reading->book, self::ratingWeight($reading)]);
+        $sources = [];
+
+        for ($turn = 0; $turn < max(count($rated), count($interest)); $turn++) {
+            if (isset($rated[$turn])) {
+                $sources[] = $rated[$turn];
+            }
+
+            if (isset($interest[$turn])) {
+                $sources[] = $interest[$turn];
+            }
+        }
+
+        return $sources;
     }
 
     private static function ratingWeight(Reading $reading): float
     {
-        return $reading->rating === 5 ? self::FIVE_STAR_WEIGHT : self::FOUR_STAR_WEIGHT;
+        return $reading->rating === self::TOP_RATING ? self::FIVE_STAR_WEIGHT : self::FOUR_STAR_WEIGHT;
     }
 }

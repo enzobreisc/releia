@@ -2,7 +2,6 @@
 
 namespace App\Services\Recommendation;
 
-use App\Models\Book;
 use App\Services\BookLookup\BookCandidate;
 use App\Services\BookLookup\BrasilApiProvider;
 use App\Services\BookLookupService;
@@ -63,15 +62,15 @@ final class PortugueseEditions
         return $this->lookup->findByIsbn($isbn);
     }
 
-    /** "same author as A and B" / "shared subject: Fantasy, like A and B". Stored in the language it was generated in. */
+    /** Stored in the language it was generated in, so the reason is rebuilt from the same sources. */
     private function reasonFor(Suggestion $suggestion): string
     {
-        $titles = array_map(fn (Book $book) => $book->title, [$suggestion->basedOn, ...$suggestion->also]);
+        $titles = array_map(fn (Source $source) => $source->title, [$suggestion->basedOn, ...$suggestion->also]);
         $last = array_pop($titles);
         $list = $titles === [] ? $last : implode(', ', $titles).' '.__('e').' '.$last;
 
         return $suggestion->kind === Suggestion::BY_AUTHOR
-            ? __('mesmo autor que :titles', ['titles' => $list])
-            : __('assunto em comum: :genre, como :titles', ['genre' => __((string) $suggestion->basedOn->genre), 'titles' => $list]);
+            ? $suggestion->basedOn->authorReason($list)
+            : __('assunto em comum: :genre, como :titles', ['genre' => __((string) $suggestion->basedOn->book?->genre), 'titles' => $list]);
     }
 }

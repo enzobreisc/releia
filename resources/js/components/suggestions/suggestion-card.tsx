@@ -40,11 +40,13 @@ export function SuggestionCard({
                     <p className="text-[13px] leading-normal font-medium text-secondary">
                         {t('Por quê: :reason', { reason: suggestion.reason })}
                     </p>
-                    <p className="text-xs font-medium text-muted">
-                        {t('Parecido com: :book', {
-                            book: suggestion.based_on,
-                        })}
-                    </p>
+                    {suggestion.based_on !== null && (
+                        <p className="text-xs font-medium text-muted">
+                            {t('Parecido com: :book', {
+                                book: suggestion.based_on,
+                            })}
+                        </p>
+                    )}
                 </div>
             </div>
             {suggestion.has_editions && (

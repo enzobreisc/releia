@@ -16,6 +16,10 @@ final class PendingRecommendations
     public function store(array $suggestions): void
     {
         foreach ($suggestions as $suggestion) {
+            // Want-to-read books leave the library when they move to the shopping list, and deleting
+            // a book deletes the suggestions based on it, so only a rated book is kept as the basis.
+            $basedOnBookId = $suggestion->basedOn->origin === SourceOrigin::Rated ? $suggestion->basedOn->book?->id : null;
+
             Recommendation::create([
                 'title' => $suggestion->candidate->title,
                 'author' => $suggestion->candidate->authors === [] ? null : implode(', ', $suggestion->candidate->authors),
@@ -23,7 +27,7 @@ final class PendingRecommendations
                 'cover_url' => $suggestion->candidate->coverUrl,
                 'work_key' => $suggestion->candidate->workKey,
                 'reason' => $suggestion->reason,
-                'based_on_book_id' => $suggestion->basedOn->id,
+                'based_on_book_id' => $basedOnBookId,
                 'status' => RecommendationStatus::New,
             ]);
         }

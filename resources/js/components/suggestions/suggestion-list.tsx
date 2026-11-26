@@ -28,7 +28,7 @@ export function SuggestionList({
             {!hasSources && (
                 <EmptyState>
                     {t(
-                        'Avalie livros com 4 ou 5 estrelas para receber sugestões.',
+                        'Avalie livros com 4 ou 5 estrelas, ou adicione livros a Quero ler ou à lista de compras, para receber sugestões.',
                     )}{' '}
                     <Link
                         href={libraryIndex.url()}

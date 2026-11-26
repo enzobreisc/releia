@@ -4,6 +4,6 @@ export type Suggestion = {
     authors: string;
     cover_url: string | null;
     reason: string;
-    based_on: string;
+    based_on: string | null;
     has_editions: boolean;
 };

@@ -8,6 +8,7 @@ use App\Services\Ai\EmbeddingText;
 use App\Services\BookLookup\BookCandidate;
 use App\Services\Recommendation\EmbeddingRanker;
 use App\Services\Recommendation\SearchBudget;
+use App\Services\Recommendation\Source;
 use App\Services\Recommendation\Suggestion;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -47,7 +48,7 @@ function rankerSuggestion(string $title, Book $basedOn): Suggestion
     return new Suggestion(
         new BookCandidate(title: $title, source: BookSource::OpenLibrary, authors: ['Autor'], genre: 'Romance'),
         'mesmo autor',
-        $basedOn,
+        Source::rated($basedOn, 1.0),
     );
 }
 
@@ -150,7 +151,7 @@ test('a candidate matching only a 2-star book does not outrank a clearly higher-
     $suggest = fn (string $title, string $kind, float $affinity): Suggestion => new Suggestion(
         new BookCandidate(title: $title, source: BookSource::OpenLibrary, authors: ['Autor'], genre: 'Romance'),
         'mesmo autor',
-        $source,
+        Source::rated($source, 1.0),
         $kind,
         $affinity,
     );

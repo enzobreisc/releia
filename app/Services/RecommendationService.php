@@ -21,8 +21,9 @@ use App\Services\Recommendation\WorkSearch;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Suggests books you have not read yet: from the books rated 4 or 5, finds others by the
- * same author and on the same subject in Open Library.
+ * Suggests books you have not read yet. From the books rated 4 or 5, finds others by the same author and
+ * on the same subject in Open Library; from the books on "Quero ler" and from the unbought shopping list, by
+ * the same author alone, since they have no rating.
  *
  * When to generate: only when the user asks (the "Find new suggestions" button or
  * `php artisan releia:suggestions`). There is no queue or cron, because the app is local.
@@ -33,9 +34,11 @@ use Illuminate\Support\Facades\Log;
  * popularity on Open Library separates the well-known from the obscure. With Ollama enabled, the
  * candidates are also ordered by how close they are to the books that shape your taste.
  *
- * Limits: at most six source books per search, with two Open Library searches each (by author and
- * by subject), each with an 8s timeout. A search stops after 20s and keeps what it found. Each query
- * is cached for 7 days; empty or failed responses are not stored, so they can be retried later.
+ * Limits: at most six sources per search, two of them reserved for "Quero ler" and shopping list books
+ * when there are any. Each source costs one Open Library author search (rated books also a subject search),
+ * each with an 8s timeout. A search stops after 20s and keeps what it found, and at most three works by the
+ * same author are suggested per search. Each query is cached for 7 days; empty or failed responses are
+ * not stored, so they can be retried later.
  */
 class RecommendationService
 {

@@ -18,10 +18,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $cover_url
  * @property string|null $work_key
  * @property string $reason
- * @property int $based_on_book_id
+ * @property int|null $based_on_book_id
  * @property RecommendationStatus $status
  * @property Carbon $created_at
- * @property-read Book $basedOn
+ * @property-read Book|null $basedOn
  */
 #[Fillable(['title', 'author', 'isbn_13', 'cover_url', 'work_key', 'reason', 'based_on_book_id', 'status'])]
 class Recommendation extends Model

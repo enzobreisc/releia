@@ -48,10 +48,12 @@ export function TodaySuggestion({ suggestion }: { suggestion: Suggestion }) {
                     )}
                 </p>
                 <p className="text-[13px] font-medium text-muted">
-                    {t('Por quê: :reason · parecido com :book', {
-                        reason: suggestion.reason,
-                        book: suggestion.based_on,
-                    })}
+                    {suggestion.based_on === null
+                        ? t('Por quê: :reason', { reason: suggestion.reason })
+                        : t('Por quê: :reason · parecido com :book', {
+                              reason: suggestion.reason,
+                              book: suggestion.based_on,
+                          })}
                 </p>
                 <div className="flex flex-wrap gap-4">
                     <Link

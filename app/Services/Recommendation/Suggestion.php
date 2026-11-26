@@ -2,15 +2,15 @@
 
 namespace App\Services\Recommendation;
 
-use App\Models\Book;
 use App\Services\BookLookup\BookCandidate;
+use App\Support\BookIdentity;
 use InvalidArgumentException;
 
 /**
- * A candidate with the reason and the source book. Without a reason there is no suggestion.
+ * A candidate with the reason and the source it came from. Without a reason there is no suggestion.
  *
- * The same candidate can come from several of your books: `also` keeps the others and
- * `affinity` sums the weight of the ratings of all of them.
+ * The same candidate can come from several of your sources: `also` keeps the others and
+ * `affinity` sums their weights.
  */
 final readonly class Suggestion
 {
@@ -19,12 +19,12 @@ final readonly class Suggestion
     public const BY_SUBJECT = 'subject';
 
     /**
-     * @param  list<Book>  $also  other books that led to the same candidate
+     * @param  list<Source>  $also  other sources that led to the same candidate
      */
     public function __construct(
         public BookCandidate $candidate,
         public string $reason,
-        public Book $basedOn,
+        public Source $basedOn,
         public string $kind = self::BY_AUTHOR,
         public float $affinity = 1.0,
         public array $also = [],
@@ -34,21 +34,48 @@ final readonly class Suggestion
         }
     }
 
-    public function withSource(Book $book, float $weight): self
+    public function withSource(Source $source): self
     {
         return new self(
             $this->candidate,
             $this->reason,
             $this->basedOn,
             $this->kind,
-            $this->affinity + $weight,
-            [...$this->also, $book],
+            $this->affinity + $source->weight,
+            [...$this->also, $source],
         );
+    }
+
+    /** A source is included when it is the same instance, or the same book as one already included. */
+    public function includes(Source $source): bool
+    {
+        foreach ([$this->basedOn, ...$this->also] as $included) {
+            if ($included === $source || ($source->book !== null && $included->book?->id === $source->book->id)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function withCandidate(BookCandidate $candidate, string $reason): self
     {
         return new self($candidate, $reason, $this->basedOn, $this->kind, $this->affinity, $this->also);
+    }
+
+    /**
+     * The author this suggestion is about: the searched author for a same-author suggestion, so a
+     * co-author's name does not count, otherwise the candidate's first author.
+     */
+    public function authorKey(): ?string
+    {
+        if ($this->kind === self::BY_AUTHOR) {
+            return $this->basedOn->authorKey();
+        }
+
+        $author = $this->candidate->authors[0] ?? null;
+
+        return $author === null ? null : BookIdentity::normalize($author);
     }
 
     /** Same author counts more than subject; popularity breaks ties. */

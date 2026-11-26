@@ -39,7 +39,7 @@ final class BookIdentity
      * Brazilian catalogs list authors as "Surname, Given names", so "WILDE, OSCAR" becomes "OSCAR WILDE".
      * A comma followed by a generational suffix ("Silva, Jr") is a name part, not a reversed name.
      */
-    private static function givenNamesFirst(string $author): string
+    public static function givenNamesFirst(string $author): string
     {
         $parts = array_map(trim(...), explode(',', $author));
 

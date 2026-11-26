@@ -22,17 +22,17 @@ final class CandidateFinder
     /**
      * @return list<Suggestion>
      */
-    public function forBook(Book $book, int $page): array
+    public function forSource(Source $source, int $page): array
     {
-        return [...$this->byAuthor($book), ...$this->bySubject($book, $page)];
+        return [...$this->byAuthor($source), ...$this->bySubject($source, $page)];
     }
 
     /**
      * @return list<Suggestion>
      */
-    private function byAuthor(Book $book): array
+    private function byAuthor(Source $source): array
     {
-        $author = $book->authors->first()?->name;
+        $author = $source->author;
 
         if ($author === null) {
             return [];
@@ -51,7 +51,7 @@ final class CandidateFinder
                 continue;
             }
 
-            $suggestions[] = new Suggestion($candidate, __('mesmo autor que :titles', ['titles' => $book->title]), $book, Suggestion::BY_AUTHOR);
+            $suggestions[] = new Suggestion($candidate, $source->authorReason($source->title), $source, Suggestion::BY_AUTHOR);
         }
 
         return $suggestions;
@@ -60,8 +60,14 @@ final class CandidateFinder
     /**
      * @return list<Suggestion>
      */
-    private function bySubject(Book $book, int $page): array
+    private function bySubject(Source $source, int $page): array
     {
+        $book = $source->book;
+
+        if ($source->origin !== SourceOrigin::Rated || $book === null) {
+            return [];
+        }
+
         // The catalog genres are in Portuguese; Open Library indexes subjects in English.
         $subject = Genres::openLibrarySubject($book->genre) ?? $book->genre;
 
@@ -78,7 +84,7 @@ final class CandidateFinder
 
         foreach ($candidates as $candidate) {
             if ($this->isUsable($candidate) && $this->fitsSubject($candidate, $book)) {
-                $suggestions[] = new Suggestion($candidate, __('assunto em comum: :genre', ['genre' => __((string) $book->genre)]), $book, Suggestion::BY_SUBJECT);
+                $suggestions[] = new Suggestion($candidate, __('assunto em comum: :genre', ['genre' => __((string) $book->genre)]), $source, Suggestion::BY_SUBJECT);
             }
         }
 
