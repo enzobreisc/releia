@@ -3,6 +3,7 @@
 use App\Models\Setting;
 use App\Services\Recommendation\SourceBooks;
 use App\Services\Recommendation\SuggestionCollector;
+use App\Services\Recommendation\SuggestionSearch;
 use App\Services\RecommendationService;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -84,7 +85,7 @@ test('no source is searched after the time budget is over', function () {
     Http::fake();
     rateBooksByAuthors(2);
 
-    $found = app(SuggestionCollector::class)->collect(app(SourceBooks::class)->pick(), [], 1, microtime(true) - 1);
+    $found = app(SuggestionCollector::class)->collect(app(SourceBooks::class)->pick(), new SuggestionSearch([], [], microtime(true) - 1), 1);
 
     expect($found)->toBe([]);
     Http::assertNothingSent();

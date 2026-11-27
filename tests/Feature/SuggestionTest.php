@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function () {
@@ -28,6 +29,104 @@ function wantToReadBook(string $title, string $author): Book
     $book->readings()->create(['status' => ReadingStatus::WantToRead]);
 
     return $book;
+}
+
+/**
+ * Open Library lists `$worksOnPage` works of "Autor {n}" on page {p}. Each work has its own Brazilian
+ * ISBN, which names its author, page and position, so its edition can be found again.
+ *
+ * @param  Closure(int, int): int  $worksOnPage
+ * @param  (Closure(int, int, int): bool)|null  $hasEdition  whether the Brazilian edition of work {w} is listed; all are by default
+ */
+function fakeAuthorWorks(Closure $worksOnPage, ?Closure $hasEdition = null): void
+{
+    Http::fake(function (Request $request) use ($worksOnPage, $hasEdition) {
+        $url = urldecode($request->url());
+        parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+
+        if (isset($query['author'])) {
+            $author = (int) substr($query['author'], strlen('Autor '));
+            $page = (int) ($query['page'] ?? 1);
+
+            $works = $worksOnPage($author, $page);
+
+            return Http::response(['docs' => collect($works > 0 ? range(1, $works) : [])
+                ->map(fn (int $work) => [
+                    'key' => "/works/OL{$author}{$page}{$work}W",
+                    'title' => "Obra {$author}.{$page}.{$work}",
+                    'author_name' => ["Autor {$author}"],
+                    'isbn' => [workIsbn($author, $page, $work)],
+                    'cover_i' => 1,
+                ])
+                ->values()
+                ->all()]);
+        }
+
+        if (preg_match('/bibkeys=ISBN:(\d{13})/', $url, $match) === 1) {
+            [$author, $page, $work] = [(int) substr($match[1], 5, 3), (int) substr($match[1], 8, 2), (int) substr($match[1], 10, 2)];
+
+            if ($hasEdition !== null && ! $hasEdition($author, $page, $work)) {
+                return Http::response([]);
+            }
+
+            return Http::response(["ISBN:{$match[1]}" => [
+                'title' => "Obra {$author}.{$page}.{$work}",
+                'authors' => [['name' => "Autor {$author}"]],
+                'cover' => ['large' => 'https://covers.openlibrary.org/b/id/1-L.jpg'],
+                'number_of_pages' => 200,
+                'subjects' => [['name' => 'Fiction']],
+                'description' => 'x',
+            ]]);
+        }
+
+        return Http::response([], 404);
+    });
+}
+
+function workIsbn(int $author, int $page, int $work): string
+{
+    $body = sprintf('97885%03d%02d%02d', $author, $page, $work);
+    $sum = 0;
+
+    foreach (str_split($body) as $position => $digit) {
+        $sum += (int) $digit * ($position % 2 === 0 ? 1 : 3);
+    }
+
+    return $body.((10 - $sum % 10) % 10);
+}
+
+/**
+ * @return list<string> "author|page" of each Open Library author search of this test, in the order they were sent
+ */
+function requestedAuthorPairs(): array
+{
+    return collect(Http::recorded())
+        ->map(function (array $pair): ?string {
+            parse_str((string) parse_url($pair[0]->url(), PHP_URL_QUERY), $query);
+
+            return isset($query['author']) ? $query['author'].'|'.($query['page'] ?? 1) : null;
+        })
+        ->filter()
+        ->values()
+        ->all();
+}
+
+/**
+ * @return list<int> the page of each Open Library author search of this test, in the order they were sent
+ */
+function requestedAuthorPages(): array
+{
+    return array_map(fn (string $pair) => (int) Str::after($pair, '|'), requestedAuthorPairs());
+}
+
+function editionRequestsTotal(): int
+{
+    return Http::recorded(fn (Request $request) => str_contains(urldecode($request->url()), 'bibkeys='))->count();
+}
+
+function editionRequestsFor(string $isbn): int
+{
+    return Http::recorded(fn (Request $request) => str_contains(urldecode($request->url()), "bibkeys=ISBN:{$isbn}"))->count();
 }
 
 test('só livros avaliados com 4 ou 5 geram sugestões', function () {
@@ -153,7 +252,7 @@ test('uma obra com várias edições aparece uma vez, e o nome do autor não vir
         ->and(Recommendation::where('title', 'Dom Casmurro')->exists())->toBeFalse();
 });
 
-test('Open Library searches are cached: only the new pages go to the network', function () {
+test('Open Library searches are cached: a repeated search sends no new author search', function () {
     fakeOpenLibrary();
     ratedBook('Torto Arado', 'Itamar Vieira Junior', 5, 'Magic realism (Literature)');
 
@@ -162,9 +261,8 @@ test('Open Library searches are cached: only the new pages go to the network', f
     $sent = count(Http::recorded());
 
     $service->generate();
-    $newPages = collect(Http::recorded())->slice($sent)->map(fn (array $pair) => (int) ($pair[0]->data()['page'] ?? 0));
 
-    expect($newPages->values()->all())->toBe([2]);
+    expect(collect(Http::recorded())->slice($sent)->filter(fn (array $pair) => str_contains($pair[0]->url(), 'author='))->all())->toBe([]);
 });
 
 test('"quero ler" cria o livro na estante com os metadados do ISBN', function () {
@@ -555,22 +653,85 @@ test('a shopping item with two authors searches the first one only', function ()
     Http::assertNotSent(fn (Request $request) => str_contains(urldecode($request->url()), 'author=João'));
 });
 
-test('at most six sources are searched, and a want-to-read author still gets one of them', function () {
+test('at most eight sources are searched, and a want-to-read author still gets one of them', function () {
     fakeOpenLibrary();
-    foreach (range(1, 7) as $number) {
+    foreach (range(1, 9) as $number) {
         ratedBook("Livro {$number}", "Autor {$number}", 5);
     }
     wantToReadBook('Dom Casmurro', 'Machado de Assis');
 
     app(RecommendationService::class)->generate();
 
-    $authorRequests = collect(Http::recorded())
+    $searchedAuthors = collect(Http::recorded())
         ->map(fn (array $pair) => urldecode($pair[0]->url()))
-        ->filter(fn (string $url) => str_contains($url, 'author='))
+        ->filter(fn (string $url) => str_contains($url, 'author=') && str_contains($url, 'page=1'))
+        ->map(fn (string $url) => Str::before(Str::after($url, 'author='), '&'))
+        ->unique()
         ->values();
 
-    expect($authorRequests)->toHaveCount(6)
-        ->and($authorRequests->filter(fn (string $url) => str_contains($url, 'author=Machado'))->count())->toBe(1);
+    expect($searchedAuthors)->toHaveCount(8)
+        ->and($searchedAuthors)->toContain('Machado de Assis')
+        ->and(max(array_count_values(requestedAuthorPairs())))->toBe(1);
+});
+
+test('a search creates twenty suggestions from eight authors with three works each', function () {
+    fakeAuthorWorks(fn () => 3);
+    foreach (range(1, 8) as $author) {
+        ratedBook("Livro {$author}", "Autor {$author}", 5);
+    }
+
+    expect(app(RecommendationService::class)->generate())->toBe(20)
+        ->and(Recommendation::count())->toBe(20);
+});
+
+test('a search reads the next page while the first one leaves it short of twenty', function () {
+    fakeAuthorWorks(fn (int $author, int $page) => $page === 1 ? 1 : 2);
+    foreach (range(1, 8) as $author) {
+        ratedBook("Livro {$author}", "Autor {$author}", 5);
+    }
+
+    expect(app(RecommendationService::class)->generate())->toBe(20)
+        ->and(requestedAuthorPages())->toContain(2);
+});
+
+test('an author keeps at most three works across the pages of one search', function () {
+    fakeAuthorWorks(fn (int $author, int $page) => match ($page) {
+        1 => 2,
+        2 => 3,
+        default => 0,
+    });
+    ratedBook('Livro 1', 'Autor 1', 5);
+
+    expect(app(RecommendationService::class)->generate())->toBe(3)
+        ->and(Recommendation::where('author', 'Autor 1')->count())->toBe(3)
+        ->and(requestedAuthorPages())->toContain(2);
+});
+
+test('a work without a Brazilian edition is looked up once, and later pages do not repeat it', function () {
+    fakeAuthorWorks(
+        fn (int $author, int $page) => $page === 1 ? 2 : 0,
+        fn (int $author, int $page, int $work) => $work === 1,
+    );
+    ratedBook('Livro 1', 'Autor 1', 5);
+
+    expect(app(RecommendationService::class)->generate())->toBe(1)
+        ->and(Recommendation::count())->toBe(1)
+        ->and(editionRequestsFor(workIsbn(1, 1, 2)))->toBe(1)
+        ->and(requestedAuthorPages())->not->toContain(3);
+});
+
+test('the lookup limit holds across the pages of one search', function () {
+    fakeAuthorWorks(
+        fn (int $author, int $page) => $page <= 2 ? 5 : 0,
+        fn () => false,
+    );
+    foreach (range(1, 5) as $author) {
+        ratedBook("Livro {$author}", "Autor {$author}", 5);
+    }
+
+    expect(app(RecommendationService::class)->generate())->toBe(0)
+        ->and(editionRequestsTotal())->toBe(40)
+        ->and(requestedAuthorPages())->not->toContain(3);
 });
 
 test('an author keeps at most three works, whatever name the edition gives', function (string $editionAuthor) {
