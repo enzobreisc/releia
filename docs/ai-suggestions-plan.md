@@ -1,6 +1,6 @@
 # Sugestões com IA local no Releia
 
-> **Nota:** a ordenação por embeddings descrita neste documento foi removida do app. As sugestões voltaram a ser ordenadas só pela pontuação (`ScoredRanker`).
+> **Nota:** a ordenação por embeddings descrita neste documento foi removida do app. As sugestões voltaram a ser ordenadas só pela pontuação (`ScoredRanker`). Hoje um modelo local no Ollama (`qwen3:4b`) apenas transforma um pedido escrito em filtros de busca, como descrito no README; o restante é registro histórico.
 
 ## Context
 
