@@ -5,12 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\RecommendationStatus;
 use App\Http\Presenters\BookPresenter;
 use App\Http\Presenters\RecommendationPresenter;
-use App\Http\Requests\UpdateAiSuggestionsRequest;
 use App\Models\Book;
 use App\Models\Recommendation;
-use App\Models\Setting;
-use App\Services\Ai\EmbeddingProvider;
-use App\Services\Recommendation\EmbeddingRanker;
 use App\Services\RecommendationService;
 use App\Services\UndoService;
 use App\Support\Toast;
@@ -24,10 +20,9 @@ class SuggestionController extends Controller
 {
     public function __construct(private readonly RecommendationService $suggestions) {}
 
-    public function index(Request $request, EmbeddingProvider $embeddings): Response
+    public function index(Request $request): Response
     {
         $query = trim((string) $request->string('q'));
-        $aiEnabled = EmbeddingRanker::isEnabled();
 
         return Inertia::render('suggestions', [
             'query' => $query,
@@ -40,22 +35,7 @@ class SuggestionController extends Controller
                 ->map(RecommendationPresenter::card(...))
                 ->values(),
             'hasSources' => fn () => $this->suggestions->hasSources(),
-            'aiRanking' => ['enabled' => $aiEnabled, 'model' => $embeddings->model()],
-            'aiAvailability' => $aiEnabled
-                ? Inertia::defer(fn () => $embeddings->availability()->value)
-                : null,
         ]);
-    }
-
-    public function updateAi(UpdateAiSuggestionsRequest $request): RedirectResponse
-    {
-        $enabled = $request->enabled();
-
-        Setting::put(EmbeddingRanker::SETTING, $enabled);
-
-        Toast::success($enabled ? __('IA local ativada') : __('IA local desativada'));
-
-        return back();
     }
 
     public function generate(): RedirectResponse

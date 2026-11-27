@@ -58,7 +58,6 @@ function emptyTables(): DemoTables {
         queue_items: [],
         shopping_items: [],
         recommendations: [],
-        book_embeddings: [],
         settings: [],
     };
 }

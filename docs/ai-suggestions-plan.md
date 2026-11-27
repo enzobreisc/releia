@@ -1,5 +1,7 @@
 # Sugestões com IA local no Releia
 
+> **Nota:** a ordenação por embeddings descrita neste documento foi removida do app. As sugestões voltaram a ser ordenadas só pela pontuação (`ScoredRanker`).
+
 ## Context
 
 O Releia já tem um motor de sugestões "camada 1" (Open Library + pontuação por afinidade/popularidade) e uma interface `CandidateRanker` marcada como "extension point for layers 2 and 3 (embeddings and AI)". A ideia é encaixar embeddings/LLM locais ali, sem enviar dados para fora e sem quebrar o comportamento offline-first.

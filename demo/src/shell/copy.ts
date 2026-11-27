@@ -30,10 +30,6 @@ type ShellCopy = {
     notice: {
         howItWorks: string;
     };
-    aiNotice: {
-        title: string;
-        body: string;
-    };
     bookKeyNotice: {
         title: string;
         body: string;
@@ -63,13 +59,11 @@ type ShellCopy = {
             folder: string;
             database: string;
             covers: string;
-            ollamaCommand: string;
-            ollamaStatus: string;
         };
     };
 };
 
-export type OnlyInAppVisual = 'menubar' | 'phone' | 'local' | 'ai';
+export type OnlyInAppVisual = 'menubar' | 'phone' | 'local';
 
 /** Portuguese is the source: each string is its own key in lang/en.json. */
 const SHELL_COPY_SOURCE: ShellCopy = {
@@ -101,10 +95,6 @@ const SHELL_COPY_SOURCE: ShellCopy = {
     },
     notice: {
         howItWorks: 'Como funciona',
-    },
-    aiNotice: {
-        title: 'Nesta demonstração as sugestões já vêm prontas',
-        body: 'No app, a busca consulta o Open Library pelos autores e assuntos da sua biblioteca. Opcionalmente, o Ollama reordena tudo sem sair do seu Mac.',
     },
     bookKeyNotice: {
         title: 'Chave do Google Books: só no app',
@@ -154,11 +144,6 @@ const SHELL_COPY_SOURCE: ShellCopy = {
                 body: 'Banco SQLite e capas em disco. A chave do Google Books fica criptografada no banco local.',
                 visual: 'local',
             },
-            {
-                title: 'Ordenação com IA local',
-                body: 'O Ollama aproxima as sugestões dos livros que você avaliou. Nada sai da sua máquina.',
-                visual: 'ai',
-            },
         ],
         visuals: {
             menubarTitle: '▪ releia  ⌘⇧L',
@@ -170,8 +155,6 @@ const SHELL_COPY_SOURCE: ShellCopy = {
             folder: '~/Library/Application Support/releia',
             database: 'database/database.sqlite',
             covers: 'storage/covers/',
-            ollamaCommand: '$ ollama pull nomic-embed-text',
-            ollamaStatus: 'localhost · desligado por padrão',
         },
     },
 };

@@ -81,30 +81,3 @@ function ratedBook(string $title, string $author, int $rating, ?string $genre = 
 
     return $book;
 }
-
-function configuredEmbeddingModel(): string
-{
-    return config()->string('services.ollama.embedding_model');
-}
-
-/**
- * Answers Ollama embed requests and lets every other request fall through to the next fake.
- *
- * @param  (Closure(string): list<float>)|null  $vectorFor  vector of each input, prefix included
- */
-function fakeOllamaEmbeddings(int $status = 200, ?Closure $vectorFor = null): void
-{
-    Http::fake(function (Request $request) use ($status, $vectorFor) {
-        if (! str_contains($request->url(), '/api/embed')) {
-            return null;
-        }
-
-        if ($status !== 200) {
-            return Http::response([], $status);
-        }
-
-        $vectorFor ??= fn (): array => [0.5, -0.25];
-
-        return Http::response(['embeddings' => array_map($vectorFor, $request['input'])]);
-    });
-}

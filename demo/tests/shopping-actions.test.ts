@@ -115,7 +115,7 @@ describe('shopping list actions', () => {
 });
 
 describe('suggestion generation', () => {
-    it('answers with the no-new-suggestions notice, since the local AI is not available', () => {
+    it('answers with the no-new-suggestions notice', () => {
         resetDemoState({ locale: 'en' });
 
         const response = sendRequest({

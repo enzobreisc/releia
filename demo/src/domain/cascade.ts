@@ -69,9 +69,6 @@ function removeBooks(state: DemoState, ids: ReadonlySet<number>): void {
     tables.queue_items = tables.queue_items.filter(
         (item) => !ids.has(item.book_id),
     );
-    tables.book_embeddings = tables.book_embeddings.filter(
-        (embedding) => !ids.has(embedding.book_id),
-    );
     tables.recommendations = tables.recommendations.filter(
         (recommendation) =>
             recommendation.based_on_book_id === null ||

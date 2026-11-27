@@ -135,7 +135,6 @@ Route::put('/shopping/preference', [ShoppingController::class, 'preference'])->n
 
 // Suggestions
 Route::get('/suggestions', [SuggestionController::class, 'index'])->name('suggestions.index');
-Route::put('/suggestions/ai', [SuggestionController::class, 'updateAi'])->name('suggestions.ai');
 Route::post('/suggestions/generate', [SuggestionController::class, 'generate'])->name('suggestions.generate');
 Route::get('/suggestions/{recommendation}/editions', [SuggestionController::class, 'editions'])->whereNumber('recommendation')->name('suggestions.editions');
 Route::patch('/suggestions/{recommendation}/accept', [SuggestionController::class, 'accept'])->whereNumber('recommendation')->name('suggestions.accept');

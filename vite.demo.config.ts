@@ -23,8 +23,6 @@ const WAYFINDER_DIRECTORIES = ['routes', 'actions'].map((name) =>
     join(RESOURCES_DIRECTORY, name),
 );
 const MODULE_REPLACEMENTS: Record<string, string> = {
-    [join(RESOURCES_DIRECTORY, 'components/suggestions/ai-ranking-panel.tsx')]:
-        join(repositoryRoot, 'demo/src/shell/ai-ranking-panel.tsx'),
     [join(RESOURCES_DIRECTORY, 'components/profile/google-books-key-form.tsx')]:
         join(repositoryRoot, 'demo/src/shell/google-books-key-form.tsx'),
     [join(RESOURCES_DIRECTORY, 'components/mobile-menu-sheet.tsx')]: join(
