@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\InterpretSuggestionRequest;
 use App\Http\Requests\StoreSuggestionRequest;
+use App\Services\Ai\InterpreterTimedOut;
 use App\Services\Ai\InterpreterUnavailable;
 use App\Services\Recommendation\RequestedSuggestions;
 use App\Services\RecommendationService;
@@ -24,6 +25,8 @@ class SuggestionRequestController extends Controller
             $interpreted = $this->requests->interpret($request->text());
         } catch (InterpreterUnavailable $exception) {
             return response()->json(['availability' => $exception->availability->value], 503);
+        } catch (InterpreterTimedOut) {
+            return response()->json(['error' => 'timeout'], 504);
         }
 
         return response()->json([
@@ -40,6 +43,8 @@ class SuggestionRequestController extends Controller
 
         if ($ids === [] && $this->suggestions->isSearchSourceUnavailable()) {
             Toast::error(__('A Open Library está indisponível'), __('Tente de novo em alguns minutos.'));
+
+            return to_route('suggestions.index')->withErrors(['search' => __('A Open Library está indisponível')]);
         }
 
         return to_route('suggestions.index');

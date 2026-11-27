@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\Ai\InterpreterAvailability;
+use App\Services\Ai\InterpreterTimedOut;
 use App\Services\Ai\InterpreterUnavailable;
 use App\Services\Ai\ReadingFilters;
 use App\Services\Ai\RequestInterpreter;
@@ -179,4 +180,59 @@ test('availability reports a stopped server', function () {
     Http::fake(['*/api/show' => Http::failedConnection()]);
 
     expect(interpreter()->availability())->toBe(InterpreterAvailability::ServerUnreachable);
+});
+
+test('a request that connects but times out is not reported as an unreachable server', function () {
+    Http::fake(['*/api/chat' => Http::failedConnection('cURL error 28: Operation timed out after 60000 milliseconds')]);
+
+    $thrown = null;
+
+    try {
+        interpreter()->interpret('qualquer coisa');
+    } catch (InterpreterTimedOut $exception) {
+        $thrown = $exception;
+    }
+
+    expect($thrown)->toBeInstanceOf(InterpreterTimedOut::class);
+});
+
+test('a refused connection is still reported as an unreachable server', function () {
+    Http::fake(['*/api/chat' => Http::failedConnection('Failed to connect to localhost port 11434: Connection refused')]);
+
+    $thrown = null;
+
+    try {
+        interpreter()->interpret('qualquer coisa');
+    } catch (InterpreterUnavailable $exception) {
+        $thrown = $exception;
+    }
+
+    expect($thrown?->availability)->toBe(InterpreterAvailability::ServerUnreachable);
+});
+
+test('a connection that times out before connecting is reported as an unreachable server', function () {
+    Http::fake(['*/api/chat' => Http::failedConnection('cURL error 28: Connection timed out after 1001 milliseconds')]);
+
+    $thrown = null;
+
+    try {
+        interpreter()->interpret('qualquer coisa');
+    } catch (InterpreterUnavailable $exception) {
+        $thrown = $exception;
+    }
+
+    expect($thrown)->toBeInstanceOf(InterpreterUnavailable::class)
+        ->and($thrown?->availability)->toBe(InterpreterAvailability::ServerUnreachable);
+});
+
+test('a probe that cannot connect in time means the server is unreachable', function () {
+    Http::fake(['*/api/show' => Http::failedConnection('cURL error 28: Connection timed out after 1001 milliseconds')]);
+
+    expect(interpreter()->availability())->toBe(InterpreterAvailability::ServerUnreachable);
+});
+
+test('a probe that times out means the server is answering, so it is ready', function () {
+    Http::fake(['*/api/show' => Http::failedConnection('cURL error 28: Operation timed out after 2000 milliseconds')]);
+
+    expect(interpreter()->availability())->toBe(InterpreterAvailability::Ready);
 });
