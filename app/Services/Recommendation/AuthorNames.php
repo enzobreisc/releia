@@ -15,6 +15,24 @@ final class AuthorNames
     }
 
     /**
+     * Every author of a shopping or catalog value, each in given-names order.
+     *
+     * @return list<string>
+     */
+    public static function names(?string $author): array
+    {
+        if ($author === null || trim($author) === '') {
+            return [];
+        }
+
+        if (self::isSurnameFirst($author)) {
+            return [BookIdentity::givenNamesFirst($author)];
+        }
+
+        return array_map(BookIdentity::givenNamesFirst(...), self::split($author));
+    }
+
+    /**
      * The author a search starts from, in given-names order. A "Surname, Given" value is read before
      * the list is split, so it is not taken for two authors.
      */

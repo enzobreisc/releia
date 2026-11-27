@@ -9,6 +9,7 @@ use App\Services\BookLookup\BookCandidate;
 use App\Services\BookLookup\OpenLibraryAvailability;
 use App\Services\Recommendation\LibraryIntake;
 use App\Services\Recommendation\SearchBudget;
+use App\Services\Recommendation\SearchScope;
 use App\Services\Recommendation\SourceBooks;
 use App\Services\Recommendation\SuggestionGenerator;
 use App\Services\Recommendation\TodaySuggestion;
@@ -58,6 +59,18 @@ class RecommendationService
         SearchBudget::extendRequestLimit();
 
         return $this->generator->generate();
+    }
+
+    /**
+     * The suggestions a request answers with, found now: for a request, see RequestedSuggestions.
+     *
+     * @return list<int>
+     */
+    public function searchFor(SearchScope $scope): array
+    {
+        SearchBudget::extendRequestLimit();
+
+        return $this->generator->searchFor($scope);
     }
 
     public function isSearchSourceUnavailable(): bool

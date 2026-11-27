@@ -426,6 +426,8 @@
     "mesmo autor que :titles": "same author as :titles",
     "mesmo autor que :titles, da sua lista de compras": "same author as :titles, on your shopping list",
     "mesmo autor que :titles, que você quer ler": "same author as :titles, which you want to read",
+    ":titles, como você pediu": ":titles, as you asked",
+    ":count páginas": ":count pages",
     "meta de": "goal of",
     "Meta de :year batida: :finished de :goal": ":year goal reached: :finished of :goal",
     "Meta de livros": "Book goal",

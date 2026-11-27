@@ -25,6 +25,7 @@ use App\Http\Controllers\ShoppingController;
 use App\Http\Controllers\ShoppingCoverController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\SuggestionController;
+use App\Http\Controllers\SuggestionRequestController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\UndoController;
 use App\Http\Controllers\WrappedController;
@@ -136,6 +137,8 @@ Route::put('/shopping/preference', [ShoppingController::class, 'preference'])->n
 // Suggestions
 Route::get('/suggestions', [SuggestionController::class, 'index'])->name('suggestions.index');
 Route::post('/suggestions/generate', [SuggestionController::class, 'generate'])->name('suggestions.generate');
+Route::post('/suggestions/requests/interpret', [SuggestionRequestController::class, 'interpret'])->name('suggestions.requests.interpret');
+Route::post('/suggestions/requests', [SuggestionRequestController::class, 'store'])->name('suggestions.requests.store');
 Route::get('/suggestions/{recommendation}/editions', [SuggestionController::class, 'editions'])->whereNumber('recommendation')->name('suggestions.editions');
 Route::patch('/suggestions/{recommendation}/accept', [SuggestionController::class, 'accept'])->whereNumber('recommendation')->name('suggestions.accept');
 Route::patch('/suggestions/{recommendation}/already-read', [SuggestionController::class, 'alreadyRead'])->whereNumber('recommendation')->name('suggestions.already-read');

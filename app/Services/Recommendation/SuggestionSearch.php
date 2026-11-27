@@ -11,9 +11,7 @@ use Closure;
  */
 final class SuggestionSearch
 {
-    private const MAX_NEW = 20;
-
-    private const MAX_LOOKUPS = self::MAX_NEW * 2;
+    private const LOOKUPS_PER_SUGGESTION = 2;
 
     /** Same author's works past this are left out: otherwise one prolific author fills the list. */
     private const MAX_WORKS_PER_AUTHOR = 3;
@@ -42,10 +40,16 @@ final class SuggestionSearch
      * @param  array<string, true>  $expired
      */
     public function __construct(
+        private readonly SearchScope $scope,
         private array $blocked,
         private readonly array $expired,
         private readonly float $deadline,
     ) {}
+
+    public function scope(): SearchScope
+    {
+        return $this->scope;
+    }
 
     /**
      * What the collector must skip: the keys that must not come back, and the works already looked up.
@@ -69,8 +73,8 @@ final class SuggestionSearch
 
     public function isExhausted(): bool
     {
-        return count($this->created) >= self::MAX_NEW
-            || $this->lookups >= self::MAX_LOOKUPS
+        return count($this->created) >= $this->scope->capacity
+            || $this->lookups >= $this->scope->capacity * self::LOOKUPS_PER_SUGGESTION
             || $this->isOutOfTime();
     }
 
@@ -107,14 +111,17 @@ final class SuggestionSearch
         return $this->answers[$request] ??= $ask();
     }
 
+    /** A request names its authors, so their works are not limited per author. */
     public function allowsAuthor(?string $authorKey): bool
     {
-        return $authorKey === null || ($this->worksByAuthor[$authorKey] ?? 0) < self::MAX_WORKS_PER_AUTHOR;
+        return $this->scope->hasAuthors()
+            || $authorKey === null
+            || ($this->worksByAuthor[$authorKey] ?? 0) < self::MAX_WORKS_PER_AUTHOR;
     }
 
     public function allowsReturning(bool $isReturning): bool
     {
-        return ! $isReturning || $this->returning < self::MAX_RETURNING;
+        return ! $isReturning || $this->scope->hasAuthors() || $this->returning < self::MAX_RETURNING;
     }
 
     /**

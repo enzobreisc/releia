@@ -40,6 +40,12 @@ return [
         'user_agent' => 'releia/'.env('NATIVEPHP_APP_VERSION', '0.1.0').' (https://github.com/enzobreisc/releia)',
     ],
 
+    'ollama' => [
+        'url' => env('OLLAMA_URL', 'http://localhost:11434'),
+        'chat_model' => env('OLLAMA_CHAT_MODEL', 'qwen3:4b'),
+        'timeout' => 60,
+    ],
+
     'google_books' => [
         // Optional: without a key the quota is shared and usually returns 429.
         'key' => env('GOOGLE_BOOKS_API_KEY'),

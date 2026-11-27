@@ -3,6 +3,7 @@
 namespace App\Services\Recommendation;
 
 use App\Models\Setting;
+use App\Services\BookLookup\BookCandidate;
 use App\Services\BookLookup\OpenLibraryAvailability;
 use App\Support\BookIdentity;
 
@@ -32,7 +33,7 @@ final class SuggestionGenerator
     public function generate(): int
     {
         $round = (int) Setting::get(self::ROUND_KEY, 0);
-        $created = $this->search($round)->created();
+        $created = $this->search($round, SearchScope::general())->created();
 
         if ($created === []) {
             if (! $this->availability->isUnavailable()) {
@@ -49,10 +50,27 @@ final class SuggestionGenerator
         return count($created);
     }
 
-    private function search(int $round): SuggestionSearch
+    /**
+     * The suggestions a request answers with: the pending ones by its authors, then the new ones it finds.
+     * A request always reads from the first page, so the same request finds the same works again.
+     *
+     * @return list<int>
+     */
+    public function searchFor(SearchScope $scope): array
     {
-        $search = new SuggestionSearch($this->blockedKeys->all(), $this->blockedKeys->expired(), SearchBudget::deadline());
-        $sources = $this->sources->pick();
+        $pendingIds = $this->pending->matchingIds($scope);
+        $created = $this->search(0, $scope->withCapacity(SearchScope::MAX_RESULTS - count($pendingIds)))->created();
+        $ids = [...$pendingIds, ...$this->pending->store($created)];
+
+        $this->pending->expireOverflow($ids);
+
+        return $ids;
+    }
+
+    private function search(int $round, SearchScope $scope): SuggestionSearch
+    {
+        $search = new SuggestionSearch($scope, $this->blockedKeys->all(), $this->blockedKeys->expired(), SearchBudget::deadline());
+        $sources = $this->sourcesFor($scope);
         $owned = $this->similarTitles->owned();
 
         foreach ($this->pagesFrom($round) as $page) {
@@ -70,6 +88,23 @@ final class SuggestionGenerator
         }
 
         return $search;
+    }
+
+    /**
+     * The requested authors when there are any, otherwise your books, without the excluded authors.
+     *
+     * @return list<Source>
+     */
+    private function sourcesFor(SearchScope $scope): array
+    {
+        if ($scope->hasAuthors()) {
+            return array_map(Source::requested(...), $scope->authors);
+        }
+
+        return array_values(array_filter(
+            $this->sources->pick(),
+            fn (Source $source): bool => $source->author === null || ! $scope->excludesAny([$source->author]),
+        ));
     }
 
     /**
@@ -91,6 +126,8 @@ final class SuggestionGenerator
      */
     private function verify(SuggestionSearch $search, array $ranked, array $owned): void
     {
+        $scope = $search->scope();
+
         foreach ($ranked as $suggestion) {
             if ($search->isExhausted()) {
                 return;
@@ -99,14 +136,16 @@ final class SuggestionGenerator
             // Checked before the lookup, so a skipped return does not spend one.
             $isReturning = $search->isExpired(SuggestionCollector::keysOf($suggestion->candidate));
 
-            if (! $search->allowsAuthor($suggestion->authorKey()) || ! $search->allowsReturning($isReturning)) {
+            if (! $search->allowsAuthor($suggestion->authorKey())
+                || ! $search->allowsReturning($isReturning)
+                || ! $this->fitsRequest($scope, $suggestion->candidate)) {
                 continue;
             }
 
             $search->countLookup($suggestion);
             $verified = $this->editions->localize($suggestion);
 
-            if ($verified === null) {
+            if ($verified === null || ! $this->fitsRequest($scope, $verified->candidate)) {
                 continue;
             }
 
@@ -124,8 +163,34 @@ final class SuggestionGenerator
                 continue;
             }
 
-            $search->accept($this->withOwnCover($suggestion, $verified, $search), $keys, $isReturning);
+            $search->accept($this->withPageCount($this->withOwnCover($suggestion, $verified, $search), $scope), $keys, $isReturning);
         }
+    }
+
+    /**
+     * Excluded authors are never in a result; with a page limit, a work of unknown or larger length is dropped.
+     */
+    private function fitsRequest(SearchScope $scope, BookCandidate $candidate): bool
+    {
+        if ($scope->excludesAny($candidate->authors)) {
+            return false;
+        }
+
+        return $scope->maxPages === null || ($candidate->pages !== null && $candidate->pages <= $scope->maxPages);
+    }
+
+    private function withPageCount(Suggestion $suggestion, SearchScope $scope): Suggestion
+    {
+        $pages = $suggestion->candidate->pages;
+
+        if (! $scope->isRequest || $pages === null) {
+            return $suggestion;
+        }
+
+        return $suggestion->withCandidate(
+            $suggestion->candidate,
+            $suggestion->reason.' · '.__(':count páginas', ['count' => $pages]),
+        );
     }
 
     /**

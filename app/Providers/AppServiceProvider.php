@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Events\QuickLogShortcutPressed;
 use App\Native\ShowQuickLogWindow;
+use App\Services\Ai\OllamaRequestInterpreter;
+use App\Services\Ai\RequestInterpreter;
 use App\Services\BookLookup\OpenLibraryAvailability;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -17,6 +19,11 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(OpenLibraryAvailability::class);
+        $this->app->bind(RequestInterpreter::class, fn (): RequestInterpreter => new OllamaRequestInterpreter(
+            config('services.ollama.url'),
+            config('services.ollama.chat_model'),
+            config('services.ollama.timeout'),
+        ));
     }
 
     public function boot(): void
