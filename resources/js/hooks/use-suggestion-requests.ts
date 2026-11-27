@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 export type RequestOptions = {
     preserveScroll: boolean;
+    preserveState: boolean;
     onStart: () => void;
     onFinish: () => void;
 };
@@ -16,6 +17,7 @@ export function useSuggestionRequests(): {
         isBusy,
         options: {
             preserveScroll: true,
+            preserveState: true,
             onStart: () => setIsBusy(true),
             onFinish: () => setIsBusy(false),
         },

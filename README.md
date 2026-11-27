@@ -40,7 +40,7 @@
 - **Book page** with every reading, its sessions, Markdown notes and a review per reading; rereads are tracked separately.
 - **Statistics**: books and pages per month, pace, yearly goal forecast, top genres and authors, and a reading calendar heat map.
 - **Wrapped**: a yearly summary that can be exported as an image.
-- **Queue, shopping list and suggestions**: plan what to read next, track the lowest price of a wanted edition on Estante Virtual, and get suggestions, each with its reason, from the books you rated highly, the ones you want to read and your shopping list, or search any author, title or subject.
+- **Queue, shopping list and suggestions**: plan what to read next, track the lowest price of a wanted edition on Estante Virtual, and get suggestions, each with its reason, from the books you rated highly, the ones you want to read and your shopping list, or write a request in your own words, such as "more Dostoevsky, but short".
 - **Authors and timeline**: per-author reading stats with photos from Open Library or Wikipedia, and a timeline of readings by year.
 - **Bilingual interface** in Portuguese and English, including dates, numbers and money.
 - **Offline first**: everything lives in a local SQLite database and covers are downloaded to disk, so the app keeps working without a connection.
@@ -94,6 +94,10 @@ To log sessions from your phone, follow [docs/mobile-quick-log.md](docs/mobile-q
 ## Google Books key (optional)
 
 Without a key, Google Books shares a daily quota among everyone and often refuses requests; Open Library and BrasilAPI keep working. To use your own quota, create a [Books API key](https://developers.google.com/books/docs/v1/using#APIKey) and paste it on the Profile page. It is stored encrypted in the local database and is never part of the published app. In development, `GOOGLE_BOOKS_API_KEY` in `.env` also works.
+
+## Local model for requests (optional)
+
+To write a request such as "more Dostoevsky, but short", run [Ollama](https://ollama.com) on your Mac with the `qwen3:4b` model: `ollama pull qwen3:4b`, once. The model only turns the sentence into authors, authors to avoid and a page limit; the books still come from Open Library. Without it, the pending suggestions keep working and the request field says what is missing.
 
 ## Development
 

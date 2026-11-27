@@ -113,21 +113,3 @@ describe('shopping list actions', () => {
         });
     });
 });
-
-describe('suggestion generation', () => {
-    it('answers with the no-new-suggestions notice', () => {
-        resetDemoState({ locale: 'en' });
-
-        const response = sendRequest({
-            method: 'POST',
-            url: '/suggestions/generate',
-            currentPath: '/suggestions',
-        });
-
-        expect(response.page?.component).toBe('suggestions');
-        expect(response.page?.props.toast).toMatchObject({
-            kind: 'success',
-            title: 'No new suggestions',
-        });
-    });
-});

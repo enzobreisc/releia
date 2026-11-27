@@ -4,6 +4,7 @@ namespace App\Services\Recommendation;
 
 use App\Enums\RecommendationStatus;
 use App\Models\Recommendation;
+use App\Services\Ai\InterpreterTimedOut;
 use App\Services\Ai\InterpreterUnavailable;
 use App\Services\Ai\RequestInterpreter;
 use App\Services\RecommendationService;
@@ -28,6 +29,7 @@ final class RequestedSuggestions
 
     /**
      * @throws InterpreterUnavailable
+     * @throws InterpreterTimedOut
      */
     public function interpret(string $text): InterpretedRequest
     {
@@ -46,7 +48,8 @@ final class RequestedSuggestions
     }
 
     /**
-     * Replaces the remembered request. Returns the ids of the suggestions it answers with.
+     * Replaces the remembered request, unless nothing was found because Open Library is down: the previous one stays.
+     * Returns the ids of the suggestions it answers with.
      *
      * @return list<int>
      */
@@ -54,6 +57,10 @@ final class RequestedSuggestions
     {
         $resolution = $this->resolver->resolve($request->authors, $request->excludedAuthors);
         $ids = $this->suggestions->searchFor(SearchScope::request($resolution, $request->maxPages));
+
+        if ($ids === [] && $this->suggestions->isSearchSourceUnavailable()) {
+            return [];
+        }
 
         session()->put(self::SESSION_KEY, [
             'text' => $request->text,

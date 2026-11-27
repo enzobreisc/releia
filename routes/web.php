@@ -136,7 +136,6 @@ Route::put('/shopping/preference', [ShoppingController::class, 'preference'])->n
 
 // Suggestions
 Route::get('/suggestions', [SuggestionController::class, 'index'])->name('suggestions.index');
-Route::post('/suggestions/generate', [SuggestionController::class, 'generate'])->name('suggestions.generate');
 Route::post('/suggestions/requests/interpret', [SuggestionRequestController::class, 'interpret'])->name('suggestions.requests.interpret');
 Route::post('/suggestions/requests', [SuggestionRequestController::class, 'store'])->name('suggestions.requests.store');
 Route::get('/suggestions/{recommendation}/editions', [SuggestionController::class, 'editions'])->whereNumber('recommendation')->name('suggestions.editions');

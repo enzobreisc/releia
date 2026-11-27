@@ -29,6 +29,10 @@ const MODULE_REPLACEMENTS: Record<string, string> = {
         repositoryRoot,
         'demo/src/shell/mobile-menu-sheet.tsx',
     ),
+    [join(
+        RESOURCES_DIRECTORY,
+        'components/suggestions/suggestion-request-panel.tsx',
+    )]: join(repositoryRoot, 'demo/src/shell/suggestion-request-panel.tsx'),
 };
 
 /**

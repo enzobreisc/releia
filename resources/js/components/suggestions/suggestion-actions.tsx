@@ -11,22 +11,19 @@ export function SuggestionActions({
     disabled,
     options,
     onChoose,
-    isLarge = false,
 }: {
     suggestion: Suggestion;
     disabled: boolean;
     options: RequestOptions;
     onChoose: (choice: Choosing) => void;
-    isLarge?: boolean;
 }) {
     const { t } = useTranslation();
-    const height = isLarge ? 'h-12' : 'h-10';
 
     return (
         <div className="flex flex-wrap gap-2">
             <Button
                 disabled={disabled}
-                className={isLarge ? 'h-12 px-6.5' : height}
+                className="h-10"
                 onClick={() =>
                     suggestion.has_editions
                         ? onChoose('want')
@@ -38,7 +35,7 @@ export function SuggestionActions({
             <Button
                 variant="ghost"
                 disabled={disabled}
-                className={height}
+                className="h-10"
                 onClick={() =>
                     suggestion.has_editions
                         ? onChoose('read')
@@ -50,7 +47,7 @@ export function SuggestionActions({
             <Button
                 variant="ghost"
                 disabled={disabled}
-                className={`${height} bg-transparent text-secondary inset-ring-0 hover:bg-elevated`}
+                className="h-10 bg-transparent text-secondary inset-ring-0 hover:bg-elevated"
                 onClick={() => router.visit(dismiss(suggestion.id), options)}
             >
                 {t('Sem interesse')}

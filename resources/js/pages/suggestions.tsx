@@ -1,57 +1,58 @@
 import { PageHeader } from '@/components/page-header';
-import { GenerateButton } from '@/components/suggestions/generate-button';
-import { SuggestionList } from '@/components/suggestions/suggestion-list';
-import {
-    SuggestionSearchForm,
-    SuggestionSearchResults,
-} from '@/components/suggestion-search';
+import { SuggestionBoard } from '@/components/suggestions/suggestion-board';
+import { SuggestionRequestPanel } from '@/components/suggestions/suggestion-request-panel';
+import { useSuggestionRequest } from '@/hooks/use-suggestion-request';
 import { useSuggestionRequests } from '@/hooks/use-suggestion-requests';
 import { useTranslation } from '@/hooks/use-translation';
-import type { Candidate, Suggestion } from '@/types';
+import type {
+    Suggestion,
+    SuggestionAvailability,
+    SuggestionRequest,
+} from '@/types';
 
 type SuggestionsProps = {
     suggestions: Suggestion[];
     hasSources: boolean;
-    query: string;
-    results: Candidate[];
+    request: SuggestionRequest | null;
+    interpreter: { model: string };
+    interpreterAvailability?: SuggestionAvailability;
 };
 
 export default function Suggestions({
     suggestions,
     hasSources,
-    query,
-    results,
+    request,
+    interpreter,
+    interpreterAvailability,
 }: SuggestionsProps) {
     const { t } = useTranslation();
-    const { isBusy, options } = useSuggestionRequests();
+    const cards = useSuggestionRequests();
+    const flow = useSuggestionRequest({ request, interpreterAvailability });
+    const isBusy = cards.isBusy || flow.isBusy;
 
     return (
         <div className="flex flex-col gap-8">
             <PageHeader
                 title={t('Sugestões')}
                 description={t('Livros novos, sempre com o motivo')}
-                actions={
-                    <GenerateButton
-                        label="Buscar novas sugestões"
-                        isBusy={isBusy}
-                        isDisabled={isBusy || !hasSources}
-                        options={options}
-                    />
-                }
             />
 
-            <SuggestionSearchForm key={query} query={query} />
+            <SuggestionRequestPanel flow={flow} model={interpreter.model} />
 
-            {query !== '' ? (
-                <SuggestionSearchResults query={query} results={results} />
-            ) : (
-                <SuggestionList
-                    suggestions={suggestions}
-                    hasSources={hasSources}
-                    isBusy={isBusy}
-                    options={options}
-                />
-            )}
+            <SuggestionBoard
+                results={request?.results ?? []}
+                pending={suggestions}
+                showsResults={flow.showsResults}
+                tab={flow.tab}
+                hasSources={hasSources}
+                isDisabled={isBusy}
+                options={cards.options}
+                canDropPageLimit={flow.canDropPageLimit}
+                onDropPageLimit={flow.actions.dropPageLimit}
+                answeredEveryBook={flow.answeredEveryBook}
+                onAskAgain={flow.actions.focusField}
+                onTabChange={flow.setTab}
+            />
         </div>
     );
 }

@@ -40,7 +40,7 @@
 - **Página do livro** com todas as leituras, suas sessões, notas em Markdown e uma resenha por leitura; releituras são registradas separadamente.
 - **Estatísticas**: livros e páginas por mês, ritmo, previsão da meta anual, gêneros e autores mais lidos e um calendário de leitura.
 - **Wrapped**: um resumo do ano que pode ser exportado como imagem.
-- **Fila, lista de compras e sugestões**: planeje a próxima leitura, acompanhe o menor preço de uma edição desejada no Estante Virtual e receba sugestões, cada uma com o motivo, a partir dos livros que você avaliou bem, dos que quer ler e da lista de compras, ou busque qualquer autor, título ou assunto.
+- **Fila, lista de compras e sugestões**: planeje a próxima leitura, acompanhe o menor preço de uma edição desejada no Estante Virtual e receba sugestões, cada uma com o motivo, a partir dos livros que você avaliou bem, dos que quer ler e da lista de compras, ou escreva um pedido com as suas palavras, como "mais do Dostoiévski, mas curto".
 - **Autores e linha do tempo**: estatísticas de leitura por autor, com fotos da Open Library ou da Wikipedia, e uma linha do tempo das leituras por ano.
 - **Interface bilíngue** em português e inglês, incluindo datas, números e valores.
 - **Offline primeiro**: tudo fica num banco SQLite local e as capas são baixadas para o disco, então o app continua funcionando sem conexão.
@@ -94,6 +94,10 @@ Para registrar sessões pelo celular, siga [docs/mobile-quick-log.md](docs/mobil
 ## Chave do Google Books (opcional)
 
 Sem chave, o Google Books divide uma cota diária entre todos e costuma recusar as consultas; a Open Library e a BrasilAPI continuam funcionando. Para usar a sua própria cota, crie uma [chave da Books API](https://developers.google.com/books/docs/v1/using#APIKey) e cole na página de Perfil. Ela fica criptografada no banco local e nunca faz parte do app publicado. Em desenvolvimento, `GOOGLE_BOOKS_API_KEY` no `.env` também funciona.
+
+## Modelo local para pedidos (opcional)
+
+Para escrever um pedido como "mais do Dostoiévski, mas curto", rode o [Ollama](https://ollama.com) no seu Mac com o modelo `qwen3:4b`: `ollama pull qwen3:4b`, uma vez. O modelo só transforma a frase em autores, autores a evitar e limite de páginas; os livros continuam vindo da Open Library. Sem ele, as sugestões pendentes continuam funcionando e o campo de pedido diz o que falta.
 
 ## Desenvolvimento
 

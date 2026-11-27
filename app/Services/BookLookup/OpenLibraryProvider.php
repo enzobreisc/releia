@@ -23,8 +23,6 @@ class OpenLibraryProvider implements MetadataProvider
     /** Suggestions only count works with a Portuguese edition; `sort` brings the most loved first. */
     private const SUGGESTION_LANGUAGE = 'por';
 
-    private const SEARCH_RESULTS_LIMIT = 40;
-
     private const EDITIONS_PER_PAGE = 200;
 
     /** Classics have hundreds of editions, in no useful order, so Brazilian ones may sit far down. */
@@ -287,26 +285,6 @@ class OpenLibraryProvider implements MetadataProvider
     public function searchByAuthor(string $author, int $page = 1): array
     {
         return $this->searchDocs(['author' => $author, 'language' => self::SUGGESTION_LANGUAGE, 'sort' => 'want_to_read', 'page' => $page], 20);
-    }
-
-    /**
-     * Works by author, subject ("Russian literature") or title, most relevant first, in any language
-     * or only those with an edition in the given language. Title weighs less, so author and subject rank first.
-     *
-     * @return list<BookCandidate>
-     */
-    public function searchWorks(string $text, ?string $language = null): array
-    {
-        $term = trim(preg_replace('/[^\p{L}\p{N}\s\'-]+/u', ' ', $text) ?? '');
-
-        if ($term === '') {
-            return [];
-        }
-
-        return $this->searchDocs(array_filter([
-            'q' => "author:({$term}) OR subject:({$term}) OR title:({$term})^0.3",
-            'language' => $language,
-        ]), self::SEARCH_RESULTS_LIMIT);
     }
 
     /**

@@ -173,6 +173,59 @@ test('the suggestions page shows the remembered request with its pending results
             ->missing('request.results.1'));
 });
 
+test('the pending list leaves out the books the remembered request answers with', function () {
+    $answer = Recommendation::factory()->create(['title' => 'Resposta', 'author' => 'Autor 1', 'status' => RecommendationStatus::New]);
+    $other = Recommendation::factory()->create(['title' => 'Outra', 'author' => 'Autor 2', 'status' => RecommendationStatus::New]);
+    session([RequestedSuggestions::SESSION_KEY => [
+        'text' => 'mais do Autor 1',
+        'authors' => ['Autor 1'],
+        'excluded_authors' => [],
+        'max_pages' => null,
+        'ids' => [$answer->id],
+    ]]);
+
+    $this->get(route('suggestions.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('suggestions', 1)
+            ->where('suggestions.0.id', $other->id)
+            ->has('request.results', 1));
+});
+
+test('the request reports every book it found, even once one of them is accepted', function () {
+    $first = Recommendation::factory()->create(['title' => 'Primeiro', 'author' => 'Autor 1', 'status' => RecommendationStatus::New]);
+    $second = Recommendation::factory()->create(['title' => 'Segundo', 'author' => 'Autor 1', 'status' => RecommendationStatus::New]);
+    session([RequestedSuggestions::SESSION_KEY => [
+        'text' => 'mais do Autor 1',
+        'authors' => ['Autor 1'],
+        'excluded_authors' => [],
+        'max_pages' => null,
+        'ids' => [$first->id, $second->id],
+    ]]);
+
+    $first->update(['status' => RecommendationStatus::WantToRead]);
+
+    $this->get(route('suggestions.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('request.found', 2)
+            ->has('request.results', 1));
+});
+
+test('a request that finds nothing while Open Library is down keeps the remembered request', function () {
+    Http::fake(['openlibrary.org/*' => Http::failedConnection()]);
+
+    $this->withSession([RequestedSuggestions::SESSION_KEY => [
+        'text' => 'pedido anterior',
+        'authors' => [],
+        'excluded_authors' => [],
+        'max_pages' => null,
+        'ids' => [],
+    ]])->post(route('suggestions.requests.store'), ['text' => 'mais', 'authors' => ['Clarice Lispector', 'Jane Austen', 'Machado de Assis']])
+        ->assertSessionHas('toast.kind', 'error')
+        ->assertSessionHasErrors(['search' => 'A Open Library está indisponível']);
+
+    expect(session(RequestedSuggestions::SESSION_KEY)['text'])->toBe('pedido anterior');
+});
+
 test('the suggestions page has no request before one is made', function () {
     $this->get(route('suggestions.index'))
         ->assertInertia(fn (Assert $page) => $page->where('request', null));
@@ -221,4 +274,18 @@ test('the interpreted authors are at most twenty, so storing them is accepted', 
 
     $this->post(route('suggestions.requests.store'), ['text' => 'Tolstoi', 'authors' => $authors])
         ->assertSessionHasNoErrors();
+});
+
+test('an interpretation that cannot connect in time answers 503 as an unreachable server', function () {
+    Http::fake(['*/api/chat' => Http::failedConnection('cURL error 28: Connection timed out after 1001 milliseconds')]);
+
+    interpretRequest('mais Clarice')
+        ->assertStatus(503)
+        ->assertJsonPath('availability', 'server_unreachable');
+});
+
+test('an interpretation that times out answers 504, not 503, so the screen shows its generic failure', function () {
+    Http::fake(['*/api/chat' => Http::failedConnection('cURL error 28: Operation timed out after 60000 milliseconds')]);
+
+    interpretRequest('mais Clarice')->assertStatus(504);
 });
