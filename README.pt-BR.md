@@ -28,7 +28,7 @@
 
 - Os fluxos principais funcionam: biblioteca e estantes, adicionar livros, sessões de leitura, anotações, estatísticas, linha do tempo, fila, lista de compras e sugestões. As sugestões de exemplo já vêm prontas.
 - Sua biblioteca fica no armazenamento local deste navegador e nunca é enviada a um servidor; "Restaurar dados" traz a biblioteca de exemplo de volta. As buscas de livros ainda vão do navegador para a Open Library e a BrasilAPI.
-- Algumas coisas só funcionam no app: a janela da barra de menu, o registro pelo celular via Tailscale, a ordenação com IA local, as buscas no Google Books e a consulta de preços.
+- Algumas coisas só funcionam no app: a janela da barra de menu, o registro pelo celular via Tailscale, as buscas no Google Books e a consulta de preços.
 - Como funciona: a demonstração reaproveita as páginas React de `resources/js`. Os presenters do Laravel foram portados para TypeScript (`demo/src/presenters`) e conferidos contra páginas de referência exportadas do app em PHP, e os fluxos do usuário (adicionar, ler, comprar, desfazer) são reproduzidos a partir de cenários gravados no app. Detalhes em [demo/README.md](demo/README.md) (em inglês).
 
 ## Funcionalidades
@@ -61,7 +61,7 @@
 - **Um app Laravel entregue como app nativo.** O [NativePHP](https://nativephp.com) empacota o PHP e o app no Electron, então o mesmo código renderiza a interface em Inertia + React e controla a janela, o ícone da barra de menu e o atalho global ([`app/Native/QuickLog.php`](app/Native/QuickLog.php)).
 - **Uma tela, dois invólucros.** A página de registro rápido roda tanto na janela da barra de menu quanto como PWA instalável no celular: um agente `launchd` a serve pela tailnet usando o arquivo SQLite e o storage do app de desktop, e a página troca para controles do tamanho do toque quando não está dentro do app nativo.
 - **Busca de metadados atrás de um único contrato.** Cada fonte implementa [`MetadataProvider`](app/Services/BookLookup/MetadataProvider.php). O [`BookLookupService`](app/Services/BookLookupService.php) consulta a Open Library primeiro e usa a BrasilAPI e o Google Books para completar ou como reserva, com cache dos resultados; uma nova fonte é só uma classe. As edições das editoras que já estão na sua biblioteca aparecem e são sugeridas primeiro.
-- **Sugestões explicáveis.** O [`RecommendationService`](app/Services/RecommendationService.php) parte dos livros que você avaliou bem e do que você quer ler ou comprar, busca outras obras dos mesmos autores, mantém no máximo três obras do mesmo autor por busca, traz de volta no máximo uma sugestão ignorada por busca e ordena os candidatos com um [`CandidateRanker`](app/Services/Recommendation/CandidateRanker.php) plugável. Cada sugestão traz o motivo, e as buscas têm limite de tempo e cache.
+- **Sugestões explicáveis.** O [`RecommendationService`](app/Services/RecommendationService.php) parte dos livros que você avaliou bem e do que você quer ler ou comprar, busca outras obras dos mesmos autores, mantém no máximo três obras do mesmo autor por busca, traz de volta no máximo uma sugestão ignorada por busca e ordena os candidatos pela pontuação ([`ScoredRanker`](app/Services/Recommendation/ScoredRanker.php)). Cada sugestão traz o motivo, e as buscas têm limite de tempo e cache.
 - **Controllers enxutos, serviços ricos.** As regras de negócio ficam nos serviços, e os presenters definem as props que cada página Inertia recebe.
 - **Páginas enxutas, componentes pequenos.** Cada página React só compõe componentes que ficam numa pasta com o nome dela; o estado fica em hooks `use-*` e os helpers puros em `lib/`, então nenhuma página vira um arquivo de mil linhas.
 - **i18n com o texto original como chave.** Os textos são escritos em português e traduzidos em [`lang/en.json`](lang/en.json); o type check falha se faltar uma chave no React, e um teste falha se faltar uma chave no PHP.
@@ -95,18 +95,6 @@ Para registrar sessões pelo celular, siga [docs/mobile-quick-log.md](docs/mobil
 
 Sem chave, o Google Books divide uma cota diária entre todos e costuma recusar as consultas; a Open Library e a BrasilAPI continuam funcionando. Para usar a sua própria cota, crie uma [chave da Books API](https://developers.google.com/books/docs/v1/using#APIKey) e cole na página de Perfil. Ela fica criptografada no banco local e nunca faz parte do app publicado. Em desenvolvimento, `GOOGLE_BOOKS_API_KEY` no `.env` também funciona.
 
-## Ordenação com IA local (experimental)
-
-As sugestões também podem ser ordenadas pela proximidade com os livros que você avaliou, usando embeddings calculados no seu Mac pelo [Ollama](https://ollama.com). É opcional, vem desligada e nada da sua biblioteca sai da máquina: o Ollama roda em `localhost` por padrão, e a Open Library continua recebendo apenas as buscas por autor e assunto.
-
-```bash
-brew install ollama
-brew services start ollama
-ollama pull nomic-embed-text
-```
-
-Depois ligue **Ordenar com IA local** na página de Sugestões. É experimental: por enquanto muda pouco a ordem, e o ganho ainda não foi medido. Sem o Ollama, as sugestões continuam funcionando, ordenadas pela pontuação.
-
 ## Desenvolvimento
 
 Requisitos: PHP 8.4, Composer, Node 22+.
@@ -134,7 +122,6 @@ Em desenvolvimento (`APP_DEBUG=true`) o app nativo usa `database/nativephp.sqlit
 | `npm run demo:test`                       | testes da demonstração web contra as páginas de referência (rode antes `bash demo/export/run.sh`) |
 | `npm run demo:build`                      | gera a demonstração web em `dist-demo/`                                                           |
 | `php artisan releia:suggestions`          | busca sugestões novas                                                                             |
-| `php artisan releia:embed`                | calcula os vetores da ordenação com IA local (precisa do Ollama)                                  |
 | `php artisan releia:lookup "…"`           | busca metadados de um livro sem salvar                                                            |
 | `php artisan releia:fill-shopping-prices` | busca os preços da lista de compras                                                               |
 
@@ -148,11 +135,10 @@ app/
   Models/               Book, Reading, ReadingSession, Note…
   Native/               janela da barra de menu e atalho global
   Services/             regras de domínio: busca, leituras, estatísticas, sugestões…
-    Ai/                 embeddings locais (Ollama) para ordenar as sugestões
     BookLookup/         fontes de metadados (Open Library, Google Books, BrasilAPI)
     PriceLookup/        preços da lista de compras (Estante Virtual)
     Recommendation/     ordenação das sugestões
-  Console/Commands/     releia:suggestions, releia:embed, releia:lookup…
+  Console/Commands/     releia:suggestions, releia:lookup…
 resources/js/
   pages/                uma página Inertia por tela, enxuta
   components/           UI compartilhada, mais uma pasta por página (book/, stats/…)

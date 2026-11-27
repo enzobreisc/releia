@@ -156,17 +156,6 @@ export type RecommendationRow = {
     created_at: string;
 };
 
-type BookEmbeddingRow = {
-    id: number;
-    book_id: number;
-    model: string;
-    /** Binary column; the export keeps whatever encoding the exporter chose. */
-    vector: string;
-    source_hash: string;
-    created_at: string;
-    updated_at: string;
-};
-
 type SettingRow = {
     key: string;
     /** JSON text, as the export stores it. */
@@ -188,7 +177,6 @@ export type DemoTables = {
     queue_items: QueueItemRow[];
     shopping_items: ShoppingItemRow[];
     recommendations: RecommendationRow[];
-    book_embeddings: BookEmbeddingRow[];
     settings: SettingRow[];
 };
 

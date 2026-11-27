@@ -20,7 +20,6 @@ const TEMPORAL_COLUMNS: Record<TableName, readonly string[]> = {
         'updated_at',
     ],
     recommendations: ['created_at'],
-    book_embeddings: ['created_at', 'updated_at'],
     settings: ['created_at', 'updated_at'],
 };
 

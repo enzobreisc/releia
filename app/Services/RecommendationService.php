@@ -4,23 +4,16 @@ namespace App\Services;
 
 use App\Enums\ReadingStatus;
 use App\Enums\RecommendationStatus;
-use App\Models\Book;
-use App\Models\Reading;
 use App\Models\Recommendation;
-use App\Services\Ai\BookEmbeddingIndexer;
-use App\Services\Ai\EmbeddingUnavailable;
 use App\Services\BookLookup\BookCandidate;
 use App\Services\BookLookup\OpenLibraryAvailability;
-use App\Services\Recommendation\EmbeddingRanker;
 use App\Services\Recommendation\LibraryIntake;
-use App\Services\Recommendation\ProfileReadings;
 use App\Services\Recommendation\SearchBudget;
 use App\Services\Recommendation\SourceBooks;
 use App\Services\Recommendation\SuggestionGenerator;
 use App\Services\Recommendation\TodaySuggestion;
 use App\Services\Recommendation\WorkEditions;
 use App\Services\Recommendation\WorkSearch;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Suggests books you have not read yet: other works, in Open Library, by the authors of the books rated
@@ -32,8 +25,7 @@ use Illuminate\Support\Facades\Log;
  *
  * Only Brazilian editions are suggested (ISBN 978-85/65), and the Portuguese title comes from the
  * edition found by ISBN. A candidate pointed to by several of your books rises in the list, and
- * popularity on Open Library separates the well-known from the obscure. With Ollama enabled, the
- * candidates are also ordered by how close they are to the books that shape your taste.
+ * popularity on Open Library separates the well-known from the obscure.
  *
  * Limits: at most six sources per search, two of them reserved for "Quero ler" and shopping list books
  * when there are any. Each source costs one Open Library author search,
@@ -43,8 +35,6 @@ use Illuminate\Support\Facades\Log;
  */
 class RecommendationService
 {
-    private const INDEXING_BUDGET_SECONDS = 5;
-
     public function __construct(
         private readonly SourceBooks $sources,
         private readonly OpenLibraryAvailability $availability,
@@ -53,8 +43,6 @@ class RecommendationService
         private readonly WorkSearch $workSearch,
         private readonly WorkEditions $workEditions,
         private readonly LibraryIntake $intake,
-        private readonly BookEmbeddingIndexer $embeddingIndexer,
-        private readonly ProfileReadings $profileReadings,
     ) {}
 
     public function hasSources(): bool
@@ -68,10 +56,6 @@ class RecommendationService
     public function generate(): int
     {
         SearchBudget::extendRequestLimit();
-
-        if (EmbeddingRanker::isEnabled()) {
-            $this->indexProfileBookEmbeddings();
-        }
 
         return $this->generator->generate();
     }
@@ -136,21 +120,5 @@ class RecommendationService
     public function dismiss(Recommendation $recommendation): void
     {
         $recommendation->update(['status' => RecommendationStatus::Dismissed]);
-    }
-
-    /**
-     * Indexing happens before the search so the search keeps its full budget, and it is capped
-     * so the request cannot hang. Without Ollama, the search still runs and orders by score.
-     */
-    private function indexProfileBookEmbeddings(): void
-    {
-        $deadline = microtime(true) + self::INDEXING_BUDGET_SECONDS;
-        $profileBooks = $this->profileReadings->get()->map(fn (Reading $reading): Book => $reading->book);
-
-        try {
-            $this->embeddingIndexer->index($profileBooks, $deadline);
-        } catch (EmbeddingUnavailable $exception) {
-            Log::warning('Embedding indexing unavailable, ordering by score', ['error' => $exception->getMessage()]);
-        }
     }
 }

@@ -142,28 +142,13 @@ function SampleVisual({ visual }: { visual: OnlyInAppVisual }) {
         );
     }
 
-    if (visual === 'local') {
-        return (
-            <div aria-hidden="true" className={cn(SAMPLE_BOX_CLASS, 'gap-2')}>
-                <span className="font-mono text-[11px] text-muted">
-                    {visuals.folder}
-                </span>
-                <span className="font-mono text-[13px]">
-                    {visuals.database}
-                </span>
-                <span className="font-mono text-[13px]">{visuals.covers}</span>
-            </div>
-        );
-    }
-
     return (
         <div aria-hidden="true" className={cn(SAMPLE_BOX_CLASS, 'gap-2')}>
-            <span className="font-mono text-[13px]">
-                {visuals.ollamaCommand}
-            </span>
             <span className="font-mono text-[11px] text-muted">
-                {visuals.ollamaStatus}
+                {visuals.folder}
             </span>
+            <span className="font-mono text-[13px]">{visuals.database}</span>
+            <span className="font-mono text-[13px]">{visuals.covers}</span>
         </div>
     );
 }

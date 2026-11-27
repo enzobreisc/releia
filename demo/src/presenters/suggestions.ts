@@ -1,4 +1,4 @@
-import type { AiRanking, Suggestion } from '@/types';
+import type { Suggestion } from '@/types';
 import { currentReadingOf } from '../domain/books';
 import type { ReadModel } from '../domain/read-model';
 import { authorNamesOf } from '../domain/suggestions-identity';
@@ -9,8 +9,6 @@ import { toIsbn10 } from '../support/isbn';
 import { type CandidatePayload, candidatePayloads } from './candidates';
 import { recommendationCard } from './recommendation';
 
-/** The embedding model the app is configured with; the demo never runs it. */
-const EMBEDDING_MODEL = 'nomic-embed-text';
 const SOURCE_RATINGS: readonly number[] = [4, 5];
 
 type SuggestionsPageProps = {
@@ -18,8 +16,6 @@ type SuggestionsPageProps = {
     results: CandidatePayload[];
     suggestions: Suggestion[];
     hasSources: boolean;
-    aiRanking: AiRanking;
-    aiAvailability: null;
 };
 
 function newSuggestionsNewestFirst(model: ReadModel): RecommendationRow[] {
@@ -60,8 +56,6 @@ export function suggestionsPageProps(
             recommendationCard(model, recommendation),
         ),
         hasSources: hasSuggestionSources(model),
-        aiRanking: { enabled: false, model: EMBEDDING_MODEL },
-        aiAvailability: null,
     };
 }
 

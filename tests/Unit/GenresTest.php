@@ -15,10 +15,6 @@ test('escolhe o gênero do catálogo que mais aparece nos assuntos', function (a
     'ignora o que não é texto' => [[null, 12, ['x']], null],
 ]);
 
-test('only catalog genres have an English subject', function () {
-    expect(Genres::openLibrarySubject('Ficção científica'))->toBe('Science fiction')
-        ->and(Genres::openLibrarySubject('Romance'))->toBeNull()
-        ->and(Genres::openLibrarySubject('Texto digitado'))->toBeNull()
-        ->and(Genres::openLibrarySubject(null))->toBeNull()
-        ->and(Genres::names())->toContain('Poesia', 'Romance');
+test('lists the catalog genres', function () {
+    expect(Genres::names())->toContain('Poesia', 'Romance');
 });

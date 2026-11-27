@@ -7,11 +7,15 @@ namespace App\Services\Recommendation;
  * A small random jitter shuffles candidates with close scores, so two consecutive searches
  * do not always return the same list.
  */
-final class ScoredRanker implements CandidateRanker
+final class ScoredRanker
 {
     private const JITTER = 0.8;
 
-    public function rank(array $suggestions, float $deadline): array
+    /**
+     * @param  list<Suggestion>  $suggestions
+     * @return list<Suggestion>
+     */
+    public function rank(array $suggestions): array
     {
         $scored = array_map(
             fn (Suggestion $suggestion) => [$suggestion, $suggestion->score() + self::JITTER * mt_rand() / mt_getrandmax()],

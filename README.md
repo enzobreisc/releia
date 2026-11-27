@@ -28,7 +28,7 @@
 
 - The main flows work: library and shelves, adding books, reading sessions, notes, stats, timeline, queue, shopping list and suggestions. The sample suggestions come ready-made.
 - Your library stays in your browser's local storage and is never sent to a server; "Restore data" brings the sample library back. Book searches still go from the browser to Open Library and BrasilAPI.
-- Some things only work in the app: the menu bar window, the phone quick log over Tailscale, local AI ordering, Google Books lookups and price lookups.
+- Some things only work in the app: the menu bar window, the phone quick log over Tailscale, Google Books lookups and price lookups.
 - How it works: the demo reuses the React pages from `resources/js`. The Laravel presenters are ported to TypeScript (`demo/src/presenters`) and checked against golden pages exported from the PHP app, and the user flows (add, read, shop, undo) are replayed from scenarios recorded from the app. Details in [demo/README.md](demo/README.md).
 
 ## Features
@@ -61,7 +61,7 @@
 - **A Laravel app shipped as a native desktop app.** [NativePHP](https://nativephp.com) bundles PHP and the app into Electron, so the same codebase renders an Inertia + React UI, owns the window, the menu bar icon and the global shortcut ([`app/Native/QuickLog.php`](app/Native/QuickLog.php)).
 - **One screen, two shells.** The quick log page runs both in the menu bar window and as an installable PWA on the phone: a `launchd` agent serves it over the tailnet against the desktop app's SQLite file and storage, and the page switches to touch-sized controls when it is not inside the native app.
 - **Metadata lookup behind a single contract.** Each source implements [`MetadataProvider`](app/Services/BookLookup/MetadataProvider.php). [`BookLookupService`](app/Services/BookLookupService.php) asks Open Library first and lets BrasilAPI and Google Books fill gaps or act as fallbacks, caching the results, so a new source is one class. Editions from the publishers already in your library are listed and suggested first.
-- **Explainable suggestions.** [`RecommendationService`](app/Services/RecommendationService.php) starts from your highly rated books and from what you want to read or buy, looks for other works by the same authors, keeps at most three works by the same author per search, brings back at most one ignored suggestion per search, and ranks candidates through a pluggable [`CandidateRanker`](app/Services/Recommendation/CandidateRanker.php). Every suggestion carries the reason it was made, and searches are time-boxed and cached.
+- **Explainable suggestions.** [`RecommendationService`](app/Services/RecommendationService.php) starts from your highly rated books and from what you want to read or buy, looks for other works by the same authors, keeps at most three works by the same author per search, brings back at most one ignored suggestion per search, and ranks candidates by score ([`ScoredRanker`](app/Services/Recommendation/ScoredRanker.php)). Every suggestion carries the reason it was made, and searches are time-boxed and cached.
 - **Thin controllers, rich services.** Business rules live in services, and presenters shape the props each Inertia page receives.
 - **Thin pages, small components.** Each React page only composes components that live in a folder named after it; state sits in `use-*` hooks and pure helpers in `lib/`, so no page is a thousand-line file.
 - **i18n where the key is the source text.** Strings are written in Portuguese and translated in [`lang/en.json`](lang/en.json); the type check fails on a missing React key and a feature test fails on a missing PHP key.
@@ -95,18 +95,6 @@ To log sessions from your phone, follow [docs/mobile-quick-log.md](docs/mobile-q
 
 Without a key, Google Books shares a daily quota among everyone and often refuses requests; Open Library and BrasilAPI keep working. To use your own quota, create a [Books API key](https://developers.google.com/books/docs/v1/using#APIKey) and paste it on the Profile page. It is stored encrypted in the local database and is never part of the published app. In development, `GOOGLE_BOOKS_API_KEY` in `.env` also works.
 
-## Local AI ordering (experimental)
-
-Suggestions can also be ordered by how close they are to the books you rated, using embeddings computed on your Mac by [Ollama](https://ollama.com). It is optional, off by default, and nothing about your library leaves the machine: Ollama runs on `localhost` by default, while Open Library keeps receiving only the author and subject searches.
-
-```bash
-brew install ollama
-brew services start ollama
-ollama pull nomic-embed-text
-```
-
-Then turn on **Sort with local AI** on the Suggestions page. It is experimental: so far it changes the order only slightly, and its benefit has not been measured. Without Ollama, suggestions keep working and are ordered by score.
-
 ## Development
 
 Requirements: PHP 8.4, Composer, Node 22+.
@@ -134,7 +122,6 @@ In development (`APP_DEBUG=true`) the native app uses `database/nativephp.sqlite
 | `npm run demo:test`                       | web demo tests against the golden pages (run `bash demo/export/run.sh` first) |
 | `npm run demo:build`                      | builds the web demo into `dist-demo/`                                         |
 | `php artisan releia:suggestions`          | searches new suggestions                                                      |
-| `php artisan releia:embed`                | computes the vectors for local AI ordering (needs Ollama)                     |
 | `php artisan releia:lookup "…"`           | searches book metadata without saving it                                      |
 | `php artisan releia:fill-shopping-prices` | looks up prices for the shopping list                                         |
 
@@ -148,11 +135,10 @@ app/
   Models/               Book, Reading, ReadingSession, Note…
   Native/               menu bar window and global shortcut
   Services/             domain logic: lookup, readings, stats, suggestions…
-    Ai/                 local embeddings (Ollama) for ordering suggestions
     BookLookup/         metadata providers (Open Library, Google Books, BrasilAPI)
     PriceLookup/        shopping list prices (Estante Virtual)
     Recommendation/     suggestion ranking
-  Console/Commands/     releia:suggestions, releia:embed, releia:lookup…
+  Console/Commands/     releia:suggestions, releia:lookup…
 resources/js/
   pages/                one Inertia page per screen, kept thin
   components/           shared UI, plus one folder per page (book/, stats/…)
