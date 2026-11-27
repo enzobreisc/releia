@@ -176,7 +176,7 @@ final class SuggestionGenerator
             return false;
         }
 
-        return $scope->maxPages === null || ($candidate->pages !== null && $candidate->pages <= $scope->maxPages);
+        return $scope->fitsPages($candidate->pages);
     }
 
     private function withPageCount(Suggestion $suggestion, SearchScope $scope): Suggestion

@@ -251,3 +251,30 @@ test('a pending suggestion is found again when the edition spells the author dif
 
     expect(requestedSearch(['Lev Tolstói']))->toContain($pending->id);
 });
+
+test('a request with a page limit finds again the book it found the first time', function () {
+    libraryAuthorNamed('Autor 1');
+    fakeCatalog([1 => [['pages' => 200]]]);
+
+    $first = requestedSearch(['Autor 1'], [], 300);
+    $second = requestedSearch(['Autor 1'], [], 300);
+
+    expect($first)->toHaveCount(1)
+        ->and($second)->toBe($first);
+});
+
+test('a pending suggestion with unknown pages is left out when there is a page limit', function () {
+    libraryAuthorNamed('Autor 1');
+    fakeCatalog([]);
+    $pending = Recommendation::factory()->create(['title' => 'Antiga', 'author' => 'Autor 1', 'pages' => null, 'status' => RecommendationStatus::New]);
+
+    expect(requestedSearch(['Autor 1'], [], 300))->not->toContain($pending->id);
+});
+
+test('a pending suggestion longer than the page limit is left out', function () {
+    libraryAuthorNamed('Autor 1');
+    fakeCatalog([]);
+    $pending = Recommendation::factory()->create(['title' => 'Longa', 'author' => 'Autor 1', 'pages' => 400, 'status' => RecommendationStatus::New]);
+
+    expect(requestedSearch(['Autor 1'], [], 300))->not->toContain($pending->id);
+});

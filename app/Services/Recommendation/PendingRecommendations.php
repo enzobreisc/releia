@@ -30,6 +30,7 @@ final class PendingRecommendations
                 'cover_url' => $suggestion->candidate->coverUrl,
                 'work_key' => $suggestion->candidate->workKey,
                 'reason' => $suggestion->reason,
+                'pages' => $suggestion->candidate->pages,
                 'based_on_book_id' => $basedOnBookId,
                 'status' => RecommendationStatus::New,
             ])->id;
@@ -39,14 +40,14 @@ final class PendingRecommendations
     }
 
     /**
-     * Pending suggestions by a requested author, newest first. Without page counts they cannot be checked
-     * against a page limit, so a request with one leaves them out.
+     * Pending suggestions by a requested author, newest first, that fit the request's page limit. A pending
+     * suggestion whose page count is unknown cannot be checked against a limit, so it is left out when there is one.
      *
      * @return list<int>
      */
     public function matchingIds(SearchScope $scope): array
     {
-        if (! $scope->hasAuthors() || $scope->hasPageLimit()) {
+        if (! $scope->hasAuthors()) {
             return [];
         }
 
@@ -54,7 +55,8 @@ final class PendingRecommendations
             ->where('status', RecommendationStatus::New)
             ->latest('id')
             ->get()
-            ->filter(fn (Recommendation $recommendation): bool => $this->isByRequestedAuthor($recommendation, $scope))
+            ->filter(fn (Recommendation $recommendation): bool => $this->isByRequestedAuthor($recommendation, $scope)
+                && $scope->fitsPages($recommendation->pages))
             ->take(SearchScope::MAX_RESULTS);
 
         return array_values($matching->map(fn (Recommendation $recommendation): int => $recommendation->id)->all());
