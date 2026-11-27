@@ -1,7 +1,7 @@
 import { translateText } from '@/lib/i18n';
 import type { Locale } from '@/lib/i18n';
 import type { Toast } from '@/types';
-import { editionsOfWork, searchBooks } from '../external/book-search';
+import { editionsOfWork } from '../external/book-search';
 import { createReadModel } from '../domain/read-model';
 import {
     addSuggestionToLibrary,
@@ -15,7 +15,6 @@ import {
 } from '../presenters/suggestions';
 import {
     json,
-    redirect,
     redirectBack,
     render,
     route,
@@ -27,7 +26,6 @@ import type {
     RecommendationRow,
     RecommendationStatus,
 } from '../state/types';
-import { candidatePayloads } from '../presenters/candidates';
 import { integerOrNull, plainSuccessToast } from './route-input';
 
 const EDITIONS_TIMEOUT_MS = 8000;
@@ -113,33 +111,11 @@ function addedToLibraryToast(
     };
 }
 
-route('GET', SUGGESTIONS_PATH, ({ state, today, query }) => {
-    const model = createReadModel(state, today, new Date());
-    const text = (query.get('q') ?? '').trim();
-
-    if (text === '') {
-        return render('suggestions', suggestionsPageProps(model, text, []));
-    }
-
-    return searchResults(state, today, text);
-});
-
-async function searchResults(state: DemoState, today: string, text: string) {
-    const found = await searchBooks(text, null);
-    const model = createReadModel(state, today, new Date());
-
-    return render(
+route('GET', SUGGESTIONS_PATH, ({ state, today }) =>
+    render(
         'suggestions',
-        suggestionsPageProps(model, text, candidatePayloads(state, found)),
-    );
-}
-
-route('POST', '/suggestions/generate', ({ locale }) =>
-    redirect(SUGGESTIONS_PATH, {
-        toast: plainSuccessToast(
-            translateText(locale, 'Nenhuma sugestão nova'),
-        ),
-    }),
+        suggestionsPageProps(createReadModel(state, today, new Date())),
+    ),
 );
 
 route('GET', '/suggestions/{recommendation}/editions', async (context) => {

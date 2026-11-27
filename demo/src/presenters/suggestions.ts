@@ -15,8 +15,6 @@ const SOURCE_RATINGS: readonly number[] = [4, 5];
 const INTERPRETER_MODEL = 'qwen3:4b';
 
 type SuggestionsPageProps = {
-    query: string;
-    results: CandidatePayload[];
     suggestions: Suggestion[];
     hasSources: boolean;
     request: null;
@@ -49,14 +47,8 @@ function hasSuggestionSources(model: ReadModel): boolean {
     );
 }
 
-export function suggestionsPageProps(
-    model: ReadModel,
-    query: string,
-    results: CandidatePayload[],
-): SuggestionsPageProps {
+export function suggestionsPageProps(model: ReadModel): SuggestionsPageProps {
     return {
-        query,
-        results,
         suggestions: newSuggestionsNewestFirst(model).map((recommendation) =>
             recommendationCard(model, recommendation),
         ),

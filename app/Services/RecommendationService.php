@@ -14,14 +14,13 @@ use App\Services\Recommendation\SourceBooks;
 use App\Services\Recommendation\SuggestionGenerator;
 use App\Services\Recommendation\TodaySuggestion;
 use App\Services\Recommendation\WorkEditions;
-use App\Services\Recommendation\WorkSearch;
 
 /**
  * Suggests books you have not read yet: other works, in Open Library, by the authors of the books rated
  * 4 or 5, of the books on "Quero ler" and of the unbought shopping list.
  *
- * When to generate: only when the user asks (the "Find new suggestions" button or
- * `php artisan releia:suggestions`). There is no queue or cron, because the app is local.
+ * When to generate: only when the user asks, by writing a request on the suggestions screen or with
+ * `php artisan releia:suggestions`. There is no queue or cron, because the app is local.
  * Opening the screen and today() never touch the network.
  *
  * Only Brazilian editions are suggested (ISBN 978-85/65), and the Portuguese title comes from the
@@ -41,7 +40,6 @@ class RecommendationService
         private readonly OpenLibraryAvailability $availability,
         private readonly SuggestionGenerator $generator,
         private readonly TodaySuggestion $today,
-        private readonly WorkSearch $workSearch,
         private readonly WorkEditions $workEditions,
         private readonly LibraryIntake $intake,
     ) {}
@@ -81,14 +79,6 @@ class RecommendationService
     public function today(): ?Recommendation
     {
         return $this->today->pick();
-    }
-
-    /**
-     * @return list<BookCandidate>
-     */
-    public function search(string $text): array
-    {
-        return $this->workSearch->search($text);
     }
 
     /**

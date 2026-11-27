@@ -27,22 +27,21 @@ class SuggestionController extends Controller
         private readonly RequestInterpreter $interpreter,
     ) {}
 
-    public function index(Request $request): Response
+    public function index(): Response
     {
-        $query = trim((string) $request->string('q'));
+        $remembered = $this->requests->remembered();
 
         return Inertia::render('suggestions', [
-            'query' => $query,
-            'results' => fn () => BookPresenter::candidates($this->suggestions->search($query)),
             'suggestions' => fn () => Recommendation::query()
                 ->with('basedOn')
                 ->where('status', RecommendationStatus::New)
+                ->whereNotIn('id', $remembered instanceof RememberedRequest ? $remembered->ids : [])
                 ->latest('id')
                 ->get()
                 ->map(RecommendationPresenter::card(...))
                 ->values(),
             'hasSources' => fn () => $this->suggestions->hasSources(),
-            'request' => fn () => $this->rememberedRequest(),
+            'request' => fn () => $this->rememberedRequest($remembered),
             'interpreter' => ['model' => config('services.ollama.chat_model')],
             'interpreterAvailability' => Inertia::defer(fn () => $this->interpreter->availability()->value),
         ]);
@@ -51,10 +50,8 @@ class SuggestionController extends Controller
     /**
      * @return array<string, mixed>|null
      */
-    private function rememberedRequest(): ?array
+    private function rememberedRequest(?RememberedRequest $remembered): ?array
     {
-        $remembered = $this->requests->remembered();
-
         if (! $remembered instanceof RememberedRequest) {
             return null;
         }
@@ -64,27 +61,9 @@ class SuggestionController extends Controller
             'authors' => $remembered->authors,
             'excluded_authors' => $remembered->excludedAuthors,
             'max_pages' => $remembered->maxPages,
+            'found' => count($remembered->ids),
             'results' => $this->requests->resultsOf($remembered)->map(RecommendationPresenter::card(...))->values(),
         ];
-    }
-
-    public function generate(): RedirectResponse
-    {
-        $added = $this->suggestions->generate();
-
-        if ($added === 0 && $this->suggestions->isSearchSourceUnavailable()) {
-            Toast::error(__('A Open Library está indisponível'), __('Tente de novo em alguns minutos.'));
-
-            return to_route('suggestions.index');
-        }
-
-        Toast::success(match ($added) {
-            0 => __('Nenhuma sugestão nova'),
-            1 => __('1 sugestão nova'),
-            default => __(':count sugestões novas', ['count' => $added]),
-        });
-
-        return to_route('suggestions.index');
     }
 
     public function editions(Recommendation $recommendation): JsonResponse

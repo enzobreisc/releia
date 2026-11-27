@@ -19,7 +19,20 @@ class GenerateSuggestions extends Command
             return self::SUCCESS;
         }
 
-        $this->info(__(':count sugestões novas', ['count' => $suggestions->generate()]));
+        $added = $suggestions->generate();
+
+        if ($added === 0 && $suggestions->isSearchSourceUnavailable()) {
+            $this->warn(__('A Open Library está indisponível'));
+            $this->warn(__('Tente de novo em alguns minutos.'));
+
+            return self::SUCCESS;
+        }
+
+        $this->info(match ($added) {
+            0 => __('Nenhuma sugestão nova'),
+            1 => __('1 sugestão nova'),
+            default => __(':count sugestões novas', ['count' => $added]),
+        });
 
         return self::SUCCESS;
     }

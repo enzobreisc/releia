@@ -77,9 +77,30 @@ test('the reader is told that Open Library is unavailable', function () {
     takeOpenLibraryDown();
     rateBooksByAuthors(6);
 
-    $this->post(route('suggestions.generate'))
+    $this->post(route('suggestions.requests.store'), ['text' => 'mais', 'authors' => ['Autor 1', 'Autor 2', 'Autor 3']])
         ->assertSessionHas('toast.kind', 'error')
-        ->assertSessionHas('toast.title', 'A Open Library está indisponível');
+        ->assertSessionHas('toast.title', 'A Open Library está indisponível')
+        ->assertSessionHasErrors(['search' => 'A Open Library está indisponível']);
+});
+
+test('the command says Open Library is down when nothing was added because of it', function () {
+    takeOpenLibraryDown();
+    rateBooksByAuthors(6);
+
+    $this->artisan('releia:suggestions')
+        ->expectsOutputToContain('A Open Library está indisponível')
+        ->doesntExpectOutputToContain('sugestões novas')
+        ->assertSuccessful();
+});
+
+test('the command says no new suggestion when the search finds none', function () {
+    Http::fake(['openlibrary.org/*' => Http::response(['docs' => []])]);
+    rateBooksByAuthors(2);
+
+    $this->artisan('releia:suggestions')
+        ->expectsOutputToContain('Nenhuma sugestão nova')
+        ->doesntExpectOutputToContain('A Open Library está indisponível')
+        ->assertSuccessful();
 });
 
 test('no source is searched after the time budget is over', function () {

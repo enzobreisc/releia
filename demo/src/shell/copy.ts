@@ -34,6 +34,10 @@ type ShellCopy = {
         title: string;
         body: string;
     };
+    suggestionRequestNotice: {
+        title: string;
+        body: string;
+    };
     welcome: {
         headline: string;
         intro: string;
@@ -99,6 +103,10 @@ const SHELL_COPY_SOURCE: ShellCopy = {
     bookKeyNotice: {
         title: 'Chave do Google Books: só no app',
         body: 'No app você cola a sua chave aqui e ela fica criptografada no banco local. A demonstração não pede nem guarda chaves.',
+    },
+    suggestionRequestNotice: {
+        title: 'Nesta demonstração as sugestões já vêm prontas',
+        body: 'No app, você escreve o pedido e um modelo no seu computador o transforma em busca na Open Library.',
     },
     welcome: {
         headline: 'Um catálogo dos livros físicos que você lê.',
