@@ -11,11 +11,16 @@ import { recommendationCard } from './recommendation';
 
 const SOURCE_RATINGS: readonly number[] = [4, 5];
 
+/** The demo never runs Ollama, so it shows the model the app is configured with by default. */
+const INTERPRETER_MODEL = 'qwen3:4b';
+
 type SuggestionsPageProps = {
     query: string;
     results: CandidatePayload[];
     suggestions: Suggestion[];
     hasSources: boolean;
+    request: null;
+    interpreter: { model: string };
 };
 
 function newSuggestionsNewestFirst(model: ReadModel): RecommendationRow[] {
@@ -56,6 +61,8 @@ export function suggestionsPageProps(
             recommendationCard(model, recommendation),
         ),
         hasSources: hasSuggestionSources(model),
+        request: null,
+        interpreter: { model: INTERPRETER_MODEL },
     };
 }
 

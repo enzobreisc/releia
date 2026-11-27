@@ -38,7 +38,7 @@ final class CandidateFinder
 
         foreach ($candidates as $candidate) {
             // The author search also returns works by co-authors and namesakes: only valid if the author is on the work.
-            if (! $this->isUsable($candidate) || ! $this->isBy($candidate, $author)) {
+            if (! $this->isUsable($candidate) || ! $this->isBy($candidate, $source)) {
                 continue;
             }
 
@@ -77,12 +77,8 @@ final class CandidateFinder
             && ! BookIdentity::isAuthorName($candidate->title, $candidate->authors);
     }
 
-    private function isBy(BookCandidate $candidate, string $author): bool
+    private function isBy(BookCandidate $candidate, Source $source): bool
     {
-        return in_array(
-            BookIdentity::normalize($author),
-            array_map(BookIdentity::normalize(...), $candidate->authors),
-            true,
-        );
+        return array_any($candidate->authors, $source->matchesAuthor(...));
     }
 }

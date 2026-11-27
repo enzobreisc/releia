@@ -7,6 +7,9 @@ use App\Http\Presenters\BookPresenter;
 use App\Http\Presenters\RecommendationPresenter;
 use App\Models\Book;
 use App\Models\Recommendation;
+use App\Services\Ai\RequestInterpreter;
+use App\Services\Recommendation\RememberedRequest;
+use App\Services\Recommendation\RequestedSuggestions;
 use App\Services\RecommendationService;
 use App\Services\UndoService;
 use App\Support\Toast;
@@ -18,7 +21,11 @@ use Inertia\Response;
 
 class SuggestionController extends Controller
 {
-    public function __construct(private readonly RecommendationService $suggestions) {}
+    public function __construct(
+        private readonly RecommendationService $suggestions,
+        private readonly RequestedSuggestions $requests,
+        private readonly RequestInterpreter $interpreter,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -35,7 +42,30 @@ class SuggestionController extends Controller
                 ->map(RecommendationPresenter::card(...))
                 ->values(),
             'hasSources' => fn () => $this->suggestions->hasSources(),
+            'request' => fn () => $this->rememberedRequest(),
+            'interpreter' => ['model' => config('services.ollama.chat_model')],
+            'interpreterAvailability' => Inertia::defer(fn () => $this->interpreter->availability()->value),
         ]);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function rememberedRequest(): ?array
+    {
+        $remembered = $this->requests->remembered();
+
+        if (! $remembered instanceof RememberedRequest) {
+            return null;
+        }
+
+        return [
+            'text' => $remembered->text,
+            'authors' => $remembered->authors,
+            'excluded_authors' => $remembered->excludedAuthors,
+            'max_pages' => $remembered->maxPages,
+            'results' => $this->requests->resultsOf($remembered)->map(RecommendationPresenter::card(...))->values(),
+        ];
     }
 
     public function generate(): RedirectResponse
