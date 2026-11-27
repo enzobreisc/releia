@@ -51,9 +51,10 @@ final readonly class SearchScope
         return $this->authors !== [];
     }
 
-    public function hasPageLimit(): bool
+    /** A work of unknown length does not fit a limit: its page count cannot be checked. */
+    public function fitsPages(?int $pages): bool
     {
-        return $this->maxPages !== null;
+        return $this->maxPages === null || ($pages !== null && $pages <= $this->maxPages);
     }
 
     /** @param  list<string>  $names */
