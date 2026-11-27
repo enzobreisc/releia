@@ -43,7 +43,7 @@ return [
     'ollama' => [
         'url' => env('OLLAMA_URL', 'http://localhost:11434'),
         'chat_model' => env('OLLAMA_CHAT_MODEL', 'qwen3:4b'),
-        'timeout' => 60,
+        'timeout' => (int) env('OLLAMA_CHAT_TIMEOUT', 60),
     ],
 
     'google_books' => [

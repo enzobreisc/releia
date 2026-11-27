@@ -16,6 +16,11 @@ final readonly class OllamaRequestInterpreter implements RequestInterpreter
 
     private const CONNECT_TIMEOUT_SECONDS = 1;
 
+    private const CURL_TIMEOUT = 28;
+
+    /** cURL reports a connect timeout as "Connection timed out", so this only matches a timeout after connecting. */
+    private const AFTER_CONNECT_TIMEOUT = 'Operation timed out';
+
     private const PROBE_TIMEOUT_SECONDS = 2;
 
     private const KEEP_ALIVE = '5m';
@@ -58,7 +63,7 @@ final readonly class OllamaRequestInterpreter implements RequestInterpreter
                 ],
             ]);
         } catch (ConnectionException $exception) {
-            throw new InterpreterUnavailable(InterpreterAvailability::ServerUnreachable, $exception);
+            throw $this->failureOf($exception);
         }
 
         $this->ensureAnswered($response);
@@ -71,8 +76,8 @@ final readonly class OllamaRequestInterpreter implements RequestInterpreter
     {
         try {
             $response = $this->client(self::PROBE_TIMEOUT_SECONDS)->post(self::SHOW_PATH, ['model' => $this->model]);
-        } catch (ConnectionException) {
-            return InterpreterAvailability::ServerUnreachable;
+        } catch (ConnectionException $exception) {
+            return $this->isTimeout($exception) ? InterpreterAvailability::Ready : InterpreterAvailability::ServerUnreachable;
         }
 
         if ($response->successful()) {
@@ -80,6 +85,21 @@ final readonly class OllamaRequestInterpreter implements RequestInterpreter
         }
 
         return $response->notFound() ? InterpreterAvailability::ModelMissing : InterpreterAvailability::ServerUnreachable;
+    }
+
+    /** A connection that was accepted and then ran out of time, unlike one that was refused. */
+    private function failureOf(ConnectionException $exception): InterpreterUnavailable|InterpreterTimedOut
+    {
+        return $this->isTimeout($exception)
+            ? new InterpreterTimedOut('The request interpreter did not answer in time.', previous: $exception)
+            : new InterpreterUnavailable(InterpreterAvailability::ServerUnreachable, $exception);
+    }
+
+    private function isTimeout(ConnectionException $exception): bool
+    {
+        $message = $exception->getMessage();
+
+        return str_contains($message, 'cURL error '.self::CURL_TIMEOUT.':') && str_contains($message, self::AFTER_CONNECT_TIMEOUT);
     }
 
     private function ensureAnswered(Response $response): void

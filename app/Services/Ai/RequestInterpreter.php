@@ -6,6 +6,7 @@ interface RequestInterpreter
 {
     /**
      * @throws InterpreterUnavailable
+     * @throws InterpreterTimedOut
      */
     public function interpret(string $text): ReadingFilters;
 
