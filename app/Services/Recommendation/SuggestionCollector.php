@@ -17,23 +17,23 @@ final class SuggestionCollector
      * Gathers the candidates of every source, merging the ones several sources point to.
      *
      * @param  list<Source>  $sources
-     * @param  array<string, true>  $blocked
      * @return list<Suggestion>
      */
-    public function collect(array $sources, array $blocked, int $page, float $deadline): array
+    public function collect(array $sources, SuggestionSearch $search, int $page): array
     {
         /** @var array<int, Suggestion> $found */
         $found = [];
         /** @var array<string, int> $index identity key → position in $found */
         $index = [];
+        $blocked = $search->blocked();
 
         foreach ($sources as $source) {
             // Searches go over the network: on timeout, it carries on with what already came.
-            if (SearchBudget::isExceeded($deadline) || $this->availability->isUnavailable()) {
+            if ($search->isOutOfTime() || $this->availability->isUnavailable()) {
                 break;
             }
 
-            foreach ($this->finder->forSource($source, $page) as $suggestion) {
+            foreach ($this->finder->forSource($source, $page, $search) as $suggestion) {
                 $keys = self::keysOf($suggestion->candidate);
 
                 if (array_intersect_key(array_flip($keys), $blocked) !== []) {

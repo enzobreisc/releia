@@ -19,7 +19,7 @@ final class CandidateFinder
     /**
      * @return list<Suggestion>
      */
-    public function forSource(Source $source, int $page): array
+    public function forSource(Source $source, int $page, SuggestionSearch $search): array
     {
         $author = $source->author;
 
@@ -28,10 +28,10 @@ final class CandidateFinder
         }
 
         // Most authors do not fill every page, and an empty one would leave them out of the search.
-        $candidates = $this->worksOf($author, $page);
+        $candidates = $this->worksOf($author, $page, $search);
 
         if ($candidates === [] && $page > 1 && ! $this->availability->hasJustFailed()) {
-            $candidates = $this->worksOf($author, 1);
+            $candidates = $this->worksOf($author, 1, $search);
         }
 
         $suggestions = [];
@@ -51,11 +51,16 @@ final class CandidateFinder
     /**
      * @return list<BookCandidate>
      */
-    private function worksOf(string $author, int $page): array
+    private function worksOf(string $author, int $page, SuggestionSearch $search): array
     {
-        return $this->cache->remember(
-            'author:'.BookIdentity::normalize($author).':p'.$page,
-            fn () => $this->openLibrary->searchByAuthor($author, $page),
+        $authorKey = BookIdentity::normalize($author);
+
+        return $search->answerTo(
+            "{$authorKey}:p{$page}",
+            fn () => $this->cache->remember(
+                "author:{$authorKey}:p{$page}",
+                fn () => $this->openLibrary->searchByAuthor($author, $page),
+            ),
         );
     }
 

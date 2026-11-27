@@ -27,11 +27,11 @@ use App\Services\Recommendation\WorkSearch;
  * edition found by ISBN. A candidate pointed to by several of your books rises in the list, and
  * popularity on Open Library separates the well-known from the obscure.
  *
- * Limits: at most six sources per search, two of them reserved for "Quero ler" and shopping list books
- * when there are any. Each source costs one Open Library author search,
- * with an 8s timeout. A search stops after 20s and keeps what it found, and at most three works by the
- * same author are suggested per search. Each query is cached for 7 days; empty or failed responses are
- * not stored, so they can be retried later.
+ * Limits: at most eight sources per search, two of them reserved for "Quero ler" and shopping list books
+ * when there are any. Each source costs one Open Library author search per page read, with an 8s timeout.
+ * A search reads up to three pages until it has 20 new suggestions, stops after 20s and keeps what it found,
+ * and at most three works by the same author are suggested per search. Each query is cached for 7 days;
+ * empty or failed responses are not stored, so they can be retried later.
  */
 class RecommendationService
 {

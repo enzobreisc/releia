@@ -12,7 +12,7 @@ final class SourceBooks
 {
     public const FOUR_STAR_WEIGHT = 0.7;
 
-    private const MAX_SOURCES = 6;
+    private const MAX_SOURCES = 8;
 
     /** Reserved for the interest sources when there are any, so rated books cannot take every slot. */
     private const INTEREST_SLOTS = 2;

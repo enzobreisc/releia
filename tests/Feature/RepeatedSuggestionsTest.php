@@ -4,6 +4,7 @@ use App\Enums\RecommendationStatus;
 use App\Models\Recommendation;
 use App\Services\RecommendationService;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -73,12 +74,6 @@ function expireSuggestionsOf(string ...$authors): void
     }
 }
 
-function assertAuthorPageRequested(int $page): void
-{
-    Http::assertSent(fn (Request $request) => ($request->data()['author'] ?? null) === 'Autora Um'
-        && (int) $request->data()['page'] === $page);
-}
-
 test('a suggestion pushed out of the pending list is kept as expired', function () {
     fakeOneWorkPerAuthor();
     rateOneBookPerAuthor();
@@ -116,15 +111,22 @@ test('a dismissed suggestion stays out even if it had expired before', function 
         ->not->toContain('Primeiro Rio');
 });
 
-test('each search reads the next page of the author works', function () {
+test('each search starts on the next page of the author works', function () {
     fakeOneWorkPerAuthor();
     rateOneBookPerAuthor();
+    app(RecommendationService::class)->generate();
+    // Cached pages are not requested again, so the next request shows the page the search starts on.
+    Cache::flush();
+    $sent = count(Http::recorded());
 
     app(RecommendationService::class)->generate();
-    app(RecommendationService::class)->generate();
 
-    assertAuthorPageRequested(1);
-    assertAuthorPageRequested(2);
+    $firstAuthorRequest = collect(Http::recorded())
+        ->slice($sent)
+        ->map(fn (array $pair) => $pair[0])
+        ->first(fn (Request $request) => isset($request->data()['author']));
+
+    expect((int) $firstAuthorRequest->data()['page'])->toBe(2);
 });
 
 test('an author without further pages is searched on the first one again', function () {
